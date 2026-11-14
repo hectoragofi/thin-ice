@@ -59,7 +59,8 @@ def job_row(job: Path) -> tuple[str, list[str]]:
                 kinds["never reached" if not r["history"] else "left unfinished"] += 1
             elif r["status"] == "failed":
                 g = diagnose(r)
-                kinds[g["kind"] if g else "lost"] += 1
+                given = {"out of time": "puzzle clock ran out", "skipped": "given up"}.get(r.get("reason"), "lost")
+                kinds[g["kind"] if g else given] += 1
         ends[ending(t)] += 1
     name = job.name
     n = len(rewards)

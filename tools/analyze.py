@@ -24,8 +24,8 @@ POOL = {p.index: p for p in load_pack(ROOT / "task" / "environment" / "game-serv
 
 def diagnose(row: dict) -> dict | None:
     """Replays a lost puzzle and judges the losing move. Returns None for puzzles not lost."""
-    if row["status"] != "failed" or not row["history"]:
-        return None
+    if row["status"] != "failed" or not row["history"] or row.get("reason") in ("out of time", "skipped"):
+        return None  # no losing move to judge: never lost, clock ran out, or given up
     puzzle = POOL[row["index"]]
     blue, red = puzzle.blue, puzzle.red
     for played, reply in row["history"][:-1]:

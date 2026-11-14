@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import time
 from collections import defaultdict
 
 from .board import key, mask_of, move_name, parse_move, render, sq_name, squares
@@ -18,6 +19,12 @@ LOSS0 = 128  # child value: the opponent has already lost (three in a row, or ca
 
 class GameError(Exception):
     """A request the game refuses without changing any state."""
+
+
+def clock_text(seconds: float) -> str:
+    """Seconds as m:ss."""
+    whole = int(seconds)
+    return f"{whole // 60}:{whole % 60:02d}"
 
 
 class Puzzle:
@@ -57,10 +64,13 @@ def pick(pool: list, seed, tiers, per_tier: int) -> list:
 class Attempt:
     """One play-through of one puzzle. There is no undo and no second attempt."""
 
-    def __init__(self, pid: str, puzzle: Puzzle, practice: bool = False):
+    def __init__(self, pid: str, puzzle: Puzzle, practice: bool = False, clock: float | None = None, now=time.monotonic):
         self.pid = pid
         self.puzzle = puzzle
         self.practice = practice
+        self.clock = clock  # seconds allowed from the first look at the puzzle; None means no clock
+        self.started = None  # when the puzzle was first looked at (set by Run.get)
+        self._now = now
         self.blue = puzzle.blue
         self.red = puzzle.red
         self.used = 0
@@ -71,11 +81,19 @@ class Attempt:
     def _entries(self) -> list:
         return self.puzzle.nodes[key(self.blue, self.red)]
 
+    def time_left(self) -> float | None:
+        """Seconds left on this puzzle's clock, the full allowance before the first look, None without a clock."""
+        if self.clock is None:
+            return None
+        if self.started is None:
+            return float(self.clock)
+        return max(0.0, self.clock - (self._now() - self.started))
+
     def legal(self) -> list:
         return [move_name(e) for e in self._entries()] if self.status == "open" else []
 
     def view(self) -> dict:
-        return {
+        v = {
             "id": self.pid,
             "practice": self.practice,
             "status": self.status,
@@ -89,6 +107,10 @@ class Attempt:
             "legal_moves": self.legal(),
             "history": self.history,
         }
+        if self.clock is not None:
+            v["clock_seconds"] = self.clock
+            v["seconds_left"] = int(self.time_left())
+        return v
 
     def text(self) -> str:
         v = self.view()
@@ -104,7 +126,8 @@ class Attempt:
     def move(self, text: str) -> dict:
         """Play a Blue move. Returns what happened; raises GameError if nothing was played."""
         if self.status != "open":
-            raise GameError(f"{self.pid} is already {self.status}; it cannot be played again")
+            why = f" ({self.reason})" if self.reason else ""
+            raise GameError(f"{self.pid} is already {self.status}{why}; it cannot be played again")
         try:
             f, t = parse_move(text)
         except ValueError as exc:
@@ -160,9 +183,15 @@ class Attempt:
 class Run:
     """A scored episode: a fixed set of puzzles plus an unlimited-feedback practice pool."""
 
-    def __init__(self, scored: list, practice: list, seed=0):
+    def __init__(self, scored: list, practice: list, seed=0, clock=None, now=time.monotonic):
+        """`clock(win_in) -> seconds` gives every scored puzzle its own clock; without it nothing is timed."""
         self.seed = seed
-        self.attempts = {f"P{i + 1:02d}": Attempt(f"P{i + 1:02d}", p) for i, p in enumerate(scored)}
+        self._now = now
+        self.expired: list = []  # puzzles whose clock ran out, until whoever tells the player takes them
+        self.attempts = {
+            f"P{i + 1:02d}": Attempt(f"P{i + 1:02d}", p, clock=clock(p.need) if clock else None, now=now)
+            for i, p in enumerate(scored)
+        }
         self._practice = defaultdict(list)
         for p in practice:
             self._practice[p.need].append(p)
@@ -173,7 +202,22 @@ class Run:
         """The scored puzzle in play: the first one still open. Puzzles are played one at a time, in order."""
         return next((a for a in self.attempts.values() if a.status == "open"), None)
 
-    def get(self, pid: str) -> Attempt:
+    def tick(self) -> list:
+        """Ends the current puzzle if its clock has run out; the next one then unlocks. Returns what just expired.
+
+        Only the current puzzle can have a running clock, so one check is enough. Every way
+        into a scored puzzle goes through here first, so a late move never reaches the board.
+        """
+        cur = self.current()
+        if cur is not None and cur.started is not None and cur.time_left() <= 0:
+            cur.status, cur.reason = "failed", "out of time"
+            self.expired.append(cur)
+            return [cur]
+        return []
+
+    def get(self, pid: str, look: bool = True) -> Attempt:
+        """The puzzle with this id, if it may be touched now. `look=False` does not start its clock."""
+        self.tick()
         pid = str(pid).strip().upper()
         att = self.attempts.get(pid) or self.practice_attempts.get(pid)
         if att is None:
@@ -184,6 +228,8 @@ class Run:
                 f"{pid} is locked: scored puzzles are played one at a time, in order. "
                 f"The current puzzle is {cur.pid}; win it, lose it, or give it up with skip_puzzle to unlock the next one."
             )
+        if look and att is cur and att.clock is not None and att.started is None:
+            att.started = self._now()  # the clock starts at the first look, never before
         return att
 
     def skip(self, pid: str) -> Attempt:
@@ -209,6 +255,7 @@ class Run:
         return self.practice_attempts[pid]
 
     def scorecard(self) -> dict:
+        self.tick()
         rows = [
             {
                 "id": a.pid,
@@ -236,11 +283,16 @@ class Run:
 
     def table(self) -> str:
         card = self.scorecard()
-        lines = ["id   win-in  status  moves"]
         cur = self.current()
+        timed = any(a.clock is not None for a in self.attempts.values())
+        lines = ["id   win-in  status  moves" + ("  clock" if timed else "")]
         for r in card["puzzles"]:
             status = r["status"] if r["status"] != "open" else ("current" if cur and r["id"] == cur.pid else "locked")
-            lines.append(f"{r['id']:<4} {r['win_in']:<7} {status:<7} {r['moves_used']}/{r['moves_allowed']}")
+            line = f"{r['id']:<4} {r['win_in']:<7} {status:<7} {r['moves_used']}/{r['moves_allowed']}"
+            att = self.attempts[r["id"]]
+            if att.clock is not None and att.status == "open":
+                line += f"    {clock_text(att.time_left())}" + (" left" if att.started is not None else "")
+            lines.append(line)
         lines.append(f"Solved {card['solved']} of {card['total']}. Score: {card['score']:.3f}")
         return "\n".join(lines)
 

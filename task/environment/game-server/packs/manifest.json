@@ -46,6 +46,11 @@
   ],
   "per_tier": 2,
   "slack": 1,
+  "clock": {
+    "base_sec": 0,
+    "per_move_sec": 120,
+    "run_sec": 1800
+  },
   "pool": {
     "1": {
       "scored": 30,

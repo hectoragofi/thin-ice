@@ -47,6 +47,9 @@ POOL = 30  # most scored puzzles per tier (the run seed picks PER_TIER of them)
 PRACTICE = 20  # most practice puzzles per tier
 EVAL = 50  # puzzles per tier in the separate pool used to evaluate trained models
 SLACK = 1  # extra Blue moves allowed beyond the fastest win
+# Each scored puzzle's own clock: base_sec + per_move_sec for every move of its forced win, counted from
+# the first look. run_sec is the whole run's limit and must equal [agent] timeout_sec in task/task.toml.
+CLOCK = {"base_sec": 0, "per_move_sec": 120, "run_sec": 1800}
 DEEP = 13  # from this depth on, independent puzzles are scarce and need a wider search
 SEED = 20261114
 
@@ -199,6 +202,7 @@ def main() -> None:
         "win_in": [(d + 1) // 2 for d in tiers],
         "per_tier": PER_TIER,
         "slack": SLACK,
+        "clock": CLOCK,
         "pool": sizes,
         "build_seed": SEED,
         "positions": int(tb.stat().st_size),
