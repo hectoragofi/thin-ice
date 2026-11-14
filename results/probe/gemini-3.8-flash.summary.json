@@ -1,0 +1,156 @@
+{
+  "model": "gemini-3.8-flash",
+  "tag": "",
+  "tiers": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "per_tier": 10,
+  "max_output_tokens": 64000,
+  "thinking_level": "API default",
+  "puzzles_solved_by_win_in": {
+    "1": 1.0,
+    "2": 0.8,
+    "3": 0.3,
+    "4": 0.0,
+    "5": 0.0,
+    "6": 0.0
+  },
+  "score_these_tiers": 0.35,
+  "score_all_task_tiers": 0.35,
+  "first_move_by_win_in": {
+    "1": {
+      "calls": 10,
+      "right": 10,
+      "wrong": 0,
+      "illegal": 0,
+      "no_answer": 0,
+      "chance": 0.052,
+      "thinking_tokens_median": 561,
+      "hit_output_limit": 0
+    },
+    "2": {
+      "calls": 10,
+      "right": 8,
+      "wrong": 2,
+      "illegal": 0,
+      "no_answer": 0,
+      "chance": 0.051,
+      "thinking_tokens_median": 7330,
+      "hit_output_limit": 0
+    },
+    "3": {
+      "calls": 10,
+      "right": 4,
+      "wrong": 6,
+      "illegal": 0,
+      "no_answer": 0,
+      "chance": 0.049,
+      "thinking_tokens_median": 5482,
+      "hit_output_limit": 0
+    },
+    "4": {
+      "calls": 10,
+      "right": 4,
+      "wrong": 6,
+      "illegal": 0,
+      "no_answer": 0,
+      "chance": 0.056,
+      "thinking_tokens_median": 5680,
+      "hit_output_limit": 0
+    },
+    "5": {
+      "calls": 10,
+      "right": 3,
+      "wrong": 7,
+      "illegal": 0,
+      "no_answer": 0,
+      "chance": 0.061,
+      "thinking_tokens_median": 5290,
+      "hit_output_limit": 0
+    },
+    "6": {
+      "calls": 10,
+      "right": 3,
+      "wrong": 7,
+      "illegal": 0,
+      "no_answer": 0,
+      "chance": 0.05,
+      "thinking_tokens_median": 6675,
+      "hit_output_limit": 0
+    }
+  },
+  "every_move_by_moves_left": {
+    "1": {
+      "calls": 21,
+      "right": 21,
+      "wrong": 0,
+      "illegal": 0,
+      "no_answer": 0,
+      "chance": 0.07,
+      "thinking_tokens_median": 1801,
+      "hit_output_limit": 0
+    },
+    "2": {
+      "calls": 16,
+      "right": 11,
+      "wrong": 5,
+      "illegal": 0,
+      "no_answer": 0,
+      "chance": 0.061,
+      "thinking_tokens_median": 5422,
+      "hit_output_limit": 0
+    },
+    "3": {
+      "calls": 16,
+      "right": 6,
+      "wrong": 10,
+      "illegal": 0,
+      "no_answer": 0,
+      "chance": 0.057,
+      "thinking_tokens_median": 5482,
+      "hit_output_limit": 0
+    },
+    "4": {
+      "calls": 15,
+      "right": 6,
+      "wrong": 9,
+      "illegal": 0,
+      "no_answer": 0,
+      "chance": 0.049,
+      "thinking_tokens_median": 3641,
+      "hit_output_limit": 0
+    },
+    "5": {
+      "calls": 13,
+      "right": 3,
+      "wrong": 10,
+      "illegal": 0,
+      "no_answer": 0,
+      "chance": 0.061,
+      "thinking_tokens_median": 4279,
+      "hit_output_limit": 0
+    },
+    "6": {
+      "calls": 10,
+      "right": 3,
+      "wrong": 7,
+      "illegal": 0,
+      "no_answer": 0,
+      "chance": 0.05,
+      "thinking_tokens_median": 6675,
+      "hit_output_limit": 0
+    }
+  },
+  "calls_new": 0,
+  "calls_cached": 91,
+  "tokens": {
+    "prompt": 46457,
+    "thoughts": 566365,
+    "out": 455
+  }
+}
