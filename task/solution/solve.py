@@ -13,11 +13,16 @@ import urllib.request
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+URL = os.environ.get("THINICE_URL", "http://game:8000").rstrip("/")
+
+# Ask the game how big the board is before loading the rules module.
+with urllib.request.urlopen(URL + "/api/rules", timeout=60) as _resp:
+    _info = json.loads(_resp.read())
+os.environ["THINICE_W"], os.environ["THINICE_H"] = str(_info["width"]), str(_info["height"])
+
 sys.path.insert(0, str(HERE))
 from thinice.board import key, mask_of, move_name, parse_sq  # noqa: E402
 from thinice.search import find_win  # noqa: E402
-
-URL = os.environ.get("THINICE_URL", "http://game:8000").rstrip("/")
 MODE = os.environ.get("SOLUTION", "book")
 SEARCH_SECONDS = float(os.environ.get("SEARCH_SECONDS", "60"))
 # STOP_AFTER=4 plays only the first four puzzles and then quits: the stop-early baseline.

@@ -1,0 +1,983 @@
+{
+  "reward": 1.0,
+  "solved": 24,
+  "total": 24,
+  "seed": "1",
+  "practice_started": 6,
+  "by_win_in": {
+    "1": {
+      "solved": 2,
+      "failed": 0,
+      "open": 0
+    },
+    "2": {
+      "solved": 2,
+      "failed": 0,
+      "open": 0
+    },
+    "3": {
+      "solved": 2,
+      "failed": 0,
+      "open": 0
+    },
+    "4": {
+      "solved": 2,
+      "failed": 0,
+      "open": 0
+    },
+    "5": {
+      "solved": 2,
+      "failed": 0,
+      "open": 0
+    },
+    "6": {
+      "solved": 2,
+      "failed": 0,
+      "open": 0
+    },
+    "7": {
+      "solved": 2,
+      "failed": 0,
+      "open": 0
+    },
+    "8": {
+      "solved": 2,
+      "failed": 0,
+      "open": 0
+    },
+    "9": {
+      "solved": 2,
+      "failed": 0,
+      "open": 0
+    },
+    "10": {
+      "solved": 2,
+      "failed": 0,
+      "open": 0
+    },
+    "11": {
+      "solved": 2,
+      "failed": 0,
+      "open": 0
+    },
+    "12": {
+      "solved": 2,
+      "failed": 0,
+      "open": 0
+    }
+  },
+  "puzzles": [
+    {
+      "id": "P01",
+      "win_in": 1,
+      "depth": 1,
+      "index": 124789458,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 1,
+      "moves_allowed": 2,
+      "history": [
+        [
+          "c5-e3",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P02",
+      "win_in": 1,
+      "depth": 1,
+      "index": 16428478,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 1,
+      "moves_allowed": 2,
+      "history": [
+        [
+          "a1-c1",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P03",
+      "win_in": 2,
+      "depth": 3,
+      "index": 123244242,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 2,
+      "moves_allowed": 3,
+      "history": [
+        [
+          "d5-b3",
+          "a1-e1"
+        ],
+        [
+          "b5-b4",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P04",
+      "win_in": 2,
+      "depth": 3,
+      "index": 128347574,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 2,
+      "moves_allowed": 3,
+      "history": [
+        [
+          "e5-a1",
+          "d1-e1"
+        ],
+        [
+          "c1-a3",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P05",
+      "win_in": 3,
+      "depth": 5,
+      "index": 78325540,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 3,
+      "moves_allowed": 4,
+      "history": [
+        [
+          "b5-e2",
+          "c1-e1"
+        ],
+        [
+          "a4-b5",
+          "e1-a1"
+        ],
+        [
+          "c3-e1",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P06",
+      "win_in": 3,
+      "depth": 5,
+      "index": 44051790,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 3,
+      "moves_allowed": 4,
+      "history": [
+        [
+          "d4-c3",
+          "a1-e1"
+        ],
+        [
+          "b3-a4",
+          "e1-a1"
+        ],
+        [
+          "a4-a5",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P07",
+      "win_in": 4,
+      "depth": 7,
+      "index": 29633732,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 4,
+      "moves_allowed": 5,
+      "history": [
+        [
+          "e2-d3",
+          "b3-b2"
+        ],
+        [
+          "d3-d4",
+          "d5-e4"
+        ],
+        [
+          "a2-b3",
+          "e1-c1"
+        ],
+        [
+          "b1-a2",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P08",
+      "win_in": 4,
+      "depth": 7,
+      "index": 87417816,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 4,
+      "moves_allowed": 5,
+      "history": [
+        [
+          "e4-d5",
+          "c3-c5"
+        ],
+        [
+          "d5-d2",
+          "d1-e2"
+        ],
+        [
+          "a5-a2",
+          "a1-e1"
+        ],
+        [
+          "a2-b2",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P09",
+      "win_in": 5,
+      "depth": 9,
+      "index": 114140386,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 5,
+      "moves_allowed": 6,
+      "history": [
+        [
+          "d5-d1",
+          "c3-c1"
+        ],
+        [
+          "d1-c2",
+          "b3-a3"
+        ],
+        [
+          "b1-b4",
+          "b5-a4"
+        ],
+        [
+          "c2-b3",
+          "c1-b1"
+        ],
+        [
+          "a1-a2",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P10",
+      "win_in": 5,
+      "depth": 9,
+      "index": 20272740,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 5,
+      "moves_allowed": 6,
+      "history": [
+        [
+          "b2-b4",
+          "b5-c4"
+        ],
+        [
+          "b4-c3",
+          "c5-a3"
+        ],
+        [
+          "d3-e3",
+          "c4-b4"
+        ],
+        [
+          "a4-b5",
+          "e1-a1"
+        ],
+        [
+          "b5-d3",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P11",
+      "win_in": 6,
+      "depth": 11,
+      "index": 120284320,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 6,
+      "moves_allowed": 7,
+      "history": [
+        [
+          "d2-c1",
+          "b1-a2"
+        ],
+        [
+          "a3-b2",
+          "c2-a4"
+        ],
+        [
+          "b2-a3",
+          "a1-d4"
+        ],
+        [
+          "c1-c5",
+          "a4-b5"
+        ],
+        [
+          "c5-b4",
+          "a2-a1"
+        ],
+        [
+          "b4-a4",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P12",
+      "win_in": 6,
+      "depth": 11,
+      "index": 133773694,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 6,
+      "moves_allowed": 7,
+      "history": [
+        [
+          "a4-c2",
+          "a3-a2"
+        ],
+        [
+          "e3-a3",
+          "a1-d4"
+        ],
+        [
+          "c2-b1",
+          "c5-c1"
+        ],
+        [
+          "d1-a4",
+          "c1-c5"
+        ],
+        [
+          "b1-b5",
+          "a2-a1"
+        ],
+        [
+          "b5-a5",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P13",
+      "win_in": 7,
+      "depth": 13,
+      "index": 130603640,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 7,
+      "moves_allowed": 8,
+      "history": [
+        [
+          "c3-d4",
+          "d3-d1"
+        ],
+        [
+          "d4-d2",
+          "d1-c2"
+        ],
+        [
+          "b3-d3",
+          "c2-d1"
+        ],
+        [
+          "d3-b1",
+          "e4-a4"
+        ],
+        [
+          "e5-a1",
+          "d1-c1"
+        ],
+        [
+          "b1-a2",
+          "c1-b1"
+        ],
+        [
+          "a2-c2",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P14",
+      "win_in": 7,
+      "depth": 13,
+      "index": 53717922,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 7,
+      "moves_allowed": 8,
+      "history": [
+        [
+          "b2-b3",
+          "d2-d4"
+        ],
+        [
+          "b4-a5",
+          "c4-a4"
+        ],
+        [
+          "a5-c5",
+          "d5-c4"
+        ],
+        [
+          "c5-b4",
+          "a2-a1"
+        ],
+        [
+          "e4-b1",
+          "d4-b2"
+        ],
+        [
+          "b1-e1",
+          "a1-d1"
+        ],
+        [
+          "e1-c3",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P15",
+      "win_in": 8,
+      "depth": 15,
+      "index": 26946216,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 8,
+      "moves_allowed": 9,
+      "history": [
+        [
+          "e3-d3",
+          "d1-c2"
+        ],
+        [
+          "b1-b2",
+          "c2-b1"
+        ],
+        [
+          "b2-a2",
+          "b1-c2"
+        ],
+        [
+          "d3-e2",
+          "c2-d2"
+        ],
+        [
+          "e2-d3",
+          "d2-c1"
+        ],
+        [
+          "d3-e2",
+          "c1-b2"
+        ],
+        [
+          "e2-e1",
+          "b2-a1"
+        ],
+        [
+          "e1-d2",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P16",
+      "win_in": 8,
+      "depth": 15,
+      "index": 142570112,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 8,
+      "moves_allowed": 9,
+      "history": [
+        [
+          "e5-e4",
+          "e2-d3"
+        ],
+        [
+          "d2-b4",
+          "e3-c1"
+        ],
+        [
+          "b4-a3",
+          "b5-a4"
+        ],
+        [
+          "a3-c5",
+          "a4-b5"
+        ],
+        [
+          "e4-e5",
+          "d4-d5"
+        ],
+        [
+          "c5-a3",
+          "b5-a4"
+        ],
+        [
+          "a5-c5",
+          "c1-a1"
+        ],
+        [
+          "a3-c3",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P17",
+      "win_in": 9,
+      "depth": 17,
+      "index": 65638404,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 9,
+      "moves_allowed": 10,
+      "history": [
+        [
+          "b4-c3",
+          "c5-a3"
+        ],
+        [
+          "a5-b4",
+          "d1-a4"
+        ],
+        [
+          "a1-a2",
+          "c4-b5"
+        ],
+        [
+          "b4-a5",
+          "a3-b3"
+        ],
+        [
+          "a2-c2",
+          "b5-c4"
+        ],
+        [
+          "a5-b4",
+          "a4-a5"
+        ],
+        [
+          "b4-a3",
+          "d2-c1"
+        ],
+        [
+          "a3-b2",
+          "c1-a1"
+        ],
+        [
+          "b2-b1",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P18",
+      "win_in": 9,
+      "depth": 17,
+      "index": 72330238,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 9,
+      "moves_allowed": 10,
+      "history": [
+        [
+          "d2-c2",
+          "b2-b1"
+        ],
+        [
+          "c1-a3",
+          "c5-b4"
+        ],
+        [
+          "c2-c1",
+          "a5-a4"
+        ],
+        [
+          "b5-e2",
+          "a2-d2"
+        ],
+        [
+          "c1-b2",
+          "b1-a2"
+        ],
+        [
+          "e2-d1",
+          "d2-c1"
+        ],
+        [
+          "d1-b3",
+          "c1-b1"
+        ],
+        [
+          "b3-e3",
+          "b1-e1"
+        ],
+        [
+          "e3-c1",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P19",
+      "win_in": 10,
+      "depth": 19,
+      "index": 61346636,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 10,
+      "moves_allowed": 11,
+      "history": [
+        [
+          "c3-c5",
+          "e2-b5"
+        ],
+        [
+          "a5-a4",
+          "b1-e1"
+        ],
+        [
+          "b3-e3",
+          "b5-b3"
+        ],
+        [
+          "c5-e5",
+          "b2-d4"
+        ],
+        [
+          "e5-e4",
+          "e1-e2"
+        ],
+        [
+          "a4-c4",
+          "a3-c1"
+        ],
+        [
+          "a2-a5",
+          "b3-b5"
+        ],
+        [
+          "c4-c5",
+          "d4-d5"
+        ],
+        [
+          "a5-a1",
+          "c1-b1"
+        ],
+        [
+          "a1-e5",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P20",
+      "win_in": 10,
+      "depth": 19,
+      "index": 54036452,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 10,
+      "moves_allowed": 11,
+      "history": [
+        [
+          "b4-a4",
+          "a3-c5"
+        ],
+        [
+          "a4-d4",
+          "a2-d5"
+        ],
+        [
+          "d3-b5",
+          "d5-e5"
+        ],
+        [
+          "a1-a4",
+          "e2-c4"
+        ],
+        [
+          "e4-d5",
+          "e5-e1"
+        ],
+        [
+          "a4-d1",
+          "a5-d2"
+        ],
+        [
+          "d1-e2",
+          "d2-d3"
+        ],
+        [
+          "d5-e4",
+          "d3-e3"
+        ],
+        [
+          "e2-d3",
+          "e1-a1"
+        ],
+        [
+          "e4-d5",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P21",
+      "win_in": 11,
+      "depth": 21,
+      "index": 111671114,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 11,
+      "moves_allowed": 12,
+      "history": [
+        [
+          "b2-c1",
+          "d4-d1"
+        ],
+        [
+          "e1-e5",
+          "a2-c4"
+        ],
+        [
+          "a4-b4",
+          "c4-c5"
+        ],
+        [
+          "d5-a2",
+          "d1-a4"
+        ],
+        [
+          "e5-d4",
+          "b1-b3"
+        ],
+        [
+          "c1-a3",
+          "c3-a1"
+        ],
+        [
+          "d4-b2",
+          "c5-c1"
+        ],
+        [
+          "b4-c5",
+          "c1-c4"
+        ],
+        [
+          "c5-e3",
+          "c4-c1"
+        ],
+        [
+          "e3-d2",
+          "a1-b1"
+        ],
+        [
+          "b2-a1",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P22",
+      "win_in": 11,
+      "depth": 21,
+      "index": 9776074,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 11,
+      "moves_allowed": 12,
+      "history": [
+        [
+          "e2-e5",
+          "d4-c5"
+        ],
+        [
+          "c1-e3",
+          "d5-e4"
+        ],
+        [
+          "d3-c2",
+          "c5-a3"
+        ],
+        [
+          "e3-e1",
+          "c3-a5"
+        ],
+        [
+          "c2-a4",
+          "e4-c2"
+        ],
+        [
+          "e1-c1",
+          "a5-e1"
+        ],
+        [
+          "e5-c3",
+          "c2-b3"
+        ],
+        [
+          "a4-e4",
+          "b1-a1"
+        ],
+        [
+          "b2-a2",
+          "a1-b2"
+        ],
+        [
+          "c1-e3",
+          "e1-a1"
+        ],
+        [
+          "c3-e5",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P23",
+      "win_in": 12,
+      "depth": 23,
+      "index": 28392922,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 12,
+      "moves_allowed": 13,
+      "history": [
+        [
+          "a4-d1",
+          "d2-c3"
+        ],
+        [
+          "e3-d2",
+          "c3-a3"
+        ],
+        [
+          "b2-a2",
+          "c1-b2"
+        ],
+        [
+          "d1-c1",
+          "e1-e5"
+        ],
+        [
+          "b4-b3",
+          "e5-c3"
+        ],
+        [
+          "a2-a1",
+          "b2-c2"
+        ],
+        [
+          "a1-b2",
+          "b1-a2"
+        ],
+        [
+          "d2-d1",
+          "a2-b1"
+        ],
+        [
+          "d1-e2",
+          "c3-c5"
+        ],
+        [
+          "c1-e1",
+          "c5-c3"
+        ],
+        [
+          "b2-c1",
+          "b1-a1"
+        ],
+        [
+          "c1-e3",
+          null
+        ]
+      ]
+    },
+    {
+      "id": "P24",
+      "win_in": 12,
+      "depth": 23,
+      "index": 16184384,
+      "status": "solved",
+      "reason": "",
+      "moves_used": 12,
+      "moves_allowed": 13,
+      "history": [
+        [
+          "e3-c1",
+          "b1-b2"
+        ],
+        [
+          "d3-d1",
+          "c3-e3"
+        ],
+        [
+          "c1-a1",
+          "b2-a2"
+        ],
+        [
+          "a3-c1",
+          "a2-b1"
+        ],
+        [
+          "b3-d3",
+          "e3-d2"
+        ],
+        [
+          "d3-e3",
+          "d2-e1"
+        ],
+        [
+          "c1-d2",
+          "b1-c1"
+        ],
+        [
+          "a1-a3",
+          "a4-b3"
+        ],
+        [
+          "a3-c5",
+          "c2-a2"
+        ],
+        [
+          "c5-c2",
+          "e1-e2"
+        ],
+        [
+          "e3-c3",
+          "c1-a1"
+        ],
+        [
+          "d1-e1",
+          null
+        ]
+      ]
+    }
+  ]
+}

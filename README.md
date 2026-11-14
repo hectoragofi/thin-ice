@@ -95,7 +95,7 @@ The reward is the number of puzzles won against a perfect opponent, so the only 
 | Guess | A puzzle dies on the first non-winning move. Random play scores 0.00 - 0.04 |
 | Retry, undo, reset | Not in the API. State lives in the game server and only moves forward |
 | Read the answers | Puzzles, opponent and solutions live in a separate container. The agent's container holds none of the game's code or data |
-| Learn the scored puzzles in practice | Practice puzzles come from a separate pool; any practice puzzle sharing even one position with a scored puzzle, up to rotation and reflection, is removed at build time |
+| Learn the scored puzzles in practice, or copy one scored puzzle's line into another | All published puzzles, scored and practice, are mutually disjoint: no position reachable in one occurs in any other, up to rotation and reflection. The build fails if two share a position |
 | Edit the score | The verifier reads one file: a score sheet written and HMAC-signed by the game server, mounted read-only into the agent's container. The key never exists in the agent's sandbox |
 | Tamper with the grader | Verification runs in a separate container that the agent never touches. The agent itself is not root |
 | Break the verifier's input | Missing, malformed or mis-signed score sheet scores 0 |
@@ -125,3 +125,16 @@ scripts/    evaluate.py, the one-command reproduction.
 The game server needs no rules engine and no tablebase at run time. It only walks the packs the solver wrote, so the server cannot disagree with the solver, and the whole task ships in 5 MB.
 
 Fresh, never-published puzzles are one command away: `python tools/build_task.py <any number>` draws new pools from the 50 million won positions.
+
+### A finding about the game itself
+
+Making the puzzles disjoint turned up something we did not expect. Sliding moves merge positions (a stone that stops on c3 may have come from anywhere along the line), so long forced wins funnel into shared lines. The game has 10,884 positions that are a win in 12, yet they run along only a handful of independent lines. An early build let a practice puzzle and a scored puzzle share a position in 156 of 240 cases; the build now refuses to ship that.
+
+The pools are therefore large where the game is wide and small where it is narrow. Scored + practice puzzles per tier:
+
+| win in | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| scored | 30 | 30 | 30 | 30 | 30 | 22 | 24 | 17 | 10 | 5 | 4 | 3 |
+| practice | 20 | 20 | 20 | 20 | 19 | 7 | 8 | 6 | 3 | 2 | 1 | 1 |
+
+A run draws 2 scored puzzles per tier; `THINICE_SEED` chooses which.

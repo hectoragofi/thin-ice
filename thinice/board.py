@@ -1,13 +1,33 @@
 """Thin Ice rules: board geometry, moves and rendering. Pure Python, no dependencies.
 
-Squares are numbered 0..24, square = row * 5 + column, with a1 = 0 in the bottom-left corner.
-A set of stones is an int bitmask over those squares.
+Squares are numbered from 0, square = row * width + column, with a1 = 0 in the bottom-left
+corner. A set of stones is an int bitmask over those squares.
+
+The board size comes from THINICE_W / THINICE_H if set, otherwise from the task's manifest
+(written by tools/build_task.py), otherwise it is the published 7x6.
 """
 from __future__ import annotations
 
-W, H, K = 5, 5, 3
+import json
+import os
+from pathlib import Path
+
+
+def _size() -> tuple:
+    if "THINICE_W" in os.environ and "THINICE_H" in os.environ:
+        return int(os.environ["THINICE_W"]), int(os.environ["THINICE_H"])
+    up = Path(__file__).resolve().parent.parent
+    for manifest in (up / "packs" / "manifest.json", up / "manifest.json", up / "task" / "environment" / "game-server" / "packs" / "manifest.json"):
+        if manifest.exists():
+            game = json.loads(manifest.read_text())["game"]
+            return game["w"], game["h"]
+    return 7, 6
+
+
+W, H = _size()
+K = 3
 N = W * H
-FILES = "abcde"
+FILES = "abcdefgh"[:W]
 DIRS = ((0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1))
 
 
@@ -87,7 +107,7 @@ def sq_name(sq: int) -> str:
 def parse_sq(text: str) -> int:
     text = text.strip().lower()
     if len(text) != 2 or text[0] not in FILES or not text[1].isdigit() or not 1 <= int(text[1]) <= H:
-        raise ValueError(f"bad square {text!r}: use a letter a-e and a digit 1-5, like c3")
+        raise ValueError(f"bad square {text!r}: use a letter a-{FILES[-1]} and a digit 1-{H}, like c3")
     return (int(text[1]) - 1) * W + FILES.index(text[0])
 
 
@@ -112,15 +132,43 @@ def render(blue: int, red: int) -> str:
     return "\n".join(rows)
 
 
+def _symmetries() -> tuple:
+    """Square-index maps for every symmetry of the board: 8 on a square board, 4 otherwise."""
+    maps = []
+    for rot in range(4 if W == H else 1):
+        for flip_x in (False, True):
+            for flip_y in (False, True) if W != H else (False,):
+                table = []
+                for sq in range(N):
+                    x, y = sq % W, sq // W
+                    if flip_x:
+                        x = W - 1 - x
+                    if flip_y:
+                        y = H - 1 - y
+                    for _ in range(rot):
+                        x, y = W - 1 - y, x
+                    table.append(y * W + x)
+                maps.append(tuple(table))
+    return tuple(dict.fromkeys(maps))
+
+
+SYMMETRIES = _symmetries()
+
+
+def canonical(blue_squares, red_squares) -> tuple:
+    """One representative for a position and all its rotations and reflections."""
+    return min((tuple(sorted(t[s] for s in blue_squares)), tuple(sorted(t[s] for s in red_squares))) for t in SYMMETRIES)
+
+
 def key(blue: int, red: int) -> str:
     """Position key used by the puzzle packs (matches the solver's output)."""
     return f"[{','.join(map(str, squares(blue)))}]|[{','.join(map(str, squares(red)))}]"
 
 
-RULES = """\
+RULES = f"""\
 THIN ICE - rules
 
-Board: 5x5. Columns a-e (left to right), rows 1-5 (bottom to top). a1 is the bottom-left corner.
+Board: {W}x{H}. Columns a-{FILES[-1]} (left to right), rows 1-{H} (bottom to top). a1 is the bottom-left corner.
 Stones: Blue has 4, Red has 4. Players alternate; a turn moves exactly one of your own stones.
 Move: pick a stone and one of the 8 directions (up, down, left, right, 4 diagonals).
       The stone slides in that direction and cannot stop early: it stops only on the last
@@ -129,5 +177,5 @@ Move: pick a stone and one of the 8 directions (up, down, left, right, 4 diagona
 Win:  the first player whose stones have 3 in a row (adjacent cells in a horizontal, vertical or
       diagonal line) after their own move wins at once.
       A player who has no legal move on their turn loses.
-Notation: from-to, for example a1-a5 means the stone on a1 slid up until it stopped on a5.
+Notation: from-to, for example a1-a{H} means the stone on a1 slid up until it stopped on a{H}.
 """

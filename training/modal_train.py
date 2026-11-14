@@ -8,6 +8,7 @@
 It is the same training/train.py that runs locally; Modal only supplies the GPU. Training
 progress and every in-environment evaluation are printed as the job runs.
 """
+import os
 from pathlib import Path
 
 import modal
@@ -21,20 +22,25 @@ image = (
     .add_local_dir(ROOT / "thinice", remote_path="/repo/thinice")
     .add_local_dir(ROOT / "training", remote_path="/repo/training")
     .add_local_dir(ROOT / PACKS, remote_path=f"/repo/{PACKS}")
-    .add_local_file(ROOT / "data" / "labels.jsonl", remote_path="/repo/data/labels.jsonl")
 )
 app = modal.App("thin-ice-train", image=image)
 runs = modal.Volume.from_name("thinice-runs", create_if_missing=True)
 weights = modal.Volume.from_name("thinice-hf-cache", create_if_missing=True)
+data = modal.Volume.from_name("thinice-data", create_if_missing=True)  # labels from tools/modal_build.py
 
 
-@app.function(gpu="A100", timeout=5 * 60 * 60, volumes={"/runs": runs, "/root/.cache/huggingface": weights})
+GPU = os.environ.get("THINICE_GPU", "A100-80GB")  # read on your machine when you call `modal run`
+
+
+@app.function(gpu=GPU, timeout=5 * 60 * 60, volumes={"/runs": runs, "/root/.cache/huggingface": weights, "/data": data})
 def train(model: str, name: str, examples: int, bs: int, accum: int, lr: float, rank: int, eval_at: str) -> str:
+    import json
     import subprocess
 
+    game = json.loads(Path(f"/repo/{PACKS}/manifest.json").read_text())["game"]
     cmd = [
         "python", "-u", "/repo/training/train.py",
-        "--model", model, "--labels", "/repo/data/labels.jsonl", "--out", f"/runs/{name}",
+        "--model", model, "--labels", f"/data/{game['w']}x{game['h']}/labels.jsonl", "--out", f"/runs/{name}",
         "--examples", str(examples), "--bs", str(bs), "--accum", str(accum),
         "--lr", str(lr), "--rank", str(rank), "--eval-at", eval_at,
     ]  # fmt: skip
@@ -47,12 +53,12 @@ def train(model: str, name: str, examples: int, bs: int, accum: int, lr: float, 
 def main(
     model: str = "Qwen/Qwen3-1.7B",
     name: str = "",
-    examples: int = 400_000,
-    bs: int = 64,
-    accum: int = 1,
+    examples: int = 600_000,
+    bs: int = 16,  # about 1 GB of GPU memory per example for the 1.7B model
+    accum: int = 4,
     lr: float = 2e-4,
     rank: int = 64,
-    eval_at: str = "0,1000,3000,10000,30000,100000,200000,400000",
+    eval_at: str = "0,1000,3000,10000,30000,100000,200000,400000,600000",
 ):
     name = name or model.split("/")[-1].lower()
     curve = train.remote(model, name, examples, bs, accum, lr, rank, eval_at)

@@ -70,7 +70,7 @@ def main() -> int:
     # 4. Illegal moves change nothing: not a move, another stone's cell, Red's stone, an empty cell.
     p = js(call("GET", "/api/puzzle/P01")[1])
     red, blue = p["red"][0], p["blue"][0]
-    empty = next(c for c in (f + r for f in "abcde" for r in "12345") if c not in p["red"] + p["blue"])
+    empty = next(c for c in (f + r for f in "abcd" for r in "1234") if c not in p["red"] + p["blue"])
     for move in (f"{red}-{empty}", f"{empty}-{blue}", f"{blue}-{blue}", f"{blue}-{red}", "z9-a1", "a1a5", "resign", "pass", ""):
         code, body = call("POST", "/api/move", {"id": "P01", "move": move})
         check(f"illegal move refused: {move!r}", code == 400 and js(body).get("ok") is False)

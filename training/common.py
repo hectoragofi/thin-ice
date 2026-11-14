@@ -7,17 +7,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from thinice.board import mask_of, move_name, moves, render, sq_name, squares  # noqa: E402
+from thinice.board import FILES, H, W, canonical, mask_of, move_name, moves, render, sq_name, squares  # noqa: E402
 from thinice.session import GameError, Run, load_pack  # noqa: E402
 
 PACKS = ROOT / "task" / "environment" / "game-server" / "packs"
 
 SYSTEM = (
-    "You are playing Blue in Thin Ice on a 5x5 board (columns a-e, rows 1-5, a1 bottom-left). "
+    f"You are playing Blue in Thin Ice on a {W}x{H} board (columns a-{FILES[-1]}, rows 1-{H}, a1 bottom-left). "
     "On your turn you move one of your stones in one of 8 directions; it slides until the next cell "
     "is the edge of the board or another stone. You win when 3 of your stones are in a row "
     "(horizontal, vertical or diagonal). Blue has a forced win in this position. "
-    "Reply with one move in from-to form, for example a1-a5, and nothing else."
+    f"Reply with one move in from-to form, for example a1-a{H}, and nothing else."
 )
 
 
@@ -40,28 +40,7 @@ def chat(tokenizer, blue: int, red: int, legal: list) -> str:
         return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 
 
-def transforms() -> list:
-    out = []
-    for rot in range(4):
-        for flip in (False, True):
-            table = []
-            for sq in range(25):
-                x, y = sq % 5, sq // 5
-                if flip:
-                    x = 4 - x
-                for _ in range(rot):
-                    x, y = 4 - y, x
-                table.append(y * 5 + x)
-            out.append(table)
-    return out
-
-
-SYM = transforms()
-
-
-def canon(blue_sqs, red_sqs) -> tuple:
-    return min((tuple(sorted(t[s] for s in blue_sqs)), tuple(sorted(t[s] for s in red_sqs))) for t in SYM)
-
+canon = canonical
 
 EVAL_POOL = ROOT / "training" / "eval_pool.jsonl"
 

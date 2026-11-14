@@ -117,7 +117,7 @@ async def healthz(request: Request) -> JSONResponse:
 
 @mcp.custom_route("/api/rules", methods=["GET"])
 async def api_rules(request: Request) -> JSONResponse:
-    return JSONResponse({"ok": True, "rules": RULES})
+    return JSONResponse({"ok": True, "rules": RULES, "width": MANIFEST["game"]["w"], "height": MANIFEST["game"]["h"]})
 
 
 @mcp.custom_route("/api/puzzles", methods=["GET"])

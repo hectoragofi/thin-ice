@@ -32,7 +32,7 @@ HTTP API at {URL} (JSON in, JSON out; errors come back with "ok": false and an "
                                     -> played, reply (Red's move or null), status, reason, puzzle{{...}}
   POST /api/practice  {{"win_in": 3}}  -> a new practice puzzle, same shape as /api/puzzle
 
-Cells are a1..e5: column letter a-e, then row 1-5, a1 bottom-left.
+Cells are written column letter then row number, a1 bottom-left; `ice rules` gives the board size.
 """
 
 

@@ -42,7 +42,7 @@ impl Game {
     #[allow(clippy::too_many_arguments)]
     fn new(w: usize, h: usize, sb: usize, sr: usize, k: usize, ndirs: usize, slide: bool, blocked: u64) -> Game {
         let n = w * h;
-        assert!(n <= 40 && sb <= 8 && sr <= 8, "board or stone count too large");
+        assert!(n <= 63 && sb <= 8 && sr <= 8, "board or stone count too large");
         assert!(ndirs == 4 || ndirs == 8, "dirs must be 4 or 8");
         let mut binom = vec![[0u64; 10]; 64];
         for i in 0..64 {
@@ -308,7 +308,10 @@ fn solve(g: &Game) -> (Vec<u8>, Vec<u64>) {
         d += 1;
         assert!(d < 126, "depth overflow");
     }
-    let bytes: Vec<u8> = table.par_iter().map(|a| a.load(Relaxed)).collect();
+    // AtomicU8 has the same layout as u8 and no thread is writing any more, so hand the table
+    // back as plain bytes without copying it (it can be most of the machine's memory).
+    let mut table = std::mem::ManuallyDrop::new(table);
+    let bytes = unsafe { Vec::from_raw_parts(table.as_mut_ptr() as *mut u8, table.len(), table.capacity()) };
     (bytes, per_depth)
 }
 

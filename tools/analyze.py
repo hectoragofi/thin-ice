@@ -62,13 +62,26 @@ def tool_use(trial: Path) -> str:
     log = trial / "agent" / "opencode.txt"
     if not log.exists():
         return ""
-    text = log.read_text(encoding="utf-8", errors="replace")
-    counts = Counter()
-    for name in re.findall(r'"tool"\s*:\s*"([^"]+)"', text):
-        counts[name] += 1
+    counts, tokens, wrote = Counter(), 0, set()
+    for line in log.read_text(encoding="utf-8", errors="replace").splitlines():
+        try:
+            ev = json.loads(line)
+        except ValueError:
+            continue
+        part = ev.get("part", {})
+        if ev.get("type") == "tool_use":
+            counts[part.get("tool", "?")] += 1
+            inp = part.get("state", {}).get("input", {})
+            for path in re.findall(r"[\w./-]+\.(?:py|js|mjs|c|cpp|rs|go)\b", json.dumps(inp)):
+                wrote.add(path.rsplit("/", 1)[-1])
+        elif ev.get("type") == "step_finish":
+            tokens += part.get("tokens", {}).get("total", 0)
     if not counts:
         return ""
-    return ", ".join(f"{n} x{c}" for n, c in counts.most_common(8))
+    out = ", ".join(f"{n} x{c}" for n, c in counts.most_common(8)) + f"; {tokens:,} tokens"
+    if wrote:
+        out += "; programs it touched: " + " ".join(sorted(wrote)[:12])
+    return out
 
 
 def report(trial: Path) -> str:
