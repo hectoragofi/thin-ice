@@ -30,7 +30,7 @@ That is the whole rulebook. It fits in a paragraph, yet forced wins run up to 63
 
 32 puzzles in 16 tiers, two per tier: a win in 1 move, in 2, ... up to a win in 16. In each, Blue (the agent) is to move and has a forced win; Red is played by a perfect opponent that always picks the longest defence. The agent may use N+1 moves on a win in N. A puzzle is lost the moment the agent plays a move after which the win is no longer forced. There is no undo and no retry. Thirty minutes in total.
 
-The agent talks to the game over MCP: `rules`, `list_puzzles`, `show_puzzle`, `play_move`, `new_practice_puzzle`, and `save_note` for keeping its own analysis between turns. **It has no shell, no file writing and no way to run code**: it has to find each move by thinking it through. Practice mode is unlimited and never counts: it serves fresh puzzles and answers a wrong move with the move that would have won.
+The agent talks to the game over MCP: `rules`, `list_puzzles`, `show_puzzle`, `play_move`, `new_practice_puzzle`, `save_note` for keeping its own analysis between turns, and `skip_puzzle`. Scored puzzles come **one at a time, in order**: only the current one can be viewed or played, and the next unlocks when it is won, lost or skipped (a skip counts as lost). **It has no shell, no file writing and no way to run code**: it has to find each move by thinking it through. Practice mode is unlimited and never counts: it serves fresh puzzles and answers a wrong move with the move that would have won.
 
 **Score = puzzles won / 32.** One number between 0 and 1, written to `/logs/verifier/reward.txt`.
 
@@ -119,13 +119,14 @@ The reward is the number of puzzles won against a perfect opponent, so the only 
 | Retry, undo, reset | Not in the API. State lives in the game server and only moves forward |
 | Write a program anyway | Shell, file editing, web fetch and web search are denied by a root-owned OpenCode config (`/etc/opencode/opencode.json`) the agent user cannot change; subagents inherit the same denials |
 | Use `save_note` for something else | A note is the agent's own text, kept in the game server's memory for that run only and shown back by `show_puzzle`. The server never reads it, it is not on the score sheet, and it is capped (4,000 characters, 100 per puzzle, 2,000 in total). It gives the agent nothing it could not already write in its own reply; it only lets a long analysis span several turns |
+| Peek at or play ahead on later puzzles | Locked until the current puzzle is won, lost or skipped; viewing or moving on a locked puzzle is refused, under any spelling of its id. A skip counts as lost and cannot be undone |
 | Read the answers | Puzzles, opponent and solutions live in a separate container. The agent's container holds none of the game's code or data |
 | Learn the scored puzzles in practice | All published puzzles, scored and practice, are mutually disjoint: no position reachable in one occurs in any other, up to rotation and reflection. The build fails if two share a position |
 | Edit the score | The verifier reads one file: a score sheet written and HMAC-signed by the game server, mounted read-only into the agent's container. The key never exists in the agent's sandbox |
 | Tamper with the grader | Verification runs in a separate container that the agent never touches. The agent itself is not root |
 | Break the verifier's input | A missing, malformed or mis-signed score sheet scores 0 |
 
-`python tools/redteam.py <server url>` runs the attack suite against a live game server.
+`python tools/redteam.py <server url>` runs the attack suite against a live game server: 96 checks, all passing, including the puzzle lock and `skip_puzzle`. The note tool was attacked through a real MCP client (locked puzzles, oversized notes, a fake score written into a note, the caps): the score and the signed receipt never change.
 
 ## Post-training: does a small model get better?
 

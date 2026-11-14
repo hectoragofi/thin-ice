@@ -77,27 +77,47 @@ def main() -> int:
     after = js(call("GET", "/api/puzzle/P01")[1])
     check("illegal moves used no move and changed no stone", after["moves_used"] == 0 and after["blue"] == p["blue"] and after["status"] == "open")
 
-    # 5. A lost puzzle stays lost, whatever the id looks like.
-    wrong = None
-    for move in p["legal_moves"]:
-        probe = js(call("POST", "/api/move", {"id": "P02", "move": move})[1])
-        if probe.get("ok"):
-            wrong = probe
-            break
-        # P02 has other legal moves than P01; fall through to its own list
-    if wrong is None:
-        p2 = js(call("GET", "/api/puzzle/P02")[1])
-        wrong = js(call("POST", "/api/move", {"id": "P02", "move": p2["legal_moves"][0]})[1])
-    status_p2 = score()[2]["P02"]
-    if status_p2 == "failed":
-        for pid in ("P02", "p02", " P02 ", "P02\n"):
-            code, body = call("POST", "/api/move", {"id": pid, "move": js(call("GET", "/api/puzzle/P02")[1])["blue"][0] + "-a1"})
-            check(f"failed puzzle cannot be replayed as {pid!r}", code == 400)
-        check("failed puzzle is still failed", score()[2]["P02"] == "failed")
-    else:
-        check("P02 probe (first legal move happened to win or continue)", True, status_p2)
+    # 5. Puzzles are played one at a time: later ones are locked, whatever the id looks like.
+    for pid in ("P05", "p05", " P05 ", "P32"):
+        code, body = call("GET", f"/api/puzzle/{pid.strip()}")
+        check(f"locked puzzle cannot be viewed: {pid!r}", code == 404 and b"locked" in body and b"legal_moves" not in body, f"HTTP {code}")
+        code, body = call("POST", "/api/move", {"id": pid, "move": "a1-a6"})
+        check(f"locked puzzle cannot be played: {pid!r}", code == 400 and b"locked" in body, f"HTTP {code}")
+    for pid in ("P02", "P05", "T001", "../P01", ""):
+        code, body = call("POST", "/api/skip", {"id": pid})
+        check(f"only the current puzzle can be skipped, not {pid!r}", code == 400, f"HTTP {code}")
+    check("still zero after lock and skip probes", score()[0] == 0 and score()[2]["P01"] == "open")
 
-    # 6. Practice never touches the score, and practice ids do not alias scored ones.
+    # 6. A lost puzzle stays lost: lose P01 on purpose, then try to replay it.
+    from_p01 = js(call("GET", "/api/puzzle/P01")[1])
+    for move in from_p01["legal_moves"]:
+        r = js(call("POST", "/api/move", {"id": "P01", "move": move})[1])
+        if r.get("status") == "failed":
+            break
+        if r.get("status") == "solved":
+            break
+    if score()[2]["P01"] == "failed":
+        for pid in ("P01", "p01", " P01 ", "P01\n"):
+            code, body = call("POST", "/api/move", {"id": pid, "move": from_p01["legal_moves"][0]})
+            check(f"failed puzzle cannot be replayed as {pid!r}", code == 400)
+            code, body = call("POST", "/api/skip", {"id": pid})
+            check(f"failed puzzle cannot be skipped into anything else as {pid!r}", code == 400)
+        check("failed puzzle is still failed", score()[2]["P01"] == "failed")
+    else:
+        check("P01 probe (first legal move happened to win)", True, score()[2]["P01"])
+
+    # 7. Skipping counts as lost, unlocks only the next puzzle, and cannot be undone.
+    cur = next(pid for pid, st in score()[2].items() if st == "open")
+    before = score()[0]
+    code, body = call("POST", "/api/skip", {"id": cur})
+    check(f"skipping {cur} is accepted and counts as lost", code == 200 and score()[2][cur] == "failed" and score()[0] == before)
+    code, body = call("POST", "/api/skip", {"id": cur})
+    check(f"skipping {cur} twice is refused", code == 400 and score()[2][cur] == "failed")
+    nxt = next(pid for pid, st in score()[2].items() if st == "open")
+    later = list(score()[2])[list(score()[2]).index(nxt) + 1]
+    check(f"after the skip only {nxt} is open to play, {later} stays locked", call("GET", f"/api/puzzle/{nxt}")[0] == 200 and call("GET", f"/api/puzzle/{later}")[0] == 404)
+
+    # 8. Practice never touches the score, and practice ids do not alias scored ones.
     t = js(call("POST", "/api/practice", {"win_in": 1})[1])
     check("practice puzzle created", t.get("ok") is True and t.get("practice") is True and t["id"].startswith("T"))
     before = score()[0]
@@ -111,12 +131,13 @@ def main() -> int:
         ok = code == 400 or (code == 200 and js(body).get("practice") is True)
         check(f"practice with win_in={bad!r} is refused or stays practice", ok and score()[0] == before)
 
-    # 7. Winning the same puzzle many times at once counts once.
-    p3 = js(call("GET", "/api/puzzle/P01")[1])
+    # 9. Winning the same puzzle many times at once counts once.
+    cur = next(pid for pid, st in score()[2].items() if st == "open")
+    p3 = js(call("GET", f"/api/puzzle/{cur}")[1])
     replies = []
 
     def fire(move):
-        replies.append(js(call("POST", "/api/move", {"id": "P01", "move": move})[1]))
+        replies.append(js(call("POST", "/api/move", {"id": cur, "move": move})[1]))
 
     threads = [threading.Thread(target=fire, args=(m,)) for m in p3["legal_moves"] for _ in range(4)]
     for th in threads:
@@ -126,9 +147,9 @@ def main() -> int:
     accepted = [r for r in replies if r.get("ok")]
     check("only one of many simultaneous moves is accepted", len(accepted) == 1, f"{len(accepted)} accepted of {len(replies)}")
     solved, value, status = score()
-    check("score equals puzzles actually won", abs(value - sum(s == "solved" for s in status.values()) / len(status)) < 1e-5 and solved <= 1, f"solved={solved} score={value}")
+    check("score equals puzzles actually won", abs(value - sum(s == "solved" for s in status.values()) / len(status)) < 1e-5 and solved <= 2, f"solved={solved} score={value}")
 
-    # 8. Nothing above leaked a solution.
+    # 10. Nothing above leaked a solution.
     listing = call("GET", "/api/puzzles")[1] + call("GET", "/api/puzzle/P05")[1]
     check("API replies carry no solver data", b"nodes" not in listing and b"book" not in listing and b"pv" not in listing)
 

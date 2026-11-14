@@ -227,4 +227,4 @@ async def api_practice(request: Request) -> JSONResponse:
 
 if __name__ == "__main__":
     save()
-    mcp.run(transport="http", host="0.0.0.0", port=8000)
+    mcp.run(transport="http", host="0.0.0.0", port=int(os.environ.get("PORT", "8000")))
