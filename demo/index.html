@@ -262,6 +262,12 @@ B.learn = (el) => {
   if (probes.length) { const a = Math.min(...probes), b = Math.max(...probes);
     sv(s, 'rect', {x: L, width: W - R - L, y: y(b), height: Math.max(y(a) - y(b), 3), fill: '#b45309', opacity: .16});
     sv(s, 'text', {x: W - R + 16, y: (y(a) + y(b)) / 2 + 10, 'font-size': 28, fill: '#b45309', 'font-weight': 600}, `Gemini 4: ${a.toFixed(2)}-${b.toFixed(2)}`); }
+  const base = D.small.untrained;
+  if (base) { const bx = x(base.x), by = y(base.score);
+    const lx = x(xend * 0.18), ly = y(ymax * 0.2);
+    sv(s, 'line', {x1: bx + 12, y1: by - 6, x2: lx - 8, y2: ly + 2, stroke: '#b91c1c', 'stroke-width': 3});
+    sv(s, 'text', {x: lx, y: ly + 10, 'font-size': 30, fill: '#b91c1c', 'font-weight': 700}, `base Qwen: ${base.score.toFixed(3)}`);
+    sv(s, 'circle', {cx: bx, cy: by, r: 12, fill: 'none', stroke: '#b91c1c', 'stroke-width': 4}); }
   const used = [];
   series.forEach(se => {
     const P = se.pts.map(p => [x(p.x), y(p.score)]);
