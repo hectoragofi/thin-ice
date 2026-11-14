@@ -13,6 +13,7 @@ from .board import completes_line, moves, move_name, parse_move, render, sq_name
 
 MAX_LINES = 40  # lines per explore_lines call
 MAX_PLIES = 40  # moves per line
+NL = chr(10)
 
 
 class ExploreError(Exception):
@@ -32,25 +33,18 @@ def _split(line) -> list:
     return toks
 
 
-def _side(side, to_move):
-    side = (side or "").strip().lower()
-    if side in ("", "turn", "to_move"):
-        return to_move
-    if side not in ("blue", "red"):
-        raise ExploreError("side must be \"blue\" or \"red\" (or empty for the side to move)")
-    return side
+def _completing(mine: int, occupied: int) -> list:
+    return [move_name((f, t)) for f, t in moves(mine, occupied) if completes_line(mine ^ (1 << f) ^ (1 << t), t)]
 
 
-def walk(blue: int, red: int, line, side: str = "") -> dict:
+def walk(blue: int, red: int, line) -> dict:
     """Plays `line` (Blue moves first, then alternating) from a position with Blue to move.
 
-    Returns the resulting position and the legal slides of `side` (default: the side to move),
-    each marked if it would make three in a row. Illegal lines are reported, not raised.
+    Returns the resulting position, the legal moves of the side to move, and for each colour
+    the moves that would make three in a row if it were that colour's turn (the side not to
+    move gets them as threats to know about). Illegal lines are reported, not raised.
     """
     toks = _split(line)
-    want = (side or "").strip().lower()
-    if want not in ("", "turn", "to_move", "blue", "red"):
-        raise ExploreError("side must be \"blue\" or \"red\" (or empty for the side to move)")
     turn, over, played = "blue", None, []
     for i, tok in enumerate(toks):
         if over:
@@ -83,20 +77,18 @@ def walk(blue: int, red: int, line, side: str = "") -> dict:
         "red": [sq_name(s) for s in squares(red)],
         "game_over": over,
         "to_move": None if over else turn,
+        "moves": [],
+        "three_in_a_row": {"blue": [], "red": []},
     }
     if over:
-        out["moves_for"], out["moves"], out["three_in_a_row"] = None, [], []
         return out
-    who = _side(want, turn)
-    mine = blue if who == "blue" else red
-    legal = moves(mine, blue | red)
-    out["moves_for"] = who
-    out["moves"] = [move_name(m) for m in legal]
-    out["three_in_a_row"] = [move_name((f, t)) for f, t in legal if completes_line(mine ^ (1 << f) ^ (1 << t), t)]
+    occ = blue | red
+    out["moves"] = [move_name(m) for m in moves(blue if turn == "blue" else red, occ)]
+    out["three_in_a_row"] = {"blue": _completing(blue, occ), "red": _completing(red, occ)}
     return out
 
 
-def lines(blue: int, red: int, many, side: str = "") -> list:
+def lines(blue: int, red: int, many) -> list:
     if isinstance(many, str):
         many = [p for p in many.replace(";", "\n").splitlines()]
     if not isinstance(many, (list, tuple)):
@@ -105,24 +97,25 @@ def lines(blue: int, red: int, many, side: str = "") -> list:
         raise ExploreError(f"at most {MAX_LINES} lines per call")
     if not many:
         raise ExploreError("give at least one line (an empty string means the current position)")
-    return [walk(blue, red, ln, side) for ln in many]
+    return [walk(blue, red, ln) for ln in many]
+
+
+def _threes(r: dict, who: str) -> str:
+    return " ".join(r["three_in_a_row"][who]) or "none"
 
 
 def text_one(pid: str, r: dict) -> str:
     seq = " ".join(r["line"]) or "(no moves)"
     if "error" in r:
         return f"{pid} after {seq}: ERROR {r['error']}"
-    head = f"{pid} after {seq}:"
-    lines_ = [head, r["board"], f"Blue stones: {' '.join(r['blue'])}   Red stones: {' '.join(r['red'])}"]
+    out = [f"{pid} after {seq}:", r["board"], f"Blue stones: {' '.join(r['blue'])}   Red stones: {' '.join(r['red'])}"]
     if r["game_over"]:
-        lines_.append(f"Game over: {r['game_over']}.")
-        return "\n".join(lines_)
-    who = r["moves_for"].capitalize()
+        out.append(f"Game over: {r['game_over']}.")
+        return NL.join(out)
     turn = r["to_move"].capitalize()
-    note = "" if r["moves_for"] == r["to_move"] else f" (it is {turn}'s turn; listed as if {who} were to move)"
-    lines_.append(f"{turn} to move. {who}'s legal moves{note}: {' '.join(r['moves'])}")
-    lines_.append(f"{who} moves that make three in a row: {' '.join(r['three_in_a_row']) or 'none'}")
-    return "\n".join(lines_)
+    out.append(f"{turn} to move. Legal moves: {' '.join(r['moves'])}")
+    out.append(f"Moves that would make three in a row - Blue: {_threes(r, 'blue')}; Red: {_threes(r, 'red')}")
+    return NL.join(out)
 
 
 def text_many(pid: str, rs: list) -> str:
@@ -134,10 +127,8 @@ def text_many(pid: str, rs: list) -> str:
         elif r["game_over"]:
             out.append(f"{seq}: game over, {r['game_over']}")
         else:
-            who = r["moves_for"]
-            mark = f"{who} moves that make three in a row: {' '.join(r['three_in_a_row']) or 'none'}"
             out.append(
                 f"{seq}: {r['to_move']} to move | blue {' '.join(r['blue'])} | red {' '.join(r['red'])} | "
-                f"{mark} | {who} legal moves: {' '.join(r['moves'])}"
+                f"three in a row: blue {_threes(r, 'blue')}, red {_threes(r, 'red')} | {r['to_move']} legal moves: {' '.join(r['moves'])}"
             )
-    return f"{pid}, {len(rs)} line(s), each played from the current position (Blue first):\n" + "\n".join(out)
+    return f"{pid}, {len(rs)} line(s), each played from the current position (Blue first):" + NL + NL.join(out)

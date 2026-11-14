@@ -7,7 +7,7 @@ name = "thin-ice/thin-ice"
 version = "1.0.0"
 description = "Win forced-win puzzles in Thin Ice, a new and exhaustively solved board game, against a perfect defender."
 authors = []
-keywords = ["planning", "lookahead", "game", "search", "tool-use"]
+keywords = ["planning", "lookahead", "game", "search", "tool-use", "no-code"]
 
 [metadata]
 difficulty = "hard"
@@ -19,7 +19,7 @@ timeout_sec = 120.0
 environment_mode = "separate"
 
 [agent]
-timeout_sec = 1800.0
+timeout_sec = 9000.0
 user = "agent"
 
 [environment]

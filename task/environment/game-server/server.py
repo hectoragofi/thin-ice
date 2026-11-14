@@ -117,21 +117,21 @@ def new_practice_puzzle(win_in: int) -> str:
 
 
 @mcp.tool()
-def explore_position(puzzle_id: str, moves: str = "", side: str = "") -> str:
-    """Rules only, nothing is played. Applies `moves` (space-separated, Blue first, then alternating; empty for none) to the puzzle's current position and shows the board, whose turn it is, every legal move of `side` ("blue" or "red", default the side to move) and which of those moves would make three in a row. It never says who is winning, what Red would reply, or which move to play."""
+def explore_position(puzzle_id: str, moves: str = "") -> str:
+    """Rules only, nothing is played. Applies `moves` (space-separated, Blue first, then alternating; empty for none) to the puzzle's current position and shows the board, whose turn it is, the legal moves of the side to move, and for each colour the moves that would make three in a row on its turn. It never says who is winning, what Red would reply, or which move to play."""
     try:
         pid, blue, red = snapshot(puzzle_id)
-        return text_one(pid, walk(blue, red, moves, side))
+        return text_one(pid, walk(blue, red, moves))
     except (GameError, ExploreError) as exc:
         return f"ERROR: {exc}"
 
 
 @mcp.tool()
-def explore_lines(puzzle_id: str, lines: list[str], side: str = "") -> str:
-    """Rules only, nothing is played. Up to 40 lines per call, each a space-separated move sequence (Blue first, then alternating) applied to the puzzle's current position. One result row per line: whose turn it is after the line, the stones, the legal moves of `side` (default the side to move) and which of them would make three in a row, or that the game ended (and how), or which move was illegal. It never says who is winning, what Red would reply, or which move to play."""
+def explore_lines(puzzle_id: str, lines: list[str]) -> str:
+    """Rules only, nothing is played. Up to 40 lines per call, each a space-separated move sequence (Blue first, then alternating) applied to the puzzle's current position. One result row per line: whose turn it is after the line, the stones, for each colour the moves that would make three in a row on its turn, and the legal moves of the side to move; or that the game ended (and how); or which move was illegal. It never says who is winning, what Red would reply, or which move to play."""
     try:
         pid, blue, red = snapshot(puzzle_id)
-        return text_many(pid, explore_many(blue, red, lines, side))
+        return text_many(pid, explore_many(blue, red, lines))
     except (GameError, ExploreError) as exc:
         return f"ERROR: {exc}"
 
@@ -201,8 +201,8 @@ async def api_explore(request: Request) -> JSONResponse:
         data = await _body(request)
         pid, blue, red = snapshot(str(data.get("id", "")))
         if "lines" in data:
-            return JSONResponse({"ok": True, "id": pid, "results": explore_many(blue, red, data["lines"], str(data.get("side") or ""))})
-        return JSONResponse({"ok": True, "id": pid, **walk(blue, red, data.get("moves", ""), str(data.get("side") or ""))})
+            return JSONResponse({"ok": True, "id": pid, "results": explore_many(blue, red, data["lines"])})
+        return JSONResponse({"ok": True, "id": pid, **walk(blue, red, data.get("moves", ""))})
     except (GameError, ExploreError) as exc:
         return _err(exc)
 

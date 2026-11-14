@@ -96,19 +96,19 @@ def main() -> int:
             seqs = [" ".join(r["line"] + [m]) for m in r["moves"]][:40]
             out = js(call("POST", "/api/explore", {"id": pid, "lines": seqs})[1])
             explored += len(out.get("results", []))
-        blob = json.dumps(firsts).lower()
+        blob = json.dumps(firsts).lower().replace("three_in_a_row", "")
         check(f"explore {pid}: no verdict words in answers", not any(w in blob for w in ("forced", "win in", "winning", "solution", "best", "reply\"", "nodes", "depth")))
     after_views = {pid: js(call("GET", f"/api/puzzle/{pid}")[1]) for pid in status0}
     check(f"{explored} explored lines changed no puzzle", after_views == views)
     check("explored lines changed no score", js(call("GET", "/api/puzzles")[1]) == listing0)
     # Lines with both colours, illegal Red moves, moves after the game ended, junk.
     p01 = views["P01"]
-    for body in ({"id": "P01", "lines": ["zz"]}, {"id": "P01", "moves": "a1-a1"}, {"id": "P01", "lines": ["a1-a6"] * 41}, {"id": "P01", "lines": "x" * 100000}, {"id": "P01", "moves": " ".join(["a1-a6"] * 41)}, {"id": "P01", "side": "green"}, {"id": "P01", "lines": 5}, {"id": "P01", "lines": []}, {"id": "../receipt", "moves": ""}, {"id": "P99", "moves": ""}):
+    for body in ({"id": "P01", "lines": ["zz"]}, {"id": "P01", "moves": "a1-a1"}, {"id": "P01", "lines": ["a1-a6"] * 41}, {"id": "P01", "lines": "x" * 100000}, {"id": "P01", "moves": " ".join(["a1-a6"] * 41)}, {"id": "P01", "lines": 5}, {"id": "P01", "lines": []}, {"id": "../receipt", "moves": ""}, {"id": "P99", "moves": ""}):
         code, raw = call("POST", "/api/explore", body)
         d = js(raw)
         refused = code == 400 or all("error" in r for r in d.get("results", [{"error": 1}])) or "error" in d
         check(f"explore junk is refused: {json.dumps(body)[:60]}", refused and b"nodes" not in raw, f"HTTP {code}")
-    win1 = js(call("POST", "/api/explore", {"id": "P01", "moves": ""})[1]).get("three_in_a_row", [])
+    win1 = js(call("POST", "/api/explore", {"id": "P01", "moves": ""})[1]).get("three_in_a_row", {}).get("blue", [])
     if win1:
         over = js(call("POST", "/api/explore", {"id": "P01", "moves": win1[0] + " " + p01["red"][0] + "-a1"})[1])
         check("explore refuses moves after three in a row", "error" in over)

@@ -14,17 +14,7 @@
     5,
     7,
     9,
-    11,
-    13,
-    15,
-    17,
-    19,
-    21,
-    23,
-    25,
-    27,
-    29,
-    31
+    11
   ],
   "win_in": [
     1,
@@ -32,86 +22,52 @@
     3,
     4,
     5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16
+    6
   ],
   "per_tier": 2,
   "slack": 1,
   "pool": {
     "1": {
       "scored": 30,
-      "practice": 20
+      "practice": 20,
+      "tools_reference_calls_max": 4,
+      "tools_reference_calls_median": 4.0
     },
     "2": {
       "scored": 30,
-      "practice": 20
+      "practice": 20,
+      "tools_reference_calls_max": 11,
+      "tools_reference_calls_median": 7.0
     },
     "3": {
       "scored": 30,
-      "practice": 20
+      "practice": 20,
+      "tools_reference_calls_max": 45,
+      "tools_reference_calls_median": 12.0
     },
     "4": {
-      "scored": 30,
-      "practice": 20
+      "scored": 19,
+      "practice": 20,
+      "tools_reference_calls_max": 51,
+      "tools_reference_calls_median": 21
     },
     "5": {
-      "scored": 30,
-      "practice": 20
+      "scored": 13,
+      "practice": 20,
+      "tools_reference_calls_max": 57,
+      "tools_reference_calls_median": 33
     },
     "6": {
-      "scored": 30,
-      "practice": 20
-    },
-    "7": {
-      "scored": 30,
-      "practice": 20
-    },
-    "8": {
-      "scored": 30,
-      "practice": 20
-    },
-    "9": {
-      "scored": 30,
-      "practice": 20
-    },
-    "10": {
-      "scored": 30,
-      "practice": 20
-    },
-    "11": {
-      "scored": 28,
-      "practice": 9
-    },
-    "12": {
-      "scored": 16,
-      "practice": 6
-    },
-    "13": {
-      "scored": 10,
-      "practice": 3
-    },
-    "14": {
-      "scored": 11,
-      "practice": 4
-    },
-    "15": {
-      "scored": 8,
-      "practice": 3
-    },
-    "16": {
-      "scored": 8,
-      "practice": 2
+      "scored": 3,
+      "practice": 20,
+      "tools_reference_calls_max": 48,
+      "tools_reference_calls_median": 47
     }
   },
   "build_seed": 20261114,
-  "positions": 16524225900
+  "positions": 16524225900,
+  "tools_reference": {
+    "call_budget": 50,
+    "max_win": 6
+  }
 }

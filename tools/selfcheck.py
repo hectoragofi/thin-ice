@@ -71,6 +71,18 @@ def searcher(seconds):
     return choose
 
 
+def tools_only(seed) -> float:
+    """The tools-only player, through the same tool functions the server answers with."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    from size_task import LocalTools, toolplay
+
+    run = new_run(seed)
+    tools = LocalTools(run)
+    for pid in run.attempts:
+        toolplay.play_puzzle(tools, pid, 400, 120)
+    return run.scorecard()["score"]
+
+
 def main() -> None:
     seeds = sys.argv[1:] or ["1", "2", "3"]
     rows = [
@@ -80,6 +92,7 @@ def main() -> None:
         ("random legal moves", lambda s: play(new_run(s), rng_policy(s))),
         ("win-in-1 if seen, else random", lambda s: play(new_run(s), mate_in_one_else_random(s))),
         ("rules-only search, 2s per move", lambda s: play(new_run(s), searcher(2.0))),
+        ("tools-only reference (agent's tools only)", tools_only),
         ("perfect play (solver's book)", lambda s: play(new_run(s), book)),
     ]
     print(f"{'policy':<40} " + " ".join(f"seed {s:>3}" for s in seeds))
