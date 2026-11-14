@@ -339,7 +339,7 @@ SCENES = [
              f"The same wrong move came up in {n(rp.get('same_move_runs'))} separate runs. Every lost puzzle is graded like this."]},
     {"id": "gap", "dur": 15,
      "cap": [f"Score is puzzles won out of 12. Perfect play: {f3(ladder[0]['value'])}.",
-             f"Sixty lines of rules-only search: {f3(ref_search)}.",
+             f"Eighty lines of rules-only search: {f3(ref_search)}.",
              f"Frontier models: {agent_phrase()}."]},
     {"id": "depth", "dur": 15,
      "cap": ["Now one move per fresh call, graded to the end of the game.",

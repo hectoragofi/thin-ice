@@ -27,7 +27,7 @@ Reviewers score Innovation, Impact and Implementation. Lead with why it matters,
 - "And the same wrong move showed up in separate runs. It is not noise, it is a blind spot. Every lost puzzle gets this verdict, automatically."
 
 **2:30 to 3:30. The result. Scenes 4 and 5.**
-- Scene 4: "Score is puzzles won out of 12. Perfect play 1.000. Sixty lines of simple search that only know the rules: 0.917. The three frontier models: the numbers on screen, around half."
+- Scene 4: "Score is puzzles won out of 12. Perfect play 1.000. Eighty lines of simple search that only know the rules: 0.917. The three Gemini 4 models: the numbers on screen, around half."
 - Scene 5: "We also asked for one move per fresh call. Win in one or two: easy. Win in four: they almost all fall through. The horizon is about three moves."
 
 **3:30 to 4:15. Why you can trust it. Scenes 6 and 7.**
@@ -35,7 +35,7 @@ Reviewers score Innovation, Impact and Implementation. Lead with why it matters,
 - "We attacked our own reward: 96 attacks plus 13 on the clock. None got through. The score is signed by the game server, the agent never touches it."
 
 **4:15 to 5:00. It also teaches. Scenes 8 and 9.**
-- "And it is a training ground, not only a test. A tiny model, Qwen3 0.6B, goes from 0.003 to 0.320 after training on the feedback practice mode gives: it learns to imitate the winning move. That is close to the frontier models in the same test."
+- "And it is a training ground, not only a test. A tiny model, Qwen3 0.6B, goes from 0.003 to 0.320 after training on the feedback practice mode gives: it learns to imitate the winning move. That is close to the Gemini 4 models in the same test."
 - "Everything reproduces with one command. Questions?"
 
 Likely questions:

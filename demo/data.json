@@ -29,11 +29,13 @@
   },
   {
    "label": "Gemini 4 Carbon",
-   "value": 0.5,
+   "value": 0.4722,
    "runs": [
-    0.5
+    0.5,
+    0.5,
+    0.4167
    ],
-   "landed": 1,
+   "landed": 3,
    "expected": 3,
    "kind": "agent"
   },
@@ -101,35 +103,37 @@
   "carbon": {
    "label": "Gemini 4 Carbon",
    "rewards": [
-    0.5
+    0.5,
+    0.5,
+    0.4167
    ],
-   "mean": 0.5,
-   "landed": 1,
+   "mean": 0.4722,
+   "landed": 3,
    "expected": 3,
    "solved_by_tier": {
     "1": {
-     "solved": 2,
-     "of": 2
+     "solved": 6,
+     "of": 6
     },
     "2": {
-     "solved": 2,
-     "of": 2
+     "solved": 6,
+     "of": 6
     },
     "3": {
-     "solved": 1,
-     "of": 2
+     "solved": 4,
+     "of": 6
     },
     "4": {
      "solved": 1,
-     "of": 2
+     "of": 6
     },
     "5": {
      "solved": 0,
-     "of": 2
+     "of": 6
     },
     "6": {
      "solved": 0,
-     "of": 2
+     "of": 6
     }
    }
   },
@@ -227,24 +231,24 @@
   "same_move_models": [
    "Gemini 4 Hydrogen"
   ],
-  "lost_this_puzzle_runs": 7
+  "lost_this_puzzle_runs": 8
  },
  "mistakes": {
-  "graded": 38,
+  "graded": 50,
   "kinds": {
-   "walked into a forced loss": 34,
+   "walked into a forced loss": 46,
    "too slow": 1,
    "overlooked Red's immediate win": 3
   }
  },
  "reach": {
-  "runs": 7,
-  "puzzles": 84,
-  "reached": 84,
-  "out_of_time": 0,
+  "runs": 9,
+  "puzzles": 108,
+  "reached": 108,
+  "out_of_time": 1,
   "skipped": 0,
-  "practice_runs": 2,
-  "lost": 38
+  "practice_runs": 4,
+  "lost": 51
  },
  "probe": {
   "argon": {
@@ -507,8 +511,8 @@
    "dur": 15,
    "cap": [
     "Score is puzzles won out of 12. Perfect play: 1.000.",
-    "Sixty lines of rules-only search: 0.917.",
-    "Frontier models: Argon 0.556, Carbon 0.500 (1 of 3 runs so far), Hydrogen 0.556."
+    "Eighty lines of rules-only search: 0.917.",
+    "Frontier models: Argon 0.556, Carbon 0.472, Hydrogen 0.556."
    ]
   },
   {
@@ -525,7 +529,7 @@
    "dur": 10,
    "cap": [
     "The mistakes are fair. Each puzzle has its own clock: 2 minutes per move.",
-    "84 of 84 puzzles were reached. Rules, notes and practice are always there."
+    "108 of 108 puzzles were reached. Rules, notes and practice are always there."
    ]
   },
   {
