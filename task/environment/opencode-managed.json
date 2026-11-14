@@ -5,14 +5,5 @@
     "edit": "deny",
     "webfetch": "deny",
     "websearch": "deny"
-  },
-  "provider": {
-    "google": {
-      "models": {
-        "gemini-4-argon": { "options": { "thinkingConfig": { "thinkingBudget": 16000, "includeThoughts": true } } },
-        "gemini-4-carbon": { "options": { "thinkingConfig": { "thinkingBudget": 16000, "includeThoughts": true } } },
-        "gemini-4-hydrogen": { "options": { "thinkingConfig": { "thinkingBudget": 16000, "includeThoughts": true } } }
-      }
-    }
   }
 }
