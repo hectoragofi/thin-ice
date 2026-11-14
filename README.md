@@ -79,6 +79,8 @@ Every row is a Harbor run on Modal (`-e modal`) at commit 24d6707, reproducible 
 | Gemini 4 Argon, 3 runs | **0.556** (0.667, 0.417, 0.583) |
 | Gemini 4 Carbon, 3 runs | **0.472** (0.500, 0.500, 0.417) |
 | Gemini 4 Hydrogen, 3 runs | **0.556** (0.583, 0.583, 0.500) |
+| Gemini 3.8 Flash (older generation), 3 runs | **0.417** (0.417, 0.417, 0.417) |
+| Gemini 3.1 Pro (older generation), 3 runs | **0.389** (0.417, 0.417, 0.333) |
 | Baseline: stop early (wins the 2 easiest, then quits) | 0.167 |
 | Baseline: do nothing | 0.000 |
 
@@ -91,6 +93,8 @@ Scripted policies, 3 seeds each, in-process (`python tools/selfcheck.py`, no Doc
 | Gemini 4 Argon | 0.556 (0.667, 0.417, 0.583) | 6, 3, 6 | walked into a forced loss 14, too slow 1, overlooked Red's immediate win 1 | agent stopped by itself 3 |
 | Gemini 4 Carbon | 0.472 (0.500, 0.500, 0.417) | 4, 3, 3 | walked into a forced loss 18, puzzle clock ran out 1 | agent stopped by itself 3 |
 | Gemini 4 Hydrogen | 0.556 (0.583, 0.583, 0.500) | 5, 5, 4 | walked into a forced loss 14, overlooked Red's immediate win 2 | agent stopped by itself 3 |
+| Gemini 3.8 Flash | 0.417 (0.417, 0.417, 0.417) | 4, 3, 3 | walked into a forced loss 13, overlooked Red's immediate win 8 | 90-minute limit reached 2, agent stopped by itself 1 |
+| Gemini 3.1 Pro | 0.389 (0.417, 0.417, 0.333) | 3, 3, 2 | walked into a forced loss 12, overlooked Red's immediate win 8, given up 2 | agent stopped by itself 3 |
 
 Wins by depth over all 9 Gemini 4 runs:
 
@@ -101,6 +105,8 @@ Wins by depth over all 9 Gemini 4 runs:
 The Gemini 4 family plans about three moves ahead. Every puzzle was reached in every run, every session ended by the agent's own choice, and 50 of the 51 lost puzzles were lost by a move the solver proves wrong (the other ran out its puzzle clock). The losses are planning errors, not harness errors.
 
 Equal means can come by different routes. Beyond the five puzzles every run wins (P01 to P05), Argon's extra wins are P06 twice, P08 once and P12 twice; Hydrogen's are P06, P08 twice, P09 and P10.
+
+**Older models.** Both older Gemini models score below all three Gemini 4 models in the full task (0.417 and 0.389 against 0.472 to 0.556), and they lose differently: each missed Red's immediate win 8 times in 3 runs, against 3 times in all 9 Gemini 4 runs. In the one-move probe below the order is less clean (3.1 Pro scores 0.417, level with Argon's 0.400), so we read this as the older models trailing in the full task, not as a strict ranking.
 
 **What 12 puzzles can and cannot say.** One puzzle is worth 0.083, and one model's three runs span 0.417 to 0.667. So this task separates the agents from the references and the baselines, and shows where on the depth scale each model breaks, but it cannot rank models that sit within a few puzzles of each other. The one-move probe below draws 60 different puzzles per model and gives the finer comparison.
 
