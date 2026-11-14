@@ -1,11 +1,13 @@
 """One command to reproduce every reported number through Harbor.
 
-    python scripts/evaluate.py --model openai/<model>          # everything
-    python scripts/evaluate.py                                 # references and baselines only (no API key)
+    python scripts/evaluate.py --model google/gemini-4-carbon   # everything
+    python scripts/evaluate.py                                  # references and baselines only (no API key)
+    python scripts/evaluate.py --env modal ...                  # run on Modal instead of local Docker
 
 Runs, in order: the reference (perfect play), the rules-only search reference, a do-nothing
 baseline, a stop-early baseline, and N runs of the OpenCode agent with the given model.
-Prints one table and writes results/summary.md. Needs Docker and `harbor` on the PATH.
+Prints one table and writes results/summary.md, plus a move-by-move mistake report per agent run
+(results/analysis.md). Needs `harbor` on the PATH and Docker (or Modal with --env modal).
 API keys are read from the environment or from a .env file next to this repository's README.
 """
 from __future__ import annotations
@@ -32,12 +34,15 @@ def load_env() -> None:
                 os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
 
 
+ENV: list = []
+
+
 def harbor(name: str, jobs: Path, *args: str) -> Path:
     job = jobs / name
     if job.exists():
         print(f"== {name}: reusing {job}")
         return job
-    cmd = ["harbor", "run", "-p", str(TASK), "--job-name", name, "-o", str(jobs), "-y", *args]
+    cmd = ["harbor", "run", "-p", str(TASK), "--job-name", name, "-o", str(jobs), "-y", *ENV, *args]
     shown = " ".join(a if "API_KEY=" not in a else a.split("=")[0] + "=***" for a in cmd)
     print(f"== {name}: {shown}", flush=True)
     t0 = time.time()
@@ -71,9 +76,12 @@ def main() -> None:
     p.add_argument("--runs", type=int, default=3, help="number of agent runs")
     p.add_argument("--jobs", default=str(ROOT / "jobs" / "evaluate"), help="where Harbor writes its job folders")
     p.add_argument("--search-seconds", type=int, default=20, help="time per puzzle for the rules-only search reference")
+    p.add_argument("--env", help="Harbor environment, e.g. modal (default: local Docker)")
     p.add_argument("--fresh", action="store_true", help="do not reuse job folders from an earlier call")
     args = p.parse_args()
     load_env()
+    if args.env:
+        ENV.extend(["-e", args.env])
     jobs = Path(args.jobs)
     if args.fresh and jobs.exists():
         jobs = jobs.with_name(jobs.name + time.strftime("-%H%M%S"))
@@ -90,7 +98,7 @@ def main() -> None:
         tag = args.model.replace("/", "_").replace(":", "_")
         rows.append((f"agent: {args.agent} + {args.model}", harbor(f"agent-{tag}", jobs, "-a", args.agent, "-m", args.model, "-k", str(args.runs), "-n", str(args.runs), *keys)))
 
-    lines = ["| run | reward | solved per tier (win in 1..12 moves, 2 puzzles each) |", "|---|---|---|"]
+    lines = ["| run | reward | solved per tier (win in 1, 2, 3, ... moves; 2 puzzles each) |", "|---|---|---|"]
     for label, job in rows:
         for reward, detail in trials(job) or [(None, {})]:
             shown = "n/a (no result)" if reward is None else f"{reward:.3f}"
