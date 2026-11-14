@@ -30,4 +30,6 @@ USER root
 COPY opencode-managed.json /etc/opencode/opencode.json
 
 ENV THINICE_URL=http://game:8000
+# Test only: raise OpenCode per-turn output cap (default 32000) so a long thought is not cut off.
+ENV OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX=64000
 WORKDIR /app
