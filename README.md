@@ -1,6 +1,8 @@
 # Thin Ice
 
-A reinforcement learning environment that measures how many moves ahead an agent can plan, by its own reasoning, in a system it has never seen.
+A reinforcement learning environment for **planning several moves ahead against an opponent**: finding a move that works against every reply, by the agent's own reasoning, in a system it has never seen.
+
+**Why this setting.** The game is invented, so nothing can be recalled from training data, and it is solved exhaustively, so every single move has an exact verdict. **What an agent learns here, in order** (the post-training curve below shows each step): the rules (legal moves 50% → 100% within the first 1,024 training examples), then immediate wins (win in 1: 0.02 → 1.00), then forced sequences (win in 2: 0.64, win in 3: 0.20), and, under the clock, when to stop thinking and commit.
 
 Thin Ice is a small board game we invented for this challenge and then **solved completely**: all 16.5 billion positions of the 7x6 board, by exhaustive retrograde analysis. Because the game is solved, every move an agent makes is provably right or wrong. There is no judge model, no heuristic and no partial credit anywhere in the reward.
 
@@ -36,6 +38,12 @@ That is the whole rulebook. It fits in a paragraph, yet forced wins run up to 63
 - **Practice** is unlimited and never counts: fresh puzzles that answer a wrong move with the move that would have won.
 
 **Score = puzzles won / 12.** One number between 0 and 1, written to `/logs/verifier/reward.txt`.
+
+| | |
+|---|---|
+| **Actions** | 7 game tools: `play_move`, `show_puzzle`, `list_puzzles`, `save_note`, `skip_puzzle`, `new_practice_puzzle`, `rules` |
+| **Observations** | the board, legal moves, the win depth, moves and time left on the puzzle and the run, Red's reply, the result; in practice, the move that would have won |
+| **Reward** | puzzles won / 12, read only from the game server's HMAC-signed score sheet |
 
 ## Why no code
 
@@ -100,6 +108,17 @@ Puzzles solved per tier. Removing the session does not remove the difficulty: th
 
 Neither matches its effort to the position. All three have a horizon of about 3 moves.
 
+### Does the reward encourage the behaviour we intended?
+
+Not at first, and the logs showed it. The first no-code version let a model think until its session died, and let it open six puzzles and try to solve them in one reply. Neither was intended. The fixes below changed the environment, not the model; the shortcuts were checked too:
+
+| shortcut | score |
+|---|---|
+| Do nothing | 0.000 |
+| Random legal moves | 0.007 (probe pool), 0.00 - 0.08 (task) |
+| Stop early after the 2 easiest | 0.167 |
+| Notes as a side channel, peeking ahead, beating the clock | refused, see the attack table; every note we read is real elimination analysis |
+
 ### Harness limits we found and removed
 
 Our first no-code runs ended after 5 to 15 minutes with most puzzles never reached, and the cause was not the game. `opencode run` ends a session as soon as a reply carries no tool call, and a model that reasons through a long line in one reply hits its output limit (32,768 tokens for Argon and Carbon, a hard API limit) and is cut off mid-thought: 6 of 9 sessions ended this way. Models also opened several puzzles and tried to solve them all in one reply. Three changes, none of which touches the model's own settings:
@@ -159,7 +178,7 @@ The reward is the number of puzzles won against a perfect opponent, so the only 
 
 ## Post-training: does a small model get better?
 
-Yes, from nothing to the frontier models' range. `training/` fine-tunes Qwen3 (LoRA, on Modal) on what practice mode hands out: a position and the move that wins it, generated at scale by the solver. It is evaluated with the same rollout as the probe above, on a held-out pool removed from the training data together with all its rotations and reflections, with the same prompt before and after.
+Yes, from nothing to the frontier models' range. `training/` fine-tunes Qwen3 (LoRA, on Modal) on the feedback the environment's practice mode gives: a position and the move that wins it, generated at scale by the solver. This is imitation of the solver's winning moves, the same information practice mode returns after a wrong move; it is not trial-and-error on the reward. It is evaluated with the same rollout as the probe above, on a held-out pool removed from the training data together with all its rotations and reflections, with the same prompt before and after.
 
 | model | before | after 600k examples | legal moves | after, by tier (win in 1 / 2 / 3 / 4 / 5 / 6) |
 |---|---|---|---|---|
