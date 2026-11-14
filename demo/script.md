@@ -17,13 +17,13 @@ Any number shown as "pending" has not landed yet.
 | 0:38 | (same) | Only c1-a1 held. 1 move out of 25. |
 | 0:43 | (same) | The same wrong move came up in 2 separate runs. Every lost puzzle is graded like this. |
 | 0:48 | Ladder chart: perfect play, rules-only search, the three Gemini models (one dot per run), the baselines. | Score is puzzles won out of 12. Perfect play: 1.000. |
-| 0:53 | (same) | Sixty lines of rules-only search: 0.917. |
-| 0:58 | (same) | Frontier models: Argon 0.556, Carbon 0.500 (1 of 3 runs so far), Hydrogen 0.556. |
+| 0:53 | (same) | Eighty lines of rules-only search: 0.917. |
+| 0:58 | (same) | Frontier models: Argon 0.556, Carbon 0.472, Hydrogen 0.556. |
 | 1:03 | Line chart: solve rate by win-in depth for Argon, Carbon, Hydrogen and the trained small model. | Now one move per fresh call, graded to the end of the game. |
 | 1:08 | (same) | Win in one or two: easy. Win in four: 1 to 3 puzzles in 10. |
 | 1:13 | (same) | The horizon is about three moves. |
 | 1:18 | Three facts: per-puzzle clock, puzzles reached, tools available. | The mistakes are fair. Each puzzle has its own clock: 2 minutes per move. |
-| 1:23 | (same) | 84 of 84 puzzles were reached. Rules, notes and practice are always there. |
+| 1:23 | (same) | 108 of 108 puzzles were reached. Rules, notes and practice are always there. |
 | 1:28 | Attack counts with every row refused. | The reward can't be gamed. 96 attacks, plus 13 on the clock. |
 | 1:32 | (same) | None got through. The score sheet is signed by the game server. |
 | 1:37 | Learning curve of the small model, frontier range as a band. | And a small model learns. Qwen3-0.6B: 0.003 untrained. |

@@ -115,7 +115,7 @@ B.title = (el) => {
   const best = Math.max(...D.ladder.filter(r => r.kind === 'agent' && r.value != null).map(r => r.value));
   el.innerHTML = `<div class="center"><div class="big" style="font-size:150px">Thin Ice</div>
     <div class="sub" style="font-size:52px;color:var(--ink);margin-top:20px;line-height:1.3">Frontier models plan about three moves ahead,<br>and every one of their mistakes can be proven.</div>
-    <div class="sub" style="margin-top:40px">An invented, fully solved board game as an RL environment. No code, only reasoning.<br>Best frontier model ${f3(isFinite(best) ? best : null)} &middot; rules-only search ${f3(D.ladder[1].value)} &middot; perfect play ${f3(D.ladder[0].value)}</div>
+    <div class="sub" style="margin-top:40px">An invented, fully solved board game as an RL environment. No code, only reasoning.<br>Best Gemini 4 model ${f3(isFinite(best) ? best : null)} &middot; rules-only search ${f3(D.ladder[1].value)} &middot; perfect play ${f3(D.ladder[0].value)}</div>
     <div class="cmd mono" style="font-size:44px;padding:28px 40px;margin-top:50px;align-self:flex-start">github.com/hectoragofi/thin-ice</div></div>`;
   return { beat() {} };
 };
