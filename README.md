@@ -18,7 +18,7 @@ Built for AfterQuery's "Break the Agent" challenge at Junction 2026. It is a sta
   a b c d e f g
 ```
 
-(A real position from a frontier run: the agent played c1-g5, which loses to a forced Red win in 2.)
+(A real position from a Gemini 4 Hydrogen run: the agent played c1-g5, which loses to a forced Red win in 2.)
 
 ## The game
 
@@ -55,7 +55,7 @@ We built this environment several times, and each version taught us what it shou
 | 7x6 board, agent has a shell | Same: it writes a search, **1.000**. The board size does not matter to a program. |
 | Rules-only look-ahead offered as a tool, no shell | Every model scores about **1.0**: it checks every branch with the tool until it is certain. |
 | Same tool with a look-ahead budget | Gemini 4 Argon wins all 10 puzzles using ~1,100 explored positions, fewer than our own selective reference needs (3,096). No budget leaves a gap above the strongest model. |
-| **No code, no look-ahead tool (this task)** | Planning has to happen in the model's own reasoning. This is where frontier models fall through. |
+| **No code, no look-ahead tool (this task)** | Planning has to happen in the model's own reasoning. This is where the Gemini 4 models fall through. |
 
 So the environment measures one thing on purpose: **how far ahead a model can plan without a program doing the planning for it.** Writing a search is a solved skill; holding a 5-move forced line in your head, with every Red defence answered, is not. The organisers confirmed that removing code execution is a legitimate setting ("if code solves it then remove its ability to write code, just tools").
 
@@ -76,9 +76,9 @@ Every row is a Harbor run on Modal (`-e modal`) at commit 24d6707, reproducible 
 |---|---|
 | Reference: perfect play (moves from the solver) | **1.000** |
 | Reference: rules-only search, 20 s per puzzle (80 lines of Python that know only the rules) | **0.917** |
-| Gemini 4 Argon, 3 runs | RESULT_ARGON |
-| Gemini 4 Carbon, 3 runs | RESULT_CARBON |
-| Gemini 4 Hydrogen, 3 runs | RESULT_HYDROGEN |
+| Gemini 4 Argon, 3 runs | **0.556** (0.667, 0.417, 0.583) |
+| Gemini 4 Carbon, 3 runs | **0.472** (0.500, 0.500, 0.417) |
+| Gemini 4 Hydrogen, 3 runs | **0.556** (0.583, 0.583, 0.500) |
 | Baseline: stop early (wins the 2 easiest, then quits) | 0.167 |
 | Baseline: do nothing | 0.000 |
 
@@ -86,7 +86,23 @@ Scripted policies, 3 seeds each, in-process (`python tools/selfcheck.py`, no Doc
 
 ### Where the agents go wrong
 
-MISTAKE_TABLE
+| model | reward: mean (runs) | deepest win per run (win in N) | lost puzzles, by solver verdict (all runs) | how sessions ended |
+|---|---|---|---|---|
+| Gemini 4 Argon | 0.556 (0.667, 0.417, 0.583) | 6, 3, 6 | walked into a forced loss 14, too slow 1, overlooked Red's immediate win 1 | agent stopped by itself 3 |
+| Gemini 4 Carbon | 0.472 (0.500, 0.500, 0.417) | 4, 3, 3 | walked into a forced loss 18, puzzle clock ran out 1 | agent stopped by itself 3 |
+| Gemini 4 Hydrogen | 0.556 (0.583, 0.583, 0.500) | 5, 5, 4 | walked into a forced loss 14, overlooked Red's immediate win 2 | agent stopped by itself 3 |
+
+Wins by depth over all 9 Gemini 4 runs:
+
+| win in | 1 | 2 | 3 | 4 | 5 | 6 |
+|---|---|---|---|---|---|---|
+| solved | 18/18 | 18/18 | 13/18 | 4/18 | 2/18 | 2/18 |
+
+The Gemini 4 family plans about three moves ahead. Every puzzle was reached in every run, every session ended by the agent's own choice, and 50 of the 51 lost puzzles were lost by a move the solver proves wrong (the other ran out its puzzle clock). The losses are planning errors, not harness errors.
+
+Equal means can come by different routes. Beyond the five puzzles every run wins (P01 to P05), Argon's extra wins are P06 twice, P08 once and P12 twice; Hydrogen's are P06, P08 twice, P09 and P10.
+
+**What 12 puzzles can and cannot say.** One puzzle is worth 0.083, and one model's three runs span 0.417 to 0.667. So this task separates the agents from the references and the baselines, and shows where on the depth scale each model breaks, but it cannot rank models that sit within a few puzzles of each other. The one-move probe below draws 60 different puzzles per model and gives the finer comparison.
 
 `python tools/mistakes.py <job folders>` builds this table; `python tools/analyze.py <job folder>` writes, for every lost puzzle, the position, the move played, the solver's verdict on it and the move that would have kept the win.
 
@@ -178,14 +194,14 @@ The reward is the number of puzzles won against a perfect opponent, so the only 
 
 ## Post-training: does a small model get better?
 
-Yes, from nothing to the frontier models' range. `training/` fine-tunes Qwen3 (LoRA, on Modal) on the feedback the environment's practice mode gives: a position and the move that wins it, generated at scale by the solver. This is imitation of the solver's winning moves, the same information practice mode returns after a wrong move; it is not trial-and-error on the reward. It is evaluated with the same rollout as the probe above, on a held-out pool removed from the training data together with all its rotations and reflections, with the same prompt before and after.
+Yes, from nothing to the Gemini 4 models' range. `training/` fine-tunes Qwen3 (LoRA, on Modal) on the feedback the environment's practice mode gives: a position and the move that wins it, generated at scale by the solver. This is imitation of the solver's winning moves, the same information practice mode returns after a wrong move; it is not trial-and-error on the reward. It is evaluated with the same rollout as the probe above, on a held-out pool removed from the training data together with all its rotations and reflections, with the same prompt before and after.
 
 | model | before | after 600k examples | legal moves | after, by tier (win in 1 / 2 / 3 / 4 / 5 / 6) |
 |---|---|---|---|---|
 | Qwen3-0.6B | 0.003 | **0.320** | 50% → 100% | 1.00 / 0.64 / 0.20 / 0.06 / 0.00 / 0.02 |
 | Qwen3-1.7B | 0.003 | **0.317** | 93% → 100% | 0.98 / 0.58 / 0.28 / 0.06 / 0.00 / 0.00 |
 
-Scores are the mean over win in 1 to 6, the task's scale. The 0.6B curve is still rising at the end (0.293 at 400k examples). A 0.6B model trained on the environment's own feedback reaches 0.32 against the frontier models' 0.40 - 0.52 in the same one-move-per-call setting. Qwen was scored on 50 puzzles per tier, the Gemini probes on 10 per tier from the same pool. Curves: `results/curve-qwen3-*-7x6.json`; probes: `results/probe/`.
+Scores are the mean over win in 1 to 6, the task's scale. The 0.6B curve is still rising at the end (0.293 at 400k examples). A 0.6B model trained on the environment's own feedback reaches 0.32 against the Gemini 4 models' 0.40 - 0.52 in the same one-move-per-call setting. Qwen was scored on 50 puzzles per tier, the Gemini probes on 10 per tier from the same pool. Curves: `results/curve-qwen3-*-7x6.json`; probes: `results/probe/`.
 
 ## How it was built
 
