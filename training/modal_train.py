@@ -32,7 +32,7 @@ data = modal.Volume.from_name("thinice-data", create_if_missing=True)  # labels 
 GPU = os.environ.get("THINICE_GPU", "A100-80GB")  # read on your machine when you call `modal run`
 
 
-@app.function(gpu=GPU, timeout=5 * 60 * 60, volumes={"/runs": runs, "/root/.cache/huggingface": weights, "/data": data})
+@app.function(gpu=GPU, timeout=24 * 60 * 60, volumes={"/runs": runs, "/root/.cache/huggingface": weights, "/data": data})
 def train(model: str, name: str, examples: int, bs: int, accum: int, lr: float, rank: int, eval_at: str) -> str:
     import json
     import subprocess

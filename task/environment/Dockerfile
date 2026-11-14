@@ -23,6 +23,11 @@ RUN curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh |
     && nvm cache clear
 USER root
 
+# Reasoning-only play: this root-owned managed config switches off the agent's shell, file
+# writing and web tools, so every move has to come from the model through the game's tools
+# rather than from a search program it writes. The agent user cannot change it.
+COPY opencode-managed.json /etc/opencode/opencode.json
+
 COPY ice /usr/local/bin/ice
 RUN chmod 755 /usr/local/bin/ice
 
