@@ -43,10 +43,14 @@ SOLVER = Path(os.environ.get("THINICE_SOLVER", ROOT / "solver" / "target" / "rel
 
 GAME = {"w": W, "h": H, "sb": 4, "sr": 4, "k": 3, "dirs": 8, "slide": 1}
 PER_TIER = 2  # scored puzzles per tier in one run
+RUN_TIERS = 6  # a run draws its puzzles from the first this many tiers (win in 1 to 6); the pools go deeper
 POOL = 30  # most scored puzzles per tier (the run seed picks PER_TIER of them)
 PRACTICE = 20  # most practice puzzles per tier
 EVAL = 50  # puzzles per tier in the separate pool used to evaluate trained models
 SLACK = 1  # extra Blue moves allowed beyond the fastest win
+# Each scored puzzle's own clock: base_sec + per_move_sec for every move of its forced win, counted from
+# the first look. run_sec is the whole run's limit and must equal [agent] timeout_sec in task/task.toml.
+CLOCK = {"base_sec": 0, "per_move_sec": 120, "run_sec": 5400}
 DEEP = 13  # from this depth on, independent puzzles are scarce and need a wider search
 SEED = 20261114
 
@@ -195,10 +199,11 @@ def main() -> None:
 
     manifest = {
         "game": GAME,
-        "tiers": tiers,
-        "win_in": [(d + 1) // 2 for d in tiers],
+        "tiers": tiers[:RUN_TIERS],
+        "win_in": [(d + 1) // 2 for d in tiers[:RUN_TIERS]],
         "per_tier": PER_TIER,
         "slack": SLACK,
+        "clock": CLOCK,
         "pool": sizes,
         "build_seed": SEED,
         "positions": int(tb.stat().st_size),

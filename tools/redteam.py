@@ -6,12 +6,19 @@
     docker rm -f thinice-game
 
 Every attack must leave the score where honest play put it. Exits non-zero if one gets through.
+
+The per-puzzle clock has its own attacks, against a server started with a short clock:
+
+    docker run --rm -d -p 8000:8000 -e THINICE_RECEIPT=/tmp/receipt.json -e THINICE_CLOCK='{"per_move_sec": 3}' ...
+    python tools/redteam.py http://localhost:8000 --clock
 """
 import json
 import sys
 import threading
+import time
 import urllib.error
 import urllib.request
+from pathlib import Path
 
 URL = (sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8000").rstrip("/")
 results = []
@@ -45,7 +52,72 @@ def check(name: str, ok: bool, note: str = "") -> None:
     print(f"{'PASS' if ok else 'FAIL'}  {name}" + (f"  ({note})" if note else ""))
 
 
+def clock_attacks() -> int:
+    """Tries to get around the per-puzzle clock. Needs a server whose clock is a few seconds per move."""
+    root = Path(__file__).resolve().parent.parent
+    sys.path.insert(0, str(root))
+    from thinice.board import key, mask_of, parse_sq
+
+    book = json.loads((root / "task" / "solution" / "book.json").read_text())
+
+    def best(p: dict) -> str:
+        return book[key(mask_of(parse_sq(s) for s in p["blue"]), mask_of(parse_sq(s) for s in p["red"]))]
+
+    def view(pid: str) -> dict:
+        return js(call("GET", f"/api/puzzle/{pid}")[1])
+
+    began = time.monotonic()
+    check("fresh server starts at zero", score()[0] == 0)
+    if time.monotonic() - began > 0.5:
+        # On Windows "localhost" tries IPv6 first and costs about 2 s per call, longer than the test clock.
+        print("calls to this URL are too slow to test a clock of a few seconds; use http://127.0.0.1:<port>")
+        return 1
+    time.sleep(1.5)
+    p1 = view("P01")
+    check("the clock does not run before the first look", p1.get("seconds_left") == p1.get("clock_seconds") and p1["clock_seconds"] > 0, str(p1.get("seconds_left")))
+    wait = p1["clock_seconds"] + 0.5
+
+    # 1. A move that arrives after the clock is refused, even the winning one.
+    time.sleep(wait)
+    for pid in ("P01", "p01", " P01 "):
+        code, body = call("POST", "/api/move", {"id": pid, "move": best(p1)})
+        check(f"winning move after the clock ran out is refused as {pid!r}", code == 400 and b"out of time" in body, f"HTTP {code}")
+    late = view("P01")
+    check("the timed-out puzzle is lost with no move played", late["status"] == "failed" and late["reason"] == "out of time" and late["moves_used"] == 0)
+    check("nothing was scored for it", score()[0] == 0)
+    code, _ = call("POST", "/api/skip", {"id": "P01"})
+    check("a timed-out puzzle cannot be skipped into anything else", code == 400 and score()[2]["P01"] == "failed")
+
+    # 2. The next puzzle unlocked, and looking at it again or practising does not give its time back.
+    p2 = view("P02")
+    check("the next puzzle unlocks when a clock runs out", p2.get("status") == "open" and p2.get("seconds_left", 0) > 0)
+    time.sleep(1.2)
+    again = view("p02 ")
+    check("looking again does not restart the clock", again["seconds_left"] < p2["clock_seconds"], f"{again['seconds_left']} of {p2['clock_seconds']}")
+    call("POST", "/api/practice", {"win_in": 1})
+    time.sleep(wait)
+    check("practice does not stop the scored clock", score()[2]["P02"] == "failed" and view("P02")["reason"] == "out of time")
+
+    # 3. A clock that nobody looks at again still runs out, and the score sheet says so.
+    view("P03")
+    time.sleep(view("P03")["clock_seconds"] + 0.5)
+    check("an abandoned puzzle times out in the listing", score()[2]["P03"] == "failed")
+
+    # 4. Honest play inside the clock still wins.
+    p4 = view("P04")
+    while p4["status"] == "open":
+        call("POST", "/api/move", {"id": "P04", "move": best(p4)})
+        p4 = view("P04")
+    check("a puzzle won inside its clock counts", p4["status"] == "solved" and score()[0] == 1, p4["status"])
+
+    failed = results.count(False)
+    print(f"\n{len(results) - failed} passed, {failed} failed")
+    return 1 if failed else 0
+
+
 def main() -> int:
+    if "--clock" in sys.argv:
+        return clock_attacks()
     solved0, _, status0 = score()
     check("fresh server starts at zero", solved0 == 0 and all(s == "open" for s in status0.values()))
 
@@ -78,7 +150,7 @@ def main() -> int:
     check("illegal moves used no move and changed no stone", after["moves_used"] == 0 and after["blue"] == p["blue"] and after["status"] == "open")
 
     # 5. Puzzles are played one at a time: later ones are locked, whatever the id looks like.
-    for pid in ("P05", "p05", " P05 ", "P32"):
+    for pid in ("P05", "p05", " P05 ", "P12"):
         code, body = call("GET", f"/api/puzzle/{pid.strip()}")
         check(f"locked puzzle cannot be viewed: {pid!r}", code == 404 and b"locked" in body and b"legal_moves" not in body, f"HTTP {code}")
         code, body = call("POST", "/api/move", {"id": pid, "move": "a1-a6"})

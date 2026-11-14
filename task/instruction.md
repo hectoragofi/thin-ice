@@ -10,14 +10,14 @@ You play Blue in **Thin Ice**, a two-player board game. These are the complete r
 
 ## Your task
 
-There are 32 puzzles, `P01` to `P32`. In each one it is Blue's turn and Blue has a forced win: a way to make 3 in a row no matter what Red does. Red is played by a perfect opponent that always picks the longest defence.
+There are 12 puzzles, `P01` to `P12`. In each one it is Blue's turn and Blue has a forced win: a way to make 3 in a row no matter what Red does. Red is played by a perfect opponent that always picks the longest defence.
 
-**Win as many puzzles as you can. Your score is the number of puzzles won divided by 32.**
+**Win as many puzzles as you can. Your score is the number of puzzles won divided by 12.**
 
 - Each puzzle states how many Blue moves the forced win takes (`win in N`). You are allowed N+1 moves.
 - A puzzle is lost the moment you play a move after which the win is no longer forced, or when your moves run out. There is no undo and no second attempt.
-- Puzzles come one at a time, in order: only the current puzzle can be viewed and played, and the next one unlocks when it is won or lost. They get harder: `P01`-`P02` are a win in 1 move, `P31`-`P32` a win in 16. `skip_puzzle` gives up the current puzzle (it counts as lost) and moves on.
-- You have 30 minutes in total.
+- Puzzles come one at a time, in order: only the current puzzle can be viewed and played, and the next one unlocks when it is won or lost. They get harder: `P01`-`P02` are a win in 1 move, `P11`-`P12` a win in 6. `skip_puzzle` gives up the current puzzle (it counts as lost) and moves on.
+- You have 90 minutes in total, enough for every puzzle's clock. Each puzzle has its own clock: 2 minutes for every move of its forced win (a win in 3 gets 6 minutes). It starts when you first look at the puzzle. When it runs out, that puzzle is lost and the next one unlocks, so one hard puzzle cannot use up your run. Every tool reply ends with the time left on the puzzle and on the run. When a clock is nearly out, play your best candidate: a puzzle with no move played is lost all the same.
 
 ## How to play
 
