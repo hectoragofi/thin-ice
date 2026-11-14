@@ -75,7 +75,7 @@ Every row is a Harbor run on Modal (`-e modal`) at commit 24d6707, reproducible 
 | run | reward |
 |---|---|
 | Reference: perfect play (moves from the solver) | **1.000** |
-| Reference: rules-only search, 20 s per puzzle (60 lines of Python that know only the rules) | **0.917** |
+| Reference: rules-only search, 20 s per puzzle (80 lines of Python that know only the rules) | **0.917** |
 | Gemini 4 Argon, 3 runs | RESULT_ARGON |
 | Gemini 4 Carbon, 3 runs | RESULT_CARBON |
 | Gemini 4 Hydrogen, 3 runs | RESULT_HYDROGEN |
