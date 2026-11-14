@@ -100,6 +100,7 @@ def play_move(puzzle_id: str, move: str) -> str:
 NOTES: dict = {}
 NOTE_CHARS = 4000
 NOTES_PER_PUZZLE = 100
+NOTES_TOTAL = 2000
 
 
 def notes_text(pid: str) -> str:
@@ -119,6 +120,8 @@ def save_note(puzzle_id: str, text: str) -> str:
             RUN.get(pid)
         except GameError as exc:
             return f"ERROR: {exc}"
+        if sum(len(r) for r in NOTES.values()) >= NOTES_TOTAL:
+            return f"ERROR: at most {NOTES_TOTAL} notes in total"
         rows = NOTES.setdefault(pid, [])
         if len(rows) >= NOTES_PER_PUZZLE:
             return f"ERROR: at most {NOTES_PER_PUZZLE} notes per puzzle"
