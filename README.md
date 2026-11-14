@@ -115,6 +115,7 @@ Equal means can come by different routes. Beyond the five puzzles every run wins
 | Gemini 4 Argon | 1.00 | 0.80 | 0.40 | 0.10 | 0.10 | 0.00 | **0.400** |
 | Gemini 4 Hydrogen | 1.00 | 1.00 | 0.60 | 0.30 | 0.00 | 0.00 | **0.483** |
 | Gemini 4 Carbon | 1.00 | 1.00 | 0.90 | 0.10 | 0.10 | 0.00 | **0.517** |
+| Gemini 3.8 Flash (older generation) | 1.00 | 0.80 | 0.30 | 0.00 | 0.00 | 0.00 | **0.350** |
 | Random legal moves | | | | | | | 0.007 |
 
 Puzzles solved per tier. Removing the session does not remove the difficulty: the first move of a win in N still needs the full N-deep look-ahead. Two opposite failures show up:
@@ -134,6 +135,8 @@ Not at first, and the logs showed it. The first no-code version let a model thin
 | Random legal moves | 0.007 (probe pool), 0.00 - 0.08 (task) |
 | Stop early after the 2 easiest | 0.167 |
 | Notes as a side channel, peeking ahead, beating the clock | refused, see the attack table; every note we read is real elimination analysis |
+
+The same question came up for training on the reward. We trained a small model on the reward bit alone, with two definitions of "good move" (details under Post-training). "The move keeps the forced win" pays 17.7% of random moves; the model learned to play safe moves that never get closer to winning, and its score stalled at 0.033. "The move brings the forced win one move closer" pays 7% of random moves, and the score climbed to 0.207. That second definition matches what the task scores, a win against a perfect defender.
 
 ### Harness limits we found and removed
 
@@ -202,6 +205,19 @@ Yes, from nothing to the Gemini 4 models' range. `training/` fine-tunes Qwen3 (L
 | Qwen3-1.7B | 0.003 | **0.317** | 93% → 100% | 0.98 / 0.58 / 0.28 / 0.06 / 0.00 / 0.00 |
 
 Scores are the mean over win in 1 to 6, the task's scale. The 0.6B curve is still rising at the end (0.293 at 400k examples). A 0.6B model trained on the environment's own feedback reaches 0.32 against the Gemini 4 models' 0.40 - 0.52 in the same one-move-per-call setting. Qwen was scored on 50 puzzles per tier, the Gemini probes on 10 per tier from the same pool. Curves: `results/curve-qwen3-*-7x6.json`; probes: `results/probe/`.
+
+**From the reward alone.** `training/reinforce.py` trains Qwen3-0.6B (LoRA, same prompt, same held-out pool and rollout) without ever showing it the right move. The model plays one move per position and receives one bit: 1 if the move brings Blue's forced win one move closer (its value equals that of the fastest winning move), else 0; an illegal or unreadable answer gets 0. Round 0 is exploration only: 400,000 moves drawn at random from the legal moves printed in the position. Rounds 1 to 4 are 40,000 moves each, a shrinking share random (0.5, 0.4, 0.3, 0.2) and the rest sampled from the model. Each round trains on its rewarded moves plus replay.
+
+| round | moves played | rewarded share of the model's own moves | of random moves | score | win in 1 | win in 2 |
+|---|---|---|---|---|---|---|
+| start | 0 | | | 0.003 | 0.02 | 0.00 |
+| 0 | 400,000 | | 0.071 | 0.160 | 0.62 | 0.28 |
+| 1 | 440,000 | 0.196 | 0.071 | 0.140 | 0.62 | 0.18 |
+| 2 | 480,000 | 0.260 | 0.069 | 0.170 | 0.66 | 0.28 |
+| 3 | 520,000 | 0.301 | 0.068 | 0.197 | 0.74 | 0.34 |
+| 4 | 560,000 | 0.337 | 0.073 | 0.207 | 0.78 | 0.44 |
+
+Legal moves rise from 50% to 100%. About three quarters of the gain (0.003 to 0.160) comes from round 0, which is random search filtered by the reward; the four rounds on the model's own moves add 0.047, with one dip in round 1. Win in 3 stays at noise level (0.02 - 0.10) and deeper tiers at 0. It ends below imitation (0.320 after 600k examples) and close to imitation at a similar amount of training (0.193 at 100k examples; this run trained on 78k). The first reward definition, "keeps the forced win", stalled at 0.033 after 3 rounds. Curves: `results/curve-rl-qwen3-0.6b-7x6.json`, `results/curve-rl-keepswin-qwen3-0.6b-7x6.json`. About 62 A100 minutes for all three runs.
 
 ## How it was built
 
