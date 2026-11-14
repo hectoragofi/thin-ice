@@ -18,10 +18,10 @@ Any number shown as "pending" has not landed yet.
 | 0:39 | (same) | The same wrong move came up in 2 separate runs. Every lost puzzle is graded like this. |
 | 0:44 | Ladder chart: perfect play, rules-only search, the three Gemini 4 models (one dot per run), older Gemini models if their runs exist, the baselines. | Score is puzzles won out of 12. Perfect play: 1.000. |
 | 0:49 | (same) | Eighty lines of rules-only search: 0.917. |
-| 0:54 | (same) | Gemini 4: Argon 0.556, Carbon 0.472, Hydrogen 0.556. Gemini 3.8 Flash 0.417 (1 of 3 runs), Gemini 3.1 Pro 0.389. |
+| 0:54 | (same) | Gemini 4: Argon 0.556, Carbon 0.472, Hydrogen 0.556. Gemini 3.8 Flash 0.417, Gemini 3.1 Pro 0.389. |
 | 0:59 | Line chart: solve rate by win-in depth for the Gemini 4 models, any older Gemini model with a probe file, and the small model (imitation). | Now one move per fresh call, graded to the end of the game. |
 | 1:04 | (same) | Win in one or two: easy. Win in four: 1 to 3 puzzles in 10. |
-| 1:09 | (same) | The horizon is about three moves. Same test, Gemini 3.8 Flash: 0.350 on average. |
+| 1:09 | (same) | The horizon is about three moves. Same test, Gemini 3.8 Flash: 0.350 on average, Gemini 3.1 Pro: 0.417 on average. |
 | 1:14 | Three facts: per-puzzle clock, puzzles reached, tools available. | The mistakes are fair. Each puzzle has its own clock: 2 minutes per move. |
 | 1:19 | (same) | 108 of 108 puzzles were reached. Rules, notes and practice are always there. |
 | 1:24 | Attack counts with every row refused. | The reward can't be gamed. 96 attacks, plus 13 on the clock. |
