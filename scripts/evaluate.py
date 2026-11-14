@@ -84,7 +84,8 @@ def main() -> None:
 
     rows = [
         ("reference: perfect play (solver)", harbor("reference", jobs, "-a", "oracle")),
-        ("reference: tools only (agent's own tools)", harbor("reference-tools", jobs, "-a", "oracle", "--ae", "SOLUTION=tools")),
+        ("reference: tools only, selective (agent's own tools)", harbor("reference-tools", jobs, "-a", "oracle", "--ae", "SOLUTION=tools")),
+        ("tools only, exhaustive habit", harbor("exhaustive-tools", jobs, "-a", "oracle", "--ae", "SOLUTION=exhaustive")),
         ("baseline: do nothing", harbor("do-nothing", jobs, "-a", "nop")),
         ("baseline: stop early (4 puzzles, then quit)", harbor("stop-early", jobs, "-a", "oracle", "--ae", "STOP_AFTER=4")),
     ]
@@ -93,7 +94,7 @@ def main() -> None:
         tag = args.model.replace("/", "_").replace(":", "_")
         rows.append((f"agent: {args.agent} + {args.model}", harbor(f"agent-{tag}", jobs, "-a", args.agent, "-m", args.model, "-k", str(args.runs), "-n", str(args.runs), *keys)))
 
-    lines = ["| run | reward | solved per tier (win in 1..6 moves, 2 puzzles each) |", "|---|---|---|"]
+    lines = ["| run | reward | solved per tier (puzzles won per tier, win in 2..7) |", "|---|---|---|"]
     for label, job in rows:
         for reward, detail in trials(job) or [(None, {})]:
             shown = "n/a (no result)" if reward is None else f"{reward:.3f}"
