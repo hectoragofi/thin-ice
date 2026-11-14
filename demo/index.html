@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thin Ice demo</title>
+<style>
+:root {
+  --bg:#f7f7f4; --ink:#101317; --dim:#4b5563; --faint:#9ca3af; --line:#d4d6db; --cell:#ffffff;
+  --blue:#1d4ed8; --red:#c81e1e; --good:#15803d; --bad:#c81e1e; --hi:#fde68a;
+  --s1:#1d4ed8; --s2:#b45309; --s3:#0f766e; --s4:#111827;
+}
+* { box-sizing:border-box; }
+html, body { margin:0; height:100%; background:#000; overflow:hidden; }
+body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; color:var(--ink); }
+#stage { position:absolute; left:0; top:0; width:1920px; height:1080px; background:var(--bg); transform-origin:0 0; overflow:hidden; }
+.rec #stage { cursor:none; }
+#scene { position:absolute; left:120px; right:120px; top:90px; height:740px; }
+#cap { position:absolute; left:0; right:0; bottom:0; height:200px; display:flex; align-items:center; justify-content:center;
+  padding:0 160px; font-size:50px; line-height:1.25; font-weight:600; text-align:center; background:#101317; color:#fff; }
+#prog { position:absolute; left:0; top:0; height:8px; background:var(--ink); width:0; }
+#meta { position:absolute; right:40px; top:26px; font-size:26px; color:var(--faint); font-variant-numeric:tabular-nums; }
+#paused { position:absolute; left:40px; top:24px; font-size:28px; color:var(--bad); font-weight:700; display:none; }
+h1 { font-size:76px; margin:0 0 30px; letter-spacing:-1px; }
+h2 { font-size:58px; margin:0 0 28px; letter-spacing:-0.5px; }
+.big { font-size:96px; font-weight:700; line-height:1.15; letter-spacing:-1.5px; }
+.sub { font-size:40px; color:var(--dim); }
+.fade { opacity:0; transition:opacity .6s; } .fade.on { opacity:1; }
+.center { height:100%; display:flex; flex-direction:column; justify-content:center; }
+.row { display:flex; gap:80px; align-items:flex-start; }
+/* board */
+.board { position:relative; flex:none; }
+.cellbox { position:absolute; background:var(--cell); border:2px solid var(--line); border-radius:12px; }
+.cellbox.hi { background:var(--hi); }
+.lab { position:absolute; font-size:30px; color:var(--dim); display:flex; align-items:center; justify-content:center; }
+.stone { position:absolute; border-radius:50%; transition:left .9s cubic-bezier(.3,.0,.2,1), top .9s cubic-bezier(.3,.0,.2,1), box-shadow .3s; }
+.stone.b { background:var(--blue); } .stone.r { background:var(--red); }
+.stone.mark-bad { box-shadow:0 0 0 8px var(--bad); } .stone.mark-good { box-shadow:0 0 0 8px var(--good); }
+.side { flex:1; font-size:40px; line-height:1.35; }
+.side p { margin:0 0 26px; }
+.verdict { padding:22px 30px; border-radius:14px; border:4px solid; font-weight:700; }
+.verdict.bad { border-color:var(--bad); color:var(--bad); } .verdict.good { border-color:var(--good); color:var(--good); }
+.mono { font-family: Consolas, "Cascadia Mono", monospace; }
+.tiles { display:flex; gap:50px; margin-top:20px; }
+.tile { flex:1; border:3px solid var(--line); border-radius:18px; padding:40px; background:var(--cell); }
+.tile .v { font-size:110px; font-weight:800; letter-spacing:-2px; line-height:1; }
+.tile .k { font-size:36px; color:var(--dim); margin-top:18px; line-height:1.3; }
+.attacks { columns:2; column-gap:80px; font-size:36px; line-height:1.55; margin-top:10px; }
+.attacks div { break-inside:avoid; } .attacks b { color:var(--good); }
+.cmd { font-size:40px; white-space:nowrap; background:#101317; color:#fff; padding:44px 54px; border-radius:16px; margin:30px 0; }
+.pending { color:var(--faint); font-style:italic; }
+svg text { font-family: "Segoe UI", system-ui, sans-serif; }
+</style></head>
+<body>
+<div id="stage">
+  <div id="prog"></div><div id="paused">PAUSED</div><div id="meta"></div>
+  <div id="scene"></div>
+  <div id="cap"></div>
+</div>
+<script src="data.js"></script>
+<script>
+(function () {
+const D = window.DEMO_DATA;
+const stage = document.getElementById('stage'), sceneEl = document.getElementById('scene'), capEl = document.getElementById('cap');
+const params = new URLSearchParams(location.search);
+const STILL = params.has('still');
+if (params.has('rec')) document.body.classList.add('rec');
+if (!D) { capEl.textContent = 'demo/data.js is missing: run python demo/build_data.py'; return; }
+
+function fit() { const s = Math.min(innerWidth / 1920, innerHeight / 1080); stage.style.transform = `scale(${s})`;
+  stage.style.left = ((innerWidth - 1920 * s) / 2) + 'px'; stage.style.top = ((innerHeight - 1080 * s) / 2) + 'px'; }
+addEventListener('resize', fit); fit();
+
+const P = '<span class="pending">pending</span>';
+const f3 = x => x == null ? P : x.toFixed(3);
+const f2 = x => x == null ? P : x.toFixed(2);
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const SVGNS = 'http://www.w3.org/2000/svg';
+function svg(w, h) { const s = document.createElementNS(SVGNS, 'svg'); s.setAttribute('width', w); s.setAttribute('height', h); s.setAttribute('viewBox', `0 0 ${w} ${h}`); return s; }
+function sv(parent, tag, attrs, text) { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; parent.appendChild(e); return e; }
+
+/* ---------------- board ---------------- */
+const BW = D.board.w, BH = D.board.h, FILES = D.board.files;
+function makeBoard(cell) {
+  const gap = 8, lab = 44, el = document.createElement('div'); el.className = 'board';
+  el.style.width = (lab + BW * (cell + gap)) + 'px'; el.style.height = (BH * (cell + gap) + lab) + 'px';
+  const pos = sq => { const x = sq % BW, y = Math.floor(sq / BW); return [lab + x * (cell + gap), (BH - 1 - y) * (cell + gap)]; };
+  const cells = {};
+  for (let sq = 0; sq < BW * BH; sq++) { const c = document.createElement('div'); c.className = 'cellbox'; const [l, t] = pos(sq);
+    Object.assign(c.style, {left: l + 'px', top: t + 'px', width: cell + 'px', height: cell + 'px'}); el.appendChild(c); cells[sq] = c; }
+  for (let y = 0; y < BH; y++) { const l = document.createElement('div'); l.className = 'lab'; l.textContent = y + 1;
+    Object.assign(l.style, {left: 0, top: ((BH - 1 - y) * (cell + gap)) + 'px', width: lab + 'px', height: cell + 'px'}); el.appendChild(l); }
+  for (let x = 0; x < BW; x++) { const l = document.createElement('div'); l.className = 'lab'; l.textContent = FILES[x];
+    Object.assign(l.style, {left: (lab + x * (cell + gap)) + 'px', top: (BH * (cell + gap)) + 'px', width: cell + 'px', height: lab + 'px'}); el.appendChild(l); }
+  const stones = {};
+  const pad = cell * 0.14;
+  function place(st, sq) { const [l, t] = pos(sq); st.style.left = (l + pad) + 'px'; st.style.top = (t + pad) + 'px'; st.dataset.sq = sq; }
+  return {
+    el,
+    set(blue, red) { Object.values(stones).forEach(s => s.remove()); for (const k in stones) delete stones[k];
+      for (const [sqs, cls] of [[blue, 'b'], [red, 'r']]) for (const sq of sqs) { const st = document.createElement('div'); st.className = 'stone ' + cls;
+        st.style.width = st.style.height = (cell - 2 * pad) + 'px'; st.style.transition = 'none'; place(st, sq); el.appendChild(st); stones[sq] = st;
+        void st.offsetWidth; st.style.transition = ''; }
+      Object.values(cells).forEach(c => c.classList.remove('hi')); },
+    move(f, t, mark) { const st = stones[f]; if (!st) return; delete stones[f]; stones[t] = st; place(st, t);
+      cells[f].classList.add('hi'); cells[t].classList.add('hi'); if (mark) st.classList.add(mark); },
+    hi(sqs) { sqs.forEach(s => cells[s].classList.add('hi')); },
+  };
+}
+const sq = name => (parseInt(name.slice(1), 10) - 1) * BW + FILES.indexOf(name[0]);
+
+/* ---------------- scenes ---------------- */
+// Each builder returns {beat(k)}: k = index of the caption line now showing (0, 1, ...).
+const B = {};
+
+B.title = (el) => {
+  const best = Math.max(...D.ladder.filter(r => r.kind === 'agent' && r.value != null).map(r => r.value));
+  el.innerHTML = `<div class="center"><div class="big" style="font-size:150px">Thin Ice</div>
+    <div class="sub" style="font-size:52px;color:var(--ink);margin-top:20px;line-height:1.3">Frontier models plan about three moves ahead,<br>and every one of their mistakes can be proven.</div>
+    <div class="sub" style="margin-top:40px">An invented, fully solved board game as an RL environment. No code, only reasoning.<br>Best frontier model ${f3(isFinite(best) ? best : null)} &middot; rules-only search ${f3(D.ladder[1].value)} &middot; perfect play ${f3(D.ladder[0].value)}</div>
+    <div class="cmd mono" style="font-size:44px;padding:28px 40px;margin-top:50px;align-self:flex-start">github.com/hectoragofi/thin-ice</div></div>`;
+  return { beat() {} };
+};
+
+B.question = (el) => {
+  el.innerHTML = `<div class="center"><div class="big">How far ahead can a frontier model think without a computer?</div>
+    <div class="sub fade" id="q2" style="margin-top:40px">No shell. No code. Only its own reasoning.</div></div>`;
+  return { beat(k) { if (k >= 1) el.querySelector('#q2').classList.add('on'); } };
+};
+
+B.game = (el) => {
+  el.innerHTML = `<h2>Thin Ice: ${BW}&times;${BH}, 4 stones each</h2><div class="row"><div id="bd"></div><div class="side">
+    <p class="fade" id="g1">A stone slides in one of 8 directions until it is blocked.</p>
+    <p class="fade" id="g2">Three in a row wins.</p>
+    <p class="fade" id="g3">Solved completely: ${esc(D.facts.positions || 'pending')} positions. Every move has an exact verdict.</p></div></div>`;
+  // Rule illustration only (not a game record): one slide, then a line of three.
+  const b = makeBoard(88); el.querySelector('#bd').appendChild(b.el);
+  b.set([sq('a1'), sq('b3'), sq('c3')], [sq('f1'), sq('d4'), sq('g6')]);
+  return { beat(k) {
+    if (k === 0) { el.querySelector('#g1').classList.add('on'); setTimeout(() => b.move(sq('a1'), sq('e1')), 600); }
+    if (k >= 1) { el.querySelector('#g2').classList.add('on'); b.set([sq('e1'), sq('b3'), sq('c3')], [sq('f1'), sq('d4'), sq('g6')]);
+      setTimeout(() => b.move(sq('e1'), sq('d2')), 300);
+      setTimeout(() => { b.set([sq('d2'), sq('b3'), sq('c3')], [sq('f1'), sq('d4'), sq('g6')]); b.move(sq('d2'), sq('d3'), 'mark-good'); b.hi([sq('b3'), sq('c3'), sq('d3')]); }, 1400); }
+    if (k >= 2) el.querySelector('#g3').classList.add('on');
+  } };
+};
+// Note on the illustration: a1 slides right until f1 blocks it (e1), e1 slides up-left until c3 blocks it (d2), d2 slides up until d4 blocks it (d3); legal slides under the rules. The line beat
+// then shows b3 c3 d3. It illustrates the rule text, it is not a claimed position from a run.
+
+B.mistake = (el) => {
+  const R = D.replay;
+  if (!R) { el.innerHTML = `<div class="center"><h2>Replay ${P}</h2></div>`; return { beat() {} }; }
+  el.innerHTML = `<h2>${esc(R.model)}, puzzle ${esc(R.id)}: Blue to move, win in ${R.win_in}</h2><div class="row"><div id="bd"></div><div class="side">
+    <p class="fade" id="m0">${R.legal} legal moves. ${R.keep_win} keeps the win.</p>
+    <p class="fade" id="m1">Played: <b class="mono">${esc(R.played)}</b></p>
+    <p class="fade verdict bad" id="m2">Solver: loses. ${esc(R.verdict)}.${R.red_reply ? `<br><span style="font-weight:500">Red starts with <span class="mono">${esc(R.red_reply)}</span>.</span>` : ''}</p>
+    <p class="fade verdict good" id="m3">Only <span class="mono">${esc(R.held.join(', '))}</span> held: ${R.keep_win} of ${R.legal}.</p>
+    <p class="fade" id="m4" style="font-size:34px;color:var(--dim)">Same wrong move in ${R.same_move_runs} separate runs. ${D.mistakes.graded} lost puzzles graded this way.</p></div></div>`;
+  const b = makeBoard(88); el.querySelector('#bd').appendChild(b.el);
+  b.set(R.blue, R.red);
+  const on = id => el.querySelector('#' + id).classList.add('on');
+  return { beat(k) {
+    if (k === 0) on('m0');
+    if (k === 1) { on('m1'); b.move(R.played_sq[0], R.played_sq[1], 'mark-bad'); }
+    if (k === 2) { on('m2'); if (R.red_reply_sq) b.move(R.red_reply_sq[0], R.red_reply_sq[1]); }
+    if (k === 3) { on('m3'); b.set(R.blue, R.red); setTimeout(() => b.move(R.held_sq[0], R.held_sq[1], 'mark-good'), 300); }
+    if (k >= 4) on('m4');
+  } };
+};
+
+B.gap = (el) => {
+  el.innerHTML = `<h2>Score: puzzles won out of 12</h2><div id="ch"></div>`;
+  const W = 1680, rowH = 82, L = 560, R = 160, rows = D.ladder, H = rows.length * rowH + 60;
+  const s = svg(W, H), x = v => L + v * (W - L - R);
+  for (const t of [0, 0.25, 0.5, 0.75, 1]) { sv(s, 'line', {x1: x(t), x2: x(t), y1: 0, y2: H - 50, stroke: '#d4d6db', 'stroke-width': 2});
+    sv(s, 'text', {x: x(t), y: H - 12, 'font-size': 28, fill: '#4b5563', 'text-anchor': 'middle'}, t.toFixed(2)); }
+  const bars = [];
+  rows.forEach((r, i) => {
+    const y = i * rowH + 12, col = r.kind === 'agent' ? '#b45309' : r.kind === 'ref' ? '#101317' : '#9ca3af';
+    sv(s, 'text', {x: L - 24, y: y + 44, 'font-size': 34, 'text-anchor': 'end', fill: '#101317', 'font-weight': r.kind === 'agent' ? 700 : 500}, r.label);
+    if (r.value == null) { sv(s, 'text', {x: L + 10, y: y + 44, 'font-size': 34, fill: '#9ca3af', 'font-style': 'italic'}, 'pending'); return; }
+    const bar = sv(s, 'rect', {x: L, y: y + 8, height: 52, width: 0, fill: col, rx: 4}); bars.push([bar, x(r.value) - L]);
+    let lab = r.value.toFixed(3);
+    if (r.kind === 'agent' && r.landed < r.expected) lab += `  (${r.landed} of ${r.expected} runs)`;
+    sv(s, 'text', {x: x(Math.max(r.value, ...(r.runs || []))) + 22, y: y + 46, 'font-size': 34, fill: '#101317', 'font-weight': 700, 'font-variant-numeric': 'tabular-nums'}, lab);
+    (r.runs || []).forEach(v => sv(s, 'circle', {cx: x(v), cy: y + 34, r: 9, fill: '#fff', stroke: '#101317', 'stroke-width': 3}));
+  });
+  el.querySelector('#ch').appendChild(s);
+  sv(s, 'text', {x: 0, y: H - 12, 'font-size': 26, fill: '#4b5563'}, 'bar = mean, dots = single runs');
+  return { beat(k) { if (k === 0) bars.forEach(([b, w]) => { b.style.transition = 'width 1.2s'; requestAnimationFrame(() => b.setAttribute('width', Math.max(w, 2))); }); } };
+};
+
+function lineChart(series, opts) {
+  const W = opts.w || 1680, H = opts.h || 600, L = 110, R = 330, T = 20, Bt = 90;
+  const s = svg(W, H), n = opts.xs.length;
+  const x = i => L + (n === 1 ? 0 : i * (W - L - R) / (n - 1)), y = v => T + (1 - v / opts.ymax) * (H - T - Bt);
+  for (let t = 0; t <= opts.ymax + 1e-9; t += opts.ystep) { sv(s, 'line', {x1: L, x2: W - R, y1: y(t), y2: y(t), stroke: '#d4d6db', 'stroke-width': 2});
+    sv(s, 'text', {x: L - 16, y: y(t) + 10, 'font-size': 28, fill: '#4b5563', 'text-anchor': 'end'}, t.toFixed(opts.ydec)); }
+  opts.xs.forEach((lab, i) => sv(s, 'text', {x: x(i), y: H - Bt + 44, 'font-size': 30, fill: '#4b5563', 'text-anchor': 'middle'}, lab));
+  sv(s, 'text', {x: (L + W - R) / 2, y: H - 8, 'font-size': 30, fill: '#101317', 'text-anchor': 'middle', 'font-weight': 600}, opts.xlabel);
+  if (opts.band) { const [a, b] = opts.band.range; sv(s, 'rect', {x: L, width: W - R - L, y: y(b), height: Math.max(y(a) - y(b), 3), fill: '#b45309', opacity: .16});
+    sv(s, 'text', {x: W - R + 16, y: (y(a) + y(b)) / 2 + 10, 'font-size': 28, fill: '#b45309', 'font-weight': 600}, opts.band.label); }
+  const paths = [], used = [];
+  series.forEach(se => {
+    const pts = se.ys.map((v, i) => v == null ? null : [x(i), y(v)]).filter(Boolean); if (!pts.length) return;
+    const p = sv(s, 'path', {d: 'M' + pts.map(q => q.join(',')).join('L'), fill: 'none', stroke: se.color, 'stroke-width': se.width || 7,
+      'stroke-dasharray': se.dash || '', 'stroke-linejoin': 'round', 'stroke-linecap': 'round', opacity: se.opacity || 1});
+    pts.forEach(q => sv(s, 'circle', {cx: q[0], cy: q[1], r: 8, fill: se.color, opacity: se.opacity || 1}));
+    let ly = pts[pts.length - 1][1]; if (se.labelAt != null) ly = y(se.labelAt);
+    while (used.some(u => Math.abs(u - ly) < 38)) ly -= 38; used.push(ly);
+    sv(s, 'text', {x: pts[pts.length - 1][0] + 18, y: ly + 10, 'font-size': 32, fill: se.color, 'font-weight': 700}, se.label);
+    paths.push(p);
+  });
+  return {s, paths};
+}
+
+B.depth = (el) => {
+  el.innerHTML = `<h2>Solve rate by depth, one move per fresh call</h2><div id="ch"></div>`;
+  const tiers = ['1', '2', '3', '4', '5', '6'], cols = {argon: '#1d4ed8', carbon: '#b45309', hydrogen: '#0f766e'};
+  const series = Object.entries(D.probe).filter(([, p]) => p.by_tier).map(([k, p]) => ({label: p.label.replace('Gemini 4 ', ''), color: cols[k], ys: tiers.map(t => p.by_tier[t])}));
+  const tr = D.small.trained;
+  if (tr && tr.tiers) series.push({label: D.small.label + ' trained', color: '#111827', dash: '14 12', width: 6, ys: tiers.map(t => tr.tiers[t])});
+  const {s, paths} = lineChart(series, {xs: tiers.map(t => 'win in ' + t), xlabel: 'puzzle depth (moves to a forced win)', ymax: 1, ystep: .25, ydec: 2, h: 620});
+  el.querySelector('#ch').appendChild(s);
+  paths.forEach(p => { const L = p.getTotalLength(); p.style.strokeDasharray = p.getAttribute('stroke-dasharray') || `${L} ${L}`; });
+  return { beat() {} };
+};
+
+B.fair = (el) => {
+  const r = D.reach, f = D.facts;
+  el.innerHTML = `<h2>The mistakes are fair</h2><div class="tiles">
+    <div class="tile"><div class="v">${f.clock_min_per_move ?? P} min</div><div class="k">per move of the forced win, its own clock per puzzle (${f.clocks_total_min ?? P} of ${f.run_min ?? P} minutes)</div></div>
+    <div class="tile"><div class="v">${r.reached}/${r.puzzles}</div><div class="k">puzzles reached in ${r.runs} final runs; ${r.out_of_time} ran out of time</div></div>
+    <div class="tile"><div class="v">${f.tools.length} tools</div><div class="k mono" style="font-size:30px">${f.tools.map(esc).join('<br>')}</div></div></div>`;
+  return { beat() {} };
+};
+
+B.exploit = (el) => {
+  const f = D.facts;
+  el.innerHTML = `<h2>The reward can't be gamed: ${f.attacks_main ?? P} + ${f.attacks_clock ?? P} attacks, none got through</h2>
+    <div class="attacks">${f.attack_rows.map(a => `<div><b>&#10003; blocked</b> &nbsp;${esc(a.replace(/`/g, ''))}</div>`).join('')}</div>`;
+  return { beat() {} };
+};
+
+B.learn = (el) => {
+  const c = D.curve, pts = c.points;
+  const title = c.kind === 'reward-only' ? `${esc(D.small.label)} learns from a 0/1 reward alone` : `${esc(D.small.label)} learns by imitating the winning move<br><span style="font-size:36px;font-weight:500;color:var(--dim)">trained on the feedback practice mode gives</span>`;
+  el.innerHTML = `<h2>${title}</h2><div id="ch"></div>`;
+  const fmt = v => v >= 1e6 ? (v / 1e6) + 'M' : v >= 1e3 ? Math.round(v / 1e3) + 'k' : String(v);
+  const probes = Object.values(D.probe).map(p => p.mean).filter(v => v != null);
+  const ymax = Math.max(0.6, ...pts.map(p => p.score));
+  const series = [{label: `${pts[pts.length - 1].score.toFixed(3)}`, color: '#111827', ys: pts.map(p => p.score)}];
+  const {s} = lineChart(series, {xs: pts.map(p => fmt(p.x)), xlabel: c.x_label,
+    ymax: Math.ceil(ymax * 10) / 10, ystep: .1, ydec: 1, h: 540,
+    band: probes.length ? {range: [Math.min(...probes), Math.max(...probes)], label: `Gemini 4: ${Math.min(...probes).toFixed(2)}-${Math.max(...probes).toFixed(2)}`} : null});
+  el.querySelector('#ch').appendChild(s);
+  return { beat() {} };
+};
+
+B.repro = (el) => {
+  el.innerHTML = `<div class="center"><h1>Reproduce it</h1><div class="cmd mono">${esc(D.repro)}</div>
+    <div class="sub">github.com/hectoragofi/thin-ice</div>
+    <div class="big fade" id="r2" style="margin-top:50px;font-size:80px">Thin Ice. Every mistake, proven.</div></div>`;
+  return { beat(k) { el.querySelector('#r2').classList.add('on'); } };
+};
+
+/* ---------------- player ---------------- */
+const scenes = D.scenes.map(sc => ({...sc, lines: sc.cap}));
+const total = scenes.reduce((a, s) => a + s.dur, 0);
+let idx = 0, t = 0, paused = false, cur = null, lastBeat = -1, last = performance.now(), ended = false;
+window.__demo = {total, done: false};
+
+function enter(i) {
+  idx = Math.max(0, Math.min(scenes.length - 1, i)); t = 0; lastBeat = -1; ended = false; window.__demo.done = false;
+  sceneEl.innerHTML = ''; cur = (B[scenes[idx].id] || (() => ({beat() {}})))(sceneEl);
+  document.getElementById('meta').textContent = `${idx + 1} / ${scenes.length}`;
+}
+function tick(now) {
+  const dt = (now - last) / 1000; last = now;
+  if (!paused && !ended) t += dt;
+  const sc = scenes[idx];
+  if (t >= sc.dur) { if (idx < scenes.length - 1) enter(idx + 1); else { t = sc.dur; ended = true; window.__demo.done = true; } }
+  const s2 = scenes[idx], k = Math.min(s2.lines.length - 1, Math.floor(Math.min(t, s2.dur - 1e-3) / (s2.dur / s2.lines.length)));
+  if (k !== lastBeat) { for (let j = lastBeat + 1; j <= k; j++) cur.beat(j); lastBeat = k; capEl.textContent = s2.lines[k]; }
+  const before = scenes.slice(0, idx).reduce((a, s) => a + s.dur, 0);
+  document.getElementById('prog').style.width = (1920 * Math.min(1, (before + t) / total)) + 'px';
+  requestAnimationFrame(tick);
+}
+addEventListener('keydown', e => {
+  if (e.code === 'Space') { paused = !paused; document.getElementById('paused').style.display = paused ? 'block' : 'none'; e.preventDefault(); }
+  if (e.key === 'ArrowRight') enter(idx + 1);
+  if (e.key === 'ArrowLeft') enter(t < 1.5 ? idx - 1 : idx);
+});
+
+if (STILL) {
+  // One scene with every beat applied and no clock: used to print the deck. ?still&scene=<id>
+  document.getElementById('prog').style.display = 'none'; document.getElementById('meta').style.display = 'none';
+  const id = params.get('scene') || 'title', sc = scenes.find(x => x.id === id);
+  const el = sceneEl; const c = B[id](el);
+  if (sc) { for (let j = 0; j < sc.lines.length; j++) c.beat(j); capEl.textContent = sc.lines.join(' '); capEl.style.fontSize = sc.lines.join(' ').length > 160 ? '34px' : '40px'; }
+  else { capEl.style.display = 'none'; el.style.height = '900px'; }
+  el.querySelectorAll('.fade').forEach(x => x.classList.add('on'));
+  window.__demo.done = true;
+} else {
+  enter(params.has('scene') ? +params.get('scene') : 0);
+  requestAnimationFrame(n => { last = n; tick(n); });
+}
+})();
+</script>
+</body></html>

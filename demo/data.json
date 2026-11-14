@@ -1,0 +1,556 @@
+{
+ "board": {
+  "w": 7,
+  "h": 6,
+  "files": "abcdefg"
+ },
+ "ladder": [
+  {
+   "label": "Perfect play (solver)",
+   "value": 1.0,
+   "kind": "ref"
+  },
+  {
+   "label": "Rules-only search, 20 s/puzzle",
+   "value": 0.9167,
+   "kind": "ref"
+  },
+  {
+   "label": "Gemini 4 Argon",
+   "value": 0.5556,
+   "runs": [
+    0.6667,
+    0.4167,
+    0.5833
+   ],
+   "landed": 3,
+   "expected": 3,
+   "kind": "agent"
+  },
+  {
+   "label": "Gemini 4 Carbon",
+   "value": 0.5,
+   "runs": [
+    0.5
+   ],
+   "landed": 1,
+   "expected": 3,
+   "kind": "agent"
+  },
+  {
+   "label": "Gemini 4 Hydrogen",
+   "value": 0.5556,
+   "runs": [
+    0.5833,
+    0.5833,
+    0.5
+   ],
+   "landed": 3,
+   "expected": 3,
+   "kind": "agent"
+  },
+  {
+   "label": "Stop early (2 easiest)",
+   "value": 0.1667,
+   "kind": "base"
+  },
+  {
+   "label": "Do nothing",
+   "value": 0.0,
+   "kind": "base"
+  }
+ ],
+ "agents": {
+  "argon": {
+   "label": "Gemini 4 Argon",
+   "rewards": [
+    0.6667,
+    0.4167,
+    0.5833
+   ],
+   "mean": 0.5556,
+   "landed": 3,
+   "expected": 3,
+   "solved_by_tier": {
+    "1": {
+     "solved": 6,
+     "of": 6
+    },
+    "2": {
+     "solved": 6,
+     "of": 6
+    },
+    "3": {
+     "solved": 5,
+     "of": 6
+    },
+    "4": {
+     "solved": 1,
+     "of": 6
+    },
+    "5": {
+     "solved": 0,
+     "of": 6
+    },
+    "6": {
+     "solved": 2,
+     "of": 6
+    }
+   }
+  },
+  "carbon": {
+   "label": "Gemini 4 Carbon",
+   "rewards": [
+    0.5
+   ],
+   "mean": 0.5,
+   "landed": 1,
+   "expected": 3,
+   "solved_by_tier": {
+    "1": {
+     "solved": 2,
+     "of": 2
+    },
+    "2": {
+     "solved": 2,
+     "of": 2
+    },
+    "3": {
+     "solved": 1,
+     "of": 2
+    },
+    "4": {
+     "solved": 1,
+     "of": 2
+    },
+    "5": {
+     "solved": 0,
+     "of": 2
+    },
+    "6": {
+     "solved": 0,
+     "of": 2
+    }
+   }
+  },
+  "hydrogen": {
+   "label": "Gemini 4 Hydrogen",
+   "rewards": [
+    0.5833,
+    0.5833,
+    0.5
+   ],
+   "mean": 0.5556,
+   "landed": 3,
+   "expected": 3,
+   "solved_by_tier": {
+    "1": {
+     "solved": 6,
+     "of": 6
+    },
+    "2": {
+     "solved": 6,
+     "of": 6
+    },
+    "3": {
+     "solved": 4,
+     "of": 6
+    },
+    "4": {
+     "solved": 2,
+     "of": 6
+    },
+    "5": {
+     "solved": 2,
+     "of": 6
+    },
+    "6": {
+     "solved": 0,
+     "of": 6
+    }
+   }
+  }
+ },
+ "best_agent": "Gemini 4 Argon",
+ "replay": {
+  "id": "P07",
+  "model": "Gemini 4 Hydrogen",
+  "trial": "task__Ts32Nz5",
+  "win_in": 4,
+  "moves_before": [],
+  "blue": [
+   2,
+   7,
+   30,
+   32
+  ],
+  "red": [
+   6,
+   16,
+   17,
+   25
+  ],
+  "played": "c1-g5",
+  "played_sq": [
+   2,
+   34
+  ],
+  "after_bad_blue": [
+   7,
+   30,
+   32,
+   34
+  ],
+  "verdict": "Red wins in 2 moves",
+  "kind": "walked into a forced loss",
+  "held": [
+   "c1-a1"
+  ],
+  "held_sq": [
+   2,
+   0
+  ],
+  "after_good_blue": [
+   0,
+   7,
+   30,
+   32
+  ],
+  "legal": 25,
+  "keep_win": 1,
+  "red_reply": "c3-e1",
+  "red_reply_sq": [
+   16,
+   4
+  ],
+  "same_move_runs": 2,
+  "same_move_models": [
+   "Gemini 4 Hydrogen"
+  ],
+  "lost_this_puzzle_runs": 7
+ },
+ "mistakes": {
+  "graded": 38,
+  "kinds": {
+   "walked into a forced loss": 34,
+   "too slow": 1,
+   "overlooked Red's immediate win": 3
+  }
+ },
+ "reach": {
+  "runs": 7,
+  "puzzles": 84,
+  "reached": 84,
+  "out_of_time": 0,
+  "skipped": 0,
+  "practice_runs": 2,
+  "lost": 38
+ },
+ "probe": {
+  "argon": {
+   "label": "Gemini 4 Argon",
+   "by_tier": {
+    "1": 1.0,
+    "2": 0.8,
+    "3": 0.4,
+    "4": 0.1,
+    "5": 0.1,
+    "6": 0.0
+   },
+   "mean": 0.4,
+   "per_tier": 10
+  },
+  "carbon": {
+   "label": "Gemini 4 Carbon",
+   "by_tier": {
+    "1": 1.0,
+    "2": 1.0,
+    "3": 0.9,
+    "4": 0.1,
+    "5": 0.1,
+    "6": 0.0
+   },
+   "mean": 0.517,
+   "per_tier": 10
+  },
+  "hydrogen": {
+   "label": "Gemini 4 Hydrogen",
+   "by_tier": {
+    "1": 1.0,
+    "2": 1.0,
+    "3": 0.6,
+    "4": 0.3,
+    "5": 0.0,
+    "6": 0.0
+   },
+   "mean": 0.483,
+   "per_tier": 10
+  }
+ },
+ "small": {
+  "label": "Qwen3-0.6B",
+  "untrained": {
+   "x": 0,
+   "score": 0.0033,
+   "tiers": {
+    "1": 0.02,
+    "2": 0.0,
+    "3": 0.0,
+    "4": 0.0,
+    "5": 0.0,
+    "6": 0.0
+   },
+   "legal": 0.49877750611246946
+  },
+  "trained": {
+   "x": 600000,
+   "score": 0.32,
+   "tiers": {
+    "1": 1.0,
+    "2": 0.64,
+    "3": 0.2,
+    "4": 0.06,
+    "5": 0.0,
+    "6": 0.02
+   },
+   "legal": 1.0
+  }
+ },
+ "curve": {
+  "kind": "imitation",
+  "source": "results/curve-qwen3-0.6b-7x6.json",
+  "x_label": "training examples",
+  "points": [
+   {
+    "x": 0,
+    "score": 0.0033,
+    "tiers": {
+     "1": 0.02,
+     "2": 0.0,
+     "3": 0.0,
+     "4": 0.0,
+     "5": 0.0,
+     "6": 0.0
+    },
+    "legal": 0.49877750611246946
+   },
+   {
+    "x": 1024,
+    "score": 0.01,
+    "tiers": {
+     "1": 0.06,
+     "2": 0.0,
+     "3": 0.0,
+     "4": 0.0,
+     "5": 0.0,
+     "6": 0.0
+    },
+    "legal": 0.9988137603795967
+   },
+   {
+    "x": 3008,
+    "score": 0.0167,
+    "tiers": {
+     "1": 0.1,
+     "2": 0.0,
+     "3": 0.0,
+     "4": 0.0,
+     "5": 0.0,
+     "6": 0.0
+    },
+    "legal": 1.0
+   },
+   {
+    "x": 10048,
+    "score": 0.04,
+    "tiers": {
+     "1": 0.24,
+     "2": 0.0,
+     "3": 0.0,
+     "4": 0.0,
+     "5": 0.0,
+     "6": 0.0
+    },
+    "legal": 1.0
+   },
+   {
+    "x": 30016,
+    "score": 0.14,
+    "tiers": {
+     "1": 0.56,
+     "2": 0.22,
+     "3": 0.06,
+     "4": 0.0,
+     "5": 0.0,
+     "6": 0.0
+    },
+    "legal": 1.0
+   },
+   {
+    "x": 100032,
+    "score": 0.1933,
+    "tiers": {
+     "1": 0.82,
+     "2": 0.28,
+     "3": 0.06,
+     "4": 0.0,
+     "5": 0.0,
+     "6": 0.0
+    },
+    "legal": 1.0
+   },
+   {
+    "x": 200000,
+    "score": 0.2233,
+    "tiers": {
+     "1": 0.92,
+     "2": 0.32,
+     "3": 0.08,
+     "4": 0.02,
+     "5": 0.0,
+     "6": 0.0
+    },
+    "legal": 1.0
+   },
+   {
+    "x": 400000,
+    "score": 0.2933,
+    "tiers": {
+     "1": 0.98,
+     "2": 0.52,
+     "3": 0.2,
+     "4": 0.06,
+     "5": 0.0,
+     "6": 0.0
+    },
+    "legal": 1.0
+   },
+   {
+    "x": 600000,
+    "score": 0.32,
+    "tiers": {
+     "1": 1.0,
+     "2": 0.64,
+     "3": 0.2,
+     "4": 0.06,
+     "5": 0.0,
+     "6": 0.02
+    },
+    "legal": 1.0
+   }
+  ],
+  "rl_status": "pending"
+ },
+ "facts": {
+  "attacks_main": 96,
+  "attacks_clock": 13,
+  "clock_min_per_move": 2,
+  "clocks_total_min": 84,
+  "run_min": 90,
+  "attack_rows": [
+   "Do nothing, or stop early",
+   "Guess",
+   "Retry, undo, reset",
+   "Write a program anyway",
+   "Use `save_note` for something else",
+   "Peek at or play ahead on later puzzles",
+   "Beat the clock",
+   "Read the answers",
+   "Learn the scored puzzles in practice",
+   "Edit the score",
+   "Tamper with the grader",
+   "Break the verifier's input"
+  ],
+  "tools": [
+   "rules",
+   "list_puzzles",
+   "show_puzzle",
+   "play_move",
+   "save_note",
+   "skip_puzzle",
+   "new_practice_puzzle"
+  ],
+  "positions": "16.5 billion"
+ },
+ "repro": "python scripts/evaluate.py --model google/gemini-4-carbon --env modal",
+ "scenes": [
+  {
+   "id": "question",
+   "dur": 8,
+   "cap": [
+    "How far ahead can a frontier model think, without a computer to do the thinking?",
+    "No shell, no code. Only its own reasoning."
+   ]
+  },
+  {
+   "id": "game",
+   "dur": 14,
+   "cap": [
+    "Thin Ice. A board game we invented. 7 by 6, four stones each.",
+    "A stone slides until it hits something. Three in a row wins.",
+    "We solved it completely, all 16.5 billion positions. Every move has an exact verdict."
+   ]
+  },
+  {
+   "id": "mistake",
+   "dur": 26,
+   "cap": [
+    "A real game. Gemini 4 Hydrogen, puzzle P07, Blue to win in 4.",
+    "It played c1-g5.",
+    "The solver says: that loses. Red now wins in 2 moves.",
+    "Only c1-a1 held. 1 move out of 25.",
+    "The same wrong move came up in 2 separate runs. Every lost puzzle is graded like this."
+   ]
+  },
+  {
+   "id": "gap",
+   "dur": 15,
+   "cap": [
+    "Score is puzzles won out of 12. Perfect play: 1.000.",
+    "Sixty lines of rules-only search: 0.917.",
+    "Frontier models: Argon 0.556, Carbon 0.500 (1 of 3 runs so far), Hydrogen 0.556."
+   ]
+  },
+  {
+   "id": "depth",
+   "dur": 15,
+   "cap": [
+    "Now one move per fresh call, graded to the end of the game.",
+    "Win in one or two: easy. Win in four: 1 to 3 puzzles in 10.",
+    "The horizon is about three moves."
+   ]
+  },
+  {
+   "id": "fair",
+   "dur": 10,
+   "cap": [
+    "The mistakes are fair. Each puzzle has its own clock: 2 minutes per move.",
+    "84 of 84 puzzles were reached. Rules, notes and practice are always there."
+   ]
+  },
+  {
+   "id": "exploit",
+   "dur": 9,
+   "cap": [
+    "The reward can't be gamed. 96 attacks, plus 13 on the clock.",
+    "None got through. The score sheet is signed by the game server."
+   ]
+  },
+  {
+   "id": "learn",
+   "dur": 9,
+   "cap": [
+    "And a small model learns. Qwen3-0.6B: 0.003 untrained.",
+    "0.320 after training on the feedback practice mode gives: it imitates the winning move."
+   ]
+  },
+  {
+   "id": "repro",
+   "dur": 4,
+   "cap": [
+    "One command reproduces it. Thin Ice: every mistake, proven."
+   ]
+  }
+ ],
+ "total": 110
+}
