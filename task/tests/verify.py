@@ -24,7 +24,10 @@ def grade() -> tuple:
         raise ValueError("receipt signature does not match")
     manifest = json.loads(MANIFEST.read_text())
     rows = card["puzzles"]
-    expected = len(manifest["tiers"]) * manifest["per_tier"]
+    # The run's dials come from the signed score sheet; the puzzle count follows from them.
+    top = int((card.get("settings") or {}).get("top_depth") or manifest["win_in"][-1])
+    per = manifest["per_tier"]
+    expected = sum(per if isinstance(per, int) else int(per[str((d + 1) // 2)]) for d in manifest["tiers"] if (d + 1) // 2 <= top)
     if len(rows) != expected:
         raise ValueError(f"receipt lists {len(rows)} puzzles, expected {expected}")
     solved = sum(r["status"] == "solved" for r in rows)
@@ -38,6 +41,9 @@ def grade() -> tuple:
         "total": expected,
         "seed": card.get("seed"),
         "practice_started": card.get("practice_started"),
+        "settings": card.get("settings"),
+        "explore_budget": card.get("explore_budget"),
+        "explore_used": card.get("explore_used"),
         "by_win_in": by_tier,
         "puzzles": rows,
     }

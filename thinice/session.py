@@ -42,15 +42,21 @@ def load_pack(path) -> list:
         return [Puzzle(json.loads(line)) for line in fh if line.strip()]
 
 
-def pick(pool: list, seed, tiers, per_tier: int) -> list:
-    """Deterministic choice of `per_tier` puzzles for each depth in `tiers`, easiest tier first."""
+def count_for(per_tier, depth: int) -> int:
+    """Scored puzzles per run at a depth (plies); `per_tier` is a number or {win_in: number}."""
+    return per_tier if isinstance(per_tier, int) else int(per_tier[str((depth + 1) // 2)])
+
+
+def pick(pool: list, seed, tiers, per_tier) -> list:
+    """Deterministic choice of puzzles for each depth in `tiers`, easiest tier first."""
     chosen = []
     for depth in tiers:
+        per_tier_here = count_for(per_tier, depth)
         cands = [p for p in pool if p.depth == depth]
         cands.sort(key=lambda p: hashlib.sha256(f"{seed}:{p.index}".encode()).hexdigest())
-        if len(cands) < per_tier:
-            raise ValueError(f"pool has only {len(cands)} puzzles of depth {depth}, need {per_tier}")
-        chosen.extend(cands[:per_tier])
+        if len(cands) < per_tier_here:
+            raise ValueError(f"pool has only {len(cands)} puzzles of depth {depth}, need {per_tier_here}")
+        chosen.extend(cands[:per_tier_here])
     return chosen
 
 
@@ -160,8 +166,14 @@ class Attempt:
 class Run:
     """A scored episode: a fixed set of puzzles plus an unlimited-feedback practice pool."""
 
-    def __init__(self, scored: list, practice: list, seed=0):
+    def __init__(self, scored: list, practice: list, seed=0, explore_budget=None, settings=None):
         self.seed = seed
+        self.settings = settings or {}  # the run's dials, recorded on the signed score sheet
+        # Look-ahead budget for the whole run: one unit per explored position (one per line
+        # sent to explore_lines, one per explore_position). Shared by all puzzles, practice
+        # included. None means unlimited.
+        self.explore_budget = explore_budget
+        self.explore_used = 0
         self.attempts = {f"P{i + 1:02d}": Attempt(f"P{i + 1:02d}", p) for i, p in enumerate(scored)}
         self._practice = defaultdict(list)
         for p in practice:
@@ -188,6 +200,24 @@ class Run:
         self.practice_attempts[pid] = Attempt(pid, pool[i], practice=True)
         return self.practice_attempts[pid]
 
+    def explore_left(self):
+        return None if self.explore_budget is None else self.explore_budget - self.explore_used
+
+    def charge(self, n: int) -> None:
+        """Takes n units of look-ahead budget, or refuses the whole request and takes nothing."""
+        left = self.explore_left()
+        if left is not None and n > left:
+            raise GameError(
+                f"look-ahead budget exhausted: this request needs {n} position(s) and {left} of {self.explore_budget} are left. "
+                "play_move still works."
+            )
+        self.explore_used += n
+
+    def budget_text(self) -> str:
+        if self.explore_budget is None:
+            return "Look-ahead budget: unlimited."
+        return f"Look-ahead budget: {self.explore_left()} of {self.explore_budget} positions left."
+
     def scorecard(self) -> dict:
         rows = [
             {
@@ -211,6 +241,9 @@ class Run:
             "solved": solved,
             "score": round(solved / len(rows), 6) if rows else 0.0,
             "practice_started": len(self.practice_attempts),
+            "settings": self.settings,
+            "explore_budget": self.explore_budget,
+            "explore_used": self.explore_used,
             "puzzles": rows,
         }
 
@@ -220,6 +253,7 @@ class Run:
         for r in card["puzzles"]:
             lines.append(f"{r['id']:<4} {r['win_in']:<7} {r['status']:<7} {r['moves_used']}/{r['moves_allowed']}")
         lines.append(f"Solved {card['solved']} of {card['total']}. Score: {card['score']:.3f}")
+        lines.append(self.budget_text())
         return "\n".join(lines)
 
 

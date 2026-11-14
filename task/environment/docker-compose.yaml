@@ -12,6 +12,10 @@ services:
       context: ./game-server
     environment:
       THINICE_SEED: ${THINICE_SEED:-1}
+      # Look-ahead budget for the whole run; empty = the published default (packs/manifest.json).
+      THINICE_EXPLORE_BUDGET: ${THINICE_EXPLORE_BUDGET:-}
+      # Deepest tier in the run (win in N); empty = every published tier.
+      THINICE_TOP_DEPTH: ${THINICE_TOP_DEPTH:-}
     expose:
       - "8000"
     volumes:

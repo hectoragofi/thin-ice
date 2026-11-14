@@ -30,9 +30,11 @@ Playing:
 - `play_move(puzzle_id, move)`: plays one Blue move for real. Red replies at once. No undo.
 - `new_practice_puzzle(win_in)`: a fresh puzzle that never counts. When you get a practice move wrong it tells you which move would have won.
 
-Looking ahead (nothing is played, nothing changes, as often as you like):
+Looking ahead (nothing is played, no puzzle changes, but it costs look-ahead budget):
 
 - `explore_position(puzzle_id, moves)`: applies a move sequence to the puzzle's current position (Blue first, then alternating, space separated, for example `"f3-f4 c5-c1"`; empty for none) and shows the board, whose turn it is, the legal moves of the side to move, and for each colour the moves that would make three in a row on its turn (for the side not to move, that is what it threatens).
 - `explore_lines(puzzle_id, lines)`: the same for up to 40 sequences at once, one compact row per sequence.
 
 The look-ahead tools apply the rules and nothing else. They never tell you whether a position is winning, how Red would answer, or which move to play: working that out is the task. They work on open puzzles, scored and practice.
+
+**Look-ahead budget: 1500 explored positions for the whole run.** Every `explore_position` call costs 1 and every `explore_lines` call costs 1 per line you send (illegal lines included). The budget is shared by all puzzles, scored and practice alike, and it never refills. Every look-ahead answer and `list_puzzles` show how much is left. A request larger than what is left is refused whole and costs nothing. When the budget is used up the look-ahead tools refuse, but `play_move`, `show_puzzle` and the rest still work. Puzzles can be played in any order, so you decide how much of the budget each one deserves. (If a run is set up with a different budget, `list_puzzles` shows that number.)

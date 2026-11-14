@@ -22,8 +22,9 @@ PRACTICE = load_pack(PACKS / "practice.jsonl")
 BOOK = json.loads((ROOT / "task" / "solution" / "book.json").read_text())
 
 
-def new_run(seed) -> Run:
-    return Run(pick(SCORED, seed, MANIFEST["tiers"], MANIFEST["per_tier"]), PRACTICE, seed=seed)
+def new_run(seed, budget="default") -> Run:
+    budget = MANIFEST.get("explore_budget") if budget == "default" else budget
+    return Run(pick(SCORED, seed, MANIFEST["tiers"], MANIFEST["per_tier"]), PRACTICE, seed=seed, explore_budget=budget)
 
 
 def play(run: Run, choose, limit=None) -> float:
@@ -71,15 +72,18 @@ def searcher(seconds):
     return choose
 
 
-def tools_only(seed) -> float:
-    """The tools-only player, through the same tool functions the server answers with."""
+def tools_only(seed, selective=True) -> float:
+    """The tools-only player within the default budget, through the server's own functions."""
     sys.path.insert(0, str(ROOT / "tools"))
     from size_task import LocalTools, toolplay
 
+    ref = MANIFEST.get("tools_reference", {})
     run = new_run(seed)
     tools = LocalTools(run)
-    for pid in run.attempts:
-        toolplay.play_puzzle(tools, pid, 400, 120)
+    if selective:
+        toolplay.play_run(tools, ref.get("horizon", 99), ",".join(f"{k}:{v}" for k, v in ref.get("cap", {}).items()), quiet=True)
+    else:
+        toolplay.play_run(tools, 99, "", quiet=True)
     return run.scorecard()["score"]
 
 
@@ -92,7 +96,8 @@ def main() -> None:
         ("random legal moves", lambda s: play(new_run(s), rng_policy(s))),
         ("win-in-1 if seen, else random", lambda s: play(new_run(s), mate_in_one_else_random(s))),
         ("rules-only search, 2s per move", lambda s: play(new_run(s), searcher(2.0))),
-        ("tools-only reference (agent's tools only)", tools_only),
+        ("tools-only reference, selective (budget)", tools_only),
+        ("tools-only, exhaustive proofs (budget)", lambda s: tools_only(s, False)),
         ("perfect play (solver's book)", lambda s: play(new_run(s), book)),
     ]
     print(f"{'policy':<40} " + " ".join(f"seed {s:>3}" for s in seeds))

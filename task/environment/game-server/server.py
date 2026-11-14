@@ -14,7 +14,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from thinice.board import RULES
-from thinice.explore import MAX_LINES, ExploreError, lines as explore_many, text_many, text_one, walk
+from thinice.explore import MAX_LINES, NL, ExploreError, lines as explore_many, text_many, text_one, walk
 from thinice.session import GameError, Run, load_pack, pick, sign
 
 HERE = Path(__file__).resolve().parent
@@ -23,10 +23,20 @@ SEED = os.environ.get("THINICE_SEED") or "1"
 SECRET = (HERE / "receipt.key").read_text().strip().encode()
 RECEIPT = Path(os.environ.get("THINICE_RECEIPT", "/receipt/receipt.json"))
 
+_budget = (os.environ.get("THINICE_EXPLORE_BUDGET") or "").strip()
+# Empty means the published default. "unlimited" switches the budget off (for experiments).
+BUDGET = None if _budget.lower() == "unlimited" else int(_budget or MANIFEST["explore_budget"])
+# Top depth: the deepest tier (win in N moves) in the run; empty = all published tiers.
+TOP = int((os.environ.get("THINICE_TOP_DEPTH") or "").strip() or MANIFEST["win_in"][-1])
+TIERS = [d for d in MANIFEST["tiers"] if (d + 1) // 2 <= TOP]
+if not TIERS:
+    raise SystemExit(f"THINICE_TOP_DEPTH={TOP} leaves no tiers; published tiers are win in {MANIFEST['win_in']}")
 RUN = Run(
-    pick(load_pack(HERE / "packs" / "scored.jsonl"), SEED, MANIFEST["tiers"], MANIFEST["per_tier"]),
+    pick(load_pack(HERE / "packs" / "scored.jsonl"), SEED, TIERS, MANIFEST["per_tier"]),
     load_pack(HERE / "packs" / "practice.jsonl"),
     seed=SEED,
+    explore_budget=BUDGET,
+    settings={"explore_budget": BUDGET, "top_depth": TOP, "seed": SEED},
 )
 LOCK = threading.Lock()
 
@@ -63,13 +73,32 @@ def do_practice(win_in):
         return att
 
 
-def snapshot(pid: str) -> tuple:
-    """The current position of an open puzzle. Exploring reads it and never writes anything."""
+def snapshot(pid: str, cost: int) -> tuple:
+    """The current position of an open puzzle, after charging `cost` units of look-ahead budget.
+
+    Exploring never changes a puzzle. The only state it touches is the budget counter, which
+    only goes up and is written to the signed receipt.
+    """
     with LOCK:
         att = RUN.get(pid)
         if att.status != "open":
             raise GameError(f"{att.pid} is {att.status}; exploration works on open puzzles")
-        return att.pid, att.blue, att.red
+        RUN.charge(cost)
+        save()
+        return att.pid, att.blue, att.red, RUN.budget_text()
+
+
+def n_lines(lines) -> int:
+    """What an explore_lines request costs: one unit per line asked for, checked before any work."""
+    if isinstance(lines, str):
+        lines = lines.replace(";", NL).splitlines()
+    if not isinstance(lines, (list, tuple)):
+        raise ExploreError("lines must be a list of lines, each a string of moves like \"c3-c6 d1-a4\"")
+    if not lines:
+        raise ExploreError("give at least one line (an empty string means the current position)")
+    if len(lines) > MAX_LINES:
+        raise ExploreError(f"at most {MAX_LINES} lines per call")
+    return len(lines)
 
 
 mcp = FastMCP("thin-ice")
@@ -120,8 +149,8 @@ def new_practice_puzzle(win_in: int) -> str:
 def explore_position(puzzle_id: str, moves: str = "") -> str:
     """Rules only, nothing is played. Applies `moves` (space-separated, Blue first, then alternating; empty for none) to the puzzle's current position and shows the board, whose turn it is, the legal moves of the side to move, and for each colour the moves that would make three in a row on its turn. It never says who is winning, what Red would reply, or which move to play."""
     try:
-        pid, blue, red = snapshot(puzzle_id)
-        return text_one(pid, walk(blue, red, moves))
+        pid, blue, red, left = snapshot(puzzle_id, 1)
+        return text_one(pid, walk(blue, red, moves)) + NL + left
     except (GameError, ExploreError) as exc:
         return f"ERROR: {exc}"
 
@@ -130,8 +159,8 @@ def explore_position(puzzle_id: str, moves: str = "") -> str:
 def explore_lines(puzzle_id: str, lines: list[str]) -> str:
     """Rules only, nothing is played. Up to 40 lines per call, each a space-separated move sequence (Blue first, then alternating) applied to the puzzle's current position. One result row per line: whose turn it is after the line, the stones, for each colour the moves that would make three in a row on its turn, and the legal moves of the side to move; or that the game ended (and how); or which move was illegal. It never says who is winning, what Red would reply, or which move to play."""
     try:
-        pid, blue, red = snapshot(puzzle_id)
-        return text_many(pid, explore_many(blue, red, lines))
+        pid, blue, red, left = snapshot(puzzle_id, n_lines(lines))
+        return text_many(pid, explore_many(blue, red, lines)) + NL + left
     except (GameError, ExploreError) as exc:
         return f"ERROR: {exc}"
 
@@ -155,7 +184,8 @@ async def api_puzzles(request: Request) -> JSONResponse:
     with LOCK:
         card = RUN.scorecard()
     rows = [{k: r[k] for k in ("id", "win_in", "status", "moves_used", "moves_allowed")} for r in card["puzzles"]]
-    return JSONResponse({"ok": True, "solved": card["solved"], "total": card["total"], "score": card["score"], "puzzles": rows})
+    left = None if card["explore_budget"] is None else card["explore_budget"] - card["explore_used"]
+    return JSONResponse({"ok": True, "solved": card["solved"], "total": card["total"], "score": card["score"], "explore_budget": card["explore_budget"], "explore_left": left, "puzzles": rows})
 
 
 @mcp.custom_route("/api/puzzle/{pid}", methods=["GET"])
@@ -199,10 +229,14 @@ async def api_practice(request: Request) -> JSONResponse:
 async def api_explore(request: Request) -> JSONResponse:
     try:
         data = await _body(request)
-        pid, blue, red = snapshot(str(data.get("id", "")))
-        if "lines" in data:
-            return JSONResponse({"ok": True, "id": pid, "results": explore_many(blue, red, data["lines"])})
-        return JSONResponse({"ok": True, "id": pid, **walk(blue, red, data.get("moves", ""))})
+        many = "lines" in data
+        cost = n_lines(data["lines"]) if many else 1
+        pid, blue, red, _ = snapshot(str(data.get("id", "")), cost)
+        with LOCK:
+            budget = {"budget": RUN.explore_budget, "budget_left": RUN.explore_left()}
+        if many:
+            return JSONResponse({"ok": True, "id": pid, **budget, "results": explore_many(blue, red, data["lines"])})
+        return JSONResponse({"ok": True, "id": pid, **budget, **walk(blue, red, data.get("moves", ""))})
     except (GameError, ExploreError) as exc:
         return _err(exc)
 

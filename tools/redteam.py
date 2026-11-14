@@ -90,7 +90,7 @@ def main() -> int:
         firsts = js(call("POST", "/api/explore", {"id": pid, "lines": v["legal_moves"][:40]})[1]).get("results", [])
         keysets = {tuple(sorted(r)) for r in firsts}
         check(f"explore {pid}: every first move answers in the same shape", len(keysets) == 1, str(keysets)[:120])
-        for r in firsts[:6]:
+        for r in firsts[:2]:
             if r.get("game_over"):
                 continue
             seqs = [" ".join(r["line"] + [m]) for m in r["moves"]][:40]
@@ -100,7 +100,9 @@ def main() -> int:
         check(f"explore {pid}: no verdict words in answers", not any(w in blob for w in ("forced", "win in", "winning", "solution", "best", "reply\"", "nodes", "depth")))
     after_views = {pid: js(call("GET", f"/api/puzzle/{pid}")[1]) for pid in status0}
     check(f"{explored} explored lines changed no puzzle", after_views == views)
-    check("explored lines changed no score", js(call("GET", "/api/puzzles")[1]) == listing0)
+    listing1 = js(call("GET", "/api/puzzles")[1])
+    strip = lambda d: {k: v for k, v in d.items() if k != "explore_left"}  # noqa: E731
+    check("explored lines changed no score", strip(listing1) == strip(listing0))
     # Lines with both colours, illegal Red moves, moves after the game ended, junk.
     p01 = views["P01"]
     for body in ({"id": "P01", "lines": ["zz"]}, {"id": "P01", "moves": "a1-a1"}, {"id": "P01", "lines": ["a1-a6"] * 41}, {"id": "P01", "lines": "x" * 100000}, {"id": "P01", "moves": " ".join(["a1-a6"] * 41)}, {"id": "P01", "lines": 5}, {"id": "P01", "lines": []}, {"id": "../receipt", "moves": ""}, {"id": "P99", "moves": ""}):
@@ -116,6 +118,58 @@ def main() -> int:
         code, _ = call(method, "/api/explore")
         check(f"{method} /api/explore is refused", code in (404, 405), f"HTTP {code}")
     check("still zero after exploring", score()[0] == 0)
+
+    # 4c. The look-ahead budget: charged per position, shared, never reset, no way around it.
+    budget = js(call("GET", "/api/puzzles")[1]).get("explore_budget")
+    check("listing shows the look-ahead budget", isinstance(budget, int) and budget > 0, str(budget))
+    left = lambda: js(call("GET", "/api/puzzles")[1])["explore_left"]  # noqa: E731
+    l0 = left()
+    r = js(call("POST", "/api/explore", {"id": "P01", "moves": ""})[1])
+    check("explore_position costs one position and reports what is left", left() == l0 - 1 and r.get("budget_left") == l0 - 1)
+    r = js(call("POST", "/api/explore", {"id": "P01", "lines": [""] * 7})[1])
+    check("explore_lines costs one position per line", left() == l0 - 8 and r.get("budget_left") == l0 - 8)
+    r = js(call("POST", "/api/explore", {"id": "P01", "lines": ["zz", "a1-a1"]})[1])
+    check("illegal lines cost too (one each)", left() == l0 - 10)
+    code, _ = call("POST", "/api/explore", {"id": "P01", "lines": [""] * 41})
+    check("an oversized request is refused and costs nothing", code == 400 and left() == l0 - 10)
+    t = js(call("POST", "/api/practice", {"win_in": 2})[1])
+    l1 = left()
+    js(call("POST", "/api/explore", {"id": t["id"], "lines": [""] * 3})[1])
+    check("practice puzzles pay from the same budget", left() == l1 - 3)
+    for path in ("/api/budget", "/api/reset", "/api/explore/reset", "/api/budget/reset"):
+        for method in ("GET", "POST"):
+            code, _ = call(method, path, {"explore_budget": 10**9} if method == "POST" else None)
+            check(f"no budget endpoint: {method} {path}", code in (404, 405), f"HTTP {code}")
+    for body in ({"id": "P01", "moves": "", "budget": 10**9}, {"id": "P01", "lines": [""], "explore_budget": 10**9, "cost": 0}):
+        l2 = left()
+        js(call("POST", "/api/explore", body)[1])
+        check(f"extra fields do not change the budget: {sorted(body)}", left() == l2 - 1)
+    # Many requests at once cannot overspend: drain to almost nothing, then race for the rest.
+    while left() > 60:
+        call("POST", "/api/explore", {"id": "P01", "lines": [""] * min(40, left() - 60)})
+    replies = []
+
+    def fire():
+        replies.append(call("POST", "/api/explore", {"id": "P01", "lines": [""] * 25}))
+
+    threads = [threading.Thread(target=fire) for _ in range(8)]
+    for th in threads:
+        th.start()
+    for th in threads:
+        th.join()
+    ok = sum(code == 200 for code, _ in replies)
+    check("simultaneous requests cannot spend more than is left", ok == 2 and left() == 10, f"{ok} accepted, {left()} left")
+    code, raw = call("POST", "/api/explore", {"id": "P01", "lines": [""] * 11})
+    check("a request larger than what is left is refused whole", code == 400 and b"budget" in raw and left() == 10)
+    while left() > 0:
+        call("POST", "/api/explore", {"id": "P01", "moves": ""})
+    for body in ({"id": "P01", "moves": ""}, {"id": "P01", "lines": [""]}, {"id": t["id"], "moves": ""}, {"id": "p01", "moves": ""}):
+        code, raw = call("POST", "/api/explore", body)
+        check(f"budget used up: explore refused for {body['id']}", code == 400 and b"budget" in raw)
+    check("budget used up: nothing went below zero", left() == 0)
+    v = js(call("GET", "/api/puzzle/P03")[1])
+    code, body = call("POST", "/api/move", {"id": "P03", "move": v["legal_moves"][0]})
+    check("budget used up: play_move still works", code == 200 and js(body).get("ok") is True)
 
     # 5. A lost puzzle stays lost, whatever the id looks like.
     wrong = None

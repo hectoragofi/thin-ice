@@ -69,5 +69,6 @@
   "tools_reference": {
     "call_budget": 50,
     "max_win": 6
-  }
+  },
+  "explore_budget": 1500
 }
