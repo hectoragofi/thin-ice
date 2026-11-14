@@ -55,9 +55,11 @@
    "label": "Gemini 3.8 Flash",
    "value": 0.4167,
    "runs": [
+    0.4167,
+    0.4167,
     0.4167
    ],
-   "landed": 1,
+   "landed": 3,
    "expected": 3,
    "kind": "older"
   },
@@ -325,6 +327,20 @@
    "mean": 0.35,
    "per_tier": 10,
    "older": true
+  },
+  "pro31": {
+   "label": "Gemini 3.1 Pro",
+   "by_tier": {
+    "1": 1.0,
+    "2": 0.9,
+    "3": 0.5,
+    "4": 0.1,
+    "5": 0.0,
+    "6": 0.0
+   },
+   "mean": 0.417,
+   "per_tier": 10,
+   "older": true
   }
  },
  "small": {
@@ -358,7 +374,7 @@
  },
  "curve": {
   "kind": "reward-only",
-  "source": "origin/reward-training:results/curve-rl-qwen3-0.6b-7x6.json",
+  "source": "results/curve-rl-qwen3-0.6b-7x6.json",
   "x_label": "thousands: moves played (reward only), examples seen (imitation)",
   "points": [
    {
@@ -630,7 +646,7 @@
    "cap": [
     "Score is puzzles won out of 12. Perfect play: 1.000.",
     "Eighty lines of rules-only search: 0.917.",
-    "Gemini 4: Argon 0.556, Carbon 0.472, Hydrogen 0.556. Gemini 3.8 Flash 0.417 (1 of 3 runs), Gemini 3.1 Pro 0.389."
+    "Gemini 4: Argon 0.556, Carbon 0.472, Hydrogen 0.556. Gemini 3.8 Flash 0.417, Gemini 3.1 Pro 0.389."
    ]
   },
   {
@@ -639,7 +655,7 @@
    "cap": [
     "Now one move per fresh call, graded to the end of the game.",
     "Win in one or two: easy. Win in four: 1 to 3 puzzles in 10.",
-    "The horizon is about three moves. Same test, Gemini 3.8 Flash: 0.350 on average."
+    "The horizon is about three moves. Same test, Gemini 3.8 Flash: 0.350 on average, Gemini 3.1 Pro: 0.417 on average."
    ]
   },
   {
