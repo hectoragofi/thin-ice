@@ -21,11 +21,17 @@ There are 32 puzzles, `P01` to `P32`. In each one it is Blue's turn and Blue has
 
 ## How to play
 
-MCP server `thin-ice`: `rules`, `list_puzzles`, `show_puzzle`, `play_move`, `new_practice_puzzle`. These are your only tools for the game.
+MCP server `thin-ice`: `rules`, `list_puzzles`, `show_puzzle`, `play_move`, `new_practice_puzzle`, `save_note`. These are your only tools for the game.
 
 **This is a test of your own look-ahead.** There is no shell, no file writing and no way to run code, so you cannot write a search program: you work out each move by thinking it through. Reading files is allowed but there is nothing about the game on disk.
 
-**Keep each turn short.** Your session ends for good if a single reply runs past the model's output limit (thinking included), and puzzles you have not reached then score nothing. Think one move at a time and call a tool in between: settle the move in front of you, play it, see Red's reply, then think again. An unfinished line of thought is worth nothing; a played move is.
+**Every reply must end in a tool call.** A reply that ends without one (including a reply cut off because it ran past the model's output limit, thinking included) ends your session for good, and puzzles you have not reached then score nothing. Long analysis is fine, but spread it over many turns:
+
+1. Look at the puzzle (`show_puzzle`) and pick one or two candidate moves.
+2. Check one candidate against Red's replies for a while, then save what you found with `save_note`: which replies you have answered, which are still open, your verdict so far. Notes come back with `show_puzzle`.
+3. Continue in the next turn from your notes. Play the move (`play_move`) once every Red reply is answered.
+
+Think in steps of a few paragraphs, not one long stretch. A saved note keeps your work; an unfinished thought is lost with the session.
 
 ## Practice
 

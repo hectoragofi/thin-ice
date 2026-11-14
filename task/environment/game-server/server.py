@@ -82,7 +82,7 @@ def list_puzzles() -> str:
 def show_puzzle(puzzle_id: str) -> str:
     """Board, stones and legal moves of one puzzle. Scored puzzles are P01, P02, ...; practice puzzles are T001, T002, ..."""
     try:
-        return do_show(puzzle_id).text()
+        return do_show(puzzle_id).text() + notes_text(puzzle_id)
     except GameError as exc:
         return f"ERROR: {exc}"
 
@@ -95,6 +95,35 @@ def play_move(puzzle_id: str, move: str) -> str:
         return att.result_text(out)
     except GameError as exc:
         return f"ERROR: {exc}"
+
+
+NOTES: dict = {}
+NOTE_CHARS = 4000
+NOTES_PER_PUZZLE = 100
+
+
+def notes_text(pid: str) -> str:
+    rows = NOTES.get(pid.strip().upper(), [])
+    if not rows:
+        return ""
+    return "\n\nYour notes on this puzzle:\n" + "\n".join(f"{i}. {t}" for i, t in enumerate(rows, 1))
+
+
+@mcp.tool()
+def save_note(puzzle_id: str, text: str) -> str:
+    """Save a note to yourself about a puzzle: candidate moves, lines you have checked, what is still open.
+    Notes are shown again by show_puzzle. They are only for you: they change nothing in the game or the score."""
+    pid = (puzzle_id or "").strip().upper()
+    with LOCK:
+        try:
+            RUN.get(pid)
+        except GameError as exc:
+            return f"ERROR: {exc}"
+        rows = NOTES.setdefault(pid, [])
+        if len(rows) >= NOTES_PER_PUZZLE:
+            return f"ERROR: at most {NOTES_PER_PUZZLE} notes per puzzle"
+        rows.append(str(text)[:NOTE_CHARS])
+        return f"Saved note {len(rows)} on {pid}."
 
 
 @mcp.tool()
