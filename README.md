@@ -115,6 +115,7 @@ Equal means can come by different routes. Beyond the five puzzles every run wins
 | Gemini 4 Argon | 1.00 | 0.80 | 0.40 | 0.10 | 0.10 | 0.00 | **0.400** |
 | Gemini 4 Hydrogen | 1.00 | 1.00 | 0.60 | 0.30 | 0.00 | 0.00 | **0.483** |
 | Gemini 4 Carbon | 1.00 | 1.00 | 0.90 | 0.10 | 0.10 | 0.00 | **0.517** |
+| Gemini 3.1 Pro (older generation) | 1.00 | 0.90 | 0.50 | 0.10 | 0.00 | 0.00 | **0.417** |
 | Gemini 3.8 Flash (older generation)* | 1.00 | 0.80 | 0.30 | 0.00 | 0.00 | 0.00 | **0.350** |
 | Random legal moves | | | | | | | 0.007 |
 
