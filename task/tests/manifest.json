@@ -38,8 +38,56 @@
   ],
   "per_tier": 2,
   "slack": 1,
-  "pool_per_tier": 30,
-  "practice_per_tier": 20,
+  "pool": {
+    "1": {
+      "scored": 30,
+      "practice": 20
+    },
+    "2": {
+      "scored": 30,
+      "practice": 20
+    },
+    "3": {
+      "scored": 30,
+      "practice": 20
+    },
+    "4": {
+      "scored": 30,
+      "practice": 20
+    },
+    "5": {
+      "scored": 30,
+      "practice": 19
+    },
+    "6": {
+      "scored": 22,
+      "practice": 7
+    },
+    "7": {
+      "scored": 24,
+      "practice": 8
+    },
+    "8": {
+      "scored": 17,
+      "practice": 6
+    },
+    "9": {
+      "scored": 10,
+      "practice": 3
+    },
+    "10": {
+      "scored": 5,
+      "practice": 2
+    },
+    "11": {
+      "scored": 4,
+      "practice": 1
+    },
+    "12": {
+      "scored": 3,
+      "practice": 1
+    }
+  },
   "build_seed": 20261114,
   "tablebase_sha256": "a2bcfcf8ab56993139577ef499f510fe651b77dd109c94d55d215f1b8f1c62bc"
 }

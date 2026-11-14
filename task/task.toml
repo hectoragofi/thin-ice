@@ -24,7 +24,7 @@ user = "agent"
 
 [environment]
 network_mode = "public"
-build_timeout_sec = 900.0
+build_timeout_sec = 1800.0
 os = "linux"
 cpus = 2
 memory_mb = 2048
