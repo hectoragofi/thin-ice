@@ -32,6 +32,9 @@ JOBS = Path(os.environ.get("THINICE_JOBS", ROOT.parent / "thin-ice" / "jobs" / "
 PREFIX = "clock-24d6707-"
 MODELS = [("argon", "Gemini 4 Argon"), ("carbon", "Gemini 4 Carbon"), ("hydrogen", "Gemini 4 Hydrogen")]
 RUNS_PER_MODEL = 3
+# Older models: shown only when their files exist (ladder: a finished trial; depth chart: a probe summary).
+OLDER = [("flash38", "Gemini 3.8 Flash", "gemini-3.8-flash"), ("pro31", "Gemini 3.1 Pro", "gemini-3.1-pro-preview")]
+PROBE_DIRS = [ROOT / "results" / "probe", ROOT.parent / "thin-ice" / "results" / "probe"]
 TIERS = [1, 2, 3, 4, 5, 6]
 # The README tells this exact mistake; use it when a final run contains it, else the most repeated one.
 PREFERRED = ("P07", "c1-g5")
@@ -103,6 +106,13 @@ for slug, label in MODELS:
     a = agents[slug]
     ladder.append({"label": label, "value": a["mean"], "runs": a["rewards"], "landed": a["landed"],
                    "expected": a["expected"], "kind": "agent"})
+older_ladder = []
+for slug, label, _ in OLDER:
+    landed = [r for r in job_runs(f"{slug}-x{RUNS_PER_MODEL}") if r["reward"] is not None and r["details"] is not None]
+    if landed:
+        older_ladder.append({"label": label, "value": round(sum(r["details"]["solved"] for r in landed) / sum(r["details"]["total"] for r in landed), 4),
+                             "runs": [round(r["reward"], 4) for r in landed], "landed": len(landed), "expected": RUNS_PER_MODEL, "kind": "older"})
+ladder += older_ladder
 ladder += [
     {"label": "Stop early (2 easiest)", "value": single("stop-early"), "kind": "base"},
     {"label": "Do nothing", "value": single("do-nothing"), "kind": "base"},
@@ -207,6 +217,14 @@ for slug, label in MODELS:
                        "mean": round(s["score_these_tiers"], 3), "per_tier": s.get("per_tier")}
     except (OSError, ValueError, KeyError):
         probe[slug] = {"label": label, "by_tier": None, "mean": None}
+for slug, label, fname in OLDER:
+    for d in PROBE_DIRS:
+        f = d / f"{fname}.summary.json"
+        if f.exists():
+            s = json.loads(f.read_text())
+            probe[slug] = {"label": label, "by_tier": {str(t): s["puzzles_solved_by_win_in"].get(str(t)) for t in TIERS},
+                           "mean": round(s["score_these_tiers"], 3), "per_tier": s.get("per_tier"), "older": True}
+            break
 
 
 def curve_points(d: dict) -> list:
@@ -256,8 +274,10 @@ if rl_raw:
         elif six is None or six < RL_MIN_SIX_TIER:
             curve["rl_status"] = f"file present, last six_tier {six} below {RL_MIN_SIX_TIER}"
         else:
-            curve = {"kind": "reward-only", "source": rl_src, "x_label": "moves played in training",
-                     "points": rl_pts, "rl_status": "landed", "imitation": imit_pts}
+            hits = [(h.get("policy_hit_rate"), h.get("random_hit_rate")) for h in hist if h.get("policy_hit_rate") is not None]
+            curve = {"kind": "reward-only", "source": rl_src, "x_label": "thousands: moves played (reward only), examples seen (imitation)",
+                     "points": rl_pts, "rl_status": "landed", "imitation": imit_pts,
+                     "policy_hit_last": hits[-1][0] if hits else None, "random_hit_last": hits[-1][1] if hits else None}
     except ValueError:
         curve["rl_status"] = "file present, not parseable"
 
@@ -321,17 +341,30 @@ def agent_phrase():
     return ", ".join(parts)
 
 
+def pct(x):
+    return P if x is None else f"{round(100 * x)}%"
+
+
+if curve["kind"] == "reward-only":
+    LEARN_CAP = [f"And a small model learns from reward alone. {small['label']} gets one bit for each move it plays, and is never shown the answer.",
+                 f"It goes from {f3(pts[0]['score'])} to {f3(pts[-1]['score'])}.",
+                 f"By the last round its own moves are rewarded {pct(curve['policy_hit_last'])} of the time. Random moves: {pct(curve['random_hit_last'])}.",
+                 f"Shown the winning move instead, it reaches {f3(imit_pts[-1]['score'])}."]
+else:
+    LEARN_CAP = [f"And a small model learns. {small['label']}: {f3(pts[0]['score'] if pts else None)} untrained.",
+                 f"{f3(pts[-1]['score'] if pts else None)} after training {learn_kind}."]
+
 # One cut, at most 2 minutes (target 1:50). Each scene: id, seconds, caption lines.
 # Caption lines are spoken in order and spread evenly over the scene. The last scene is the closing card.
 SCENES = [
-    {"id": "question", "dur": 8,
+    {"id": "question", "dur": 7,
      "cap": ["How far ahead can a frontier model think, without a computer to do the thinking?",
              "No shell, no code. Only its own reasoning."]},
-    {"id": "game", "dur": 14,
+    {"id": "game", "dur": 13,
      "cap": [f"Thin Ice. A board game we invented. {W} by {H}, four stones each.",
              "A stone slides until it hits something. Three in a row wins.",
              f"We solved it completely, all {facts['positions'] or P} positions. Every move has an exact verdict."]},
-    {"id": "mistake", "dur": 26,
+    {"id": "mistake", "dur": 24,
      "cap": [f"A real game. {rp.get('model', P)}, puzzle {rp.get('id', P)}, Blue to win in {rp.get('win_in', P)}.",
              f"It played {rp.get('played', P)}.",
              f"The solver says: that loses. {rp.get('verdict', P).replace('Red wins in', 'Red now wins in')}.",
@@ -340,25 +373,23 @@ SCENES = [
     {"id": "gap", "dur": 15,
      "cap": [f"Score is puzzles won out of 12. Perfect play: {f3(ladder[0]['value'])}.",
              f"Eighty lines of rules-only search: {f3(ref_search)}.",
-             f"Frontier models: {agent_phrase()}."]},
+             f"Gemini 4: {agent_phrase()}." + (" " + ", ".join(f"{r['label']} {f3(r['value'])}" + ("" if r["landed"] == r["expected"] else f" ({r['landed']} of {r['expected']} runs)") for r in older_ladder) + "." if older_ladder else "")]},
     {"id": "depth", "dur": 15,
      "cap": ["Now one move per fresh call, graded to the end of the game.",
              f"Win in one or two: easy. Win in four: {w4}.",
-             "The horizon is about three moves."]},
+             "The horizon is about three moves." + (" Same test, " + ", ".join(f"{p['label']}: {f3(p['mean'])} on average" for p in probe.values() if p.get("older") and p["mean"] is not None) + "." if any(p.get("older") for p in probe.values()) else "")]},
     {"id": "fair", "dur": 10,
      "cap": [f"The mistakes are fair. Each puzzle has its own clock: {n(facts['clock_min_per_move'])} minutes per move.",
              f"{reach['reached']} of {reach['puzzles']} puzzles were reached. Rules, notes and practice are always there."]},
     {"id": "exploit", "dur": 9,
      "cap": [f"The reward can't be gamed. {n(facts['attacks_main'])} attacks, plus {n(facts['attacks_clock'])} on the clock.",
              "None got through. The score sheet is signed by the game server."]},
-    {"id": "learn", "dur": 9,
-     "cap": [f"And a small model learns. {small['label']}: {f3(pts[0]['score'] if pts else None)} untrained.",
-             f"{f3(pts[-1]['score'] if pts else None)} after training {learn_kind}."]},
+    {"id": "learn", "dur": 16, "cap": LEARN_CAP},
     {"id": "repro", "dur": 4,
      "cap": ["One command reproduces it. Thin Ice: every mistake, proven."]},
 ]
 TOTAL = sum(sc["dur"] for sc in SCENES)
-assert TOTAL <= 118, TOTAL
+assert TOTAL <= 115, TOTAL  # plus 1.5 s on the closing card, the video must stay under 1:58
 
 data = {
     "board": {"w": W, "h": H, "files": FILES},
@@ -388,11 +419,11 @@ def script_md() -> str:
         "question": "Title card with the question.",
         "game": "Rule illustration: one stone slides until blocked, then a line of three lights up.",
         "mistake": "Replay of the real position. The played move flashes, the verdict appears in red, then the one move that held in green.",
-        "gap": "Ladder chart: perfect play, rules-only search, the three Gemini models (one dot per run), the baselines.",
-        "depth": "Line chart: solve rate by win-in depth for Argon, Carbon, Hydrogen and the trained small model.",
+        "gap": "Ladder chart: perfect play, rules-only search, the three Gemini 4 models (one dot per run), older Gemini models if their runs exist, the baselines.",
+        "depth": "Line chart: solve rate by win-in depth for the Gemini 4 models, any older Gemini model with a probe file, and the small model (imitation).",
         "fair": "Three facts: per-puzzle clock, puzzles reached, tools available.",
         "exploit": "Attack counts with every row refused.",
-        "learn": "Learning curve of the small model, frontier range as a band.",
+        "learn": "Small model: reward-only curve (solid) and imitation curve (dashed) on one axis, Gemini 4 range as a band.",
         "repro": "Closing card: the command, the repo, the one-line claim.",
     }
     out = ["# Thin Ice demo script", "",
