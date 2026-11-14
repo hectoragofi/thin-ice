@@ -170,7 +170,7 @@ The reward is the number of puzzles won against a perfect opponent, so the only 
 | Beat the clock | A move after the puzzle's clock is refused and the puzzle is lost. The clock is server time, starts at the first look and cannot be restarted by re-reading, practising, skipping or another spelling of the id |
 | Read the answers | Puzzles, opponent and solutions live in a separate container. The agent's container holds none of the game's code or data |
 | Learn the scored puzzles in practice | All published puzzles, scored and practice, are mutually disjoint: no position reachable in one occurs in any other, up to rotation and reflection. The build fails if two share a position |
-| Edit the score | The verifier reads one file: a score sheet written and HMAC-signed by the game server, mounted read-only into the agent's container. The key never exists in the agent's sandbox |
+| Edit the score | The verifier reads one file: a score sheet written and HMAC-signed by the game server, mounted read-only into the agent's container. The key never exists in the agent's sandbox. The key file is in this repo (`task/environment/game-server/receipt.key`, `task/tests/receipt.key`) because the game server and verifier need it; the agent has no web access, so it cannot read it during a run |
 | Tamper with the grader | Verification runs in a separate container that the agent never touches. The agent itself is not root |
 | Break the verifier's input | A missing, malformed or mis-signed score sheet scores 0 |
 
