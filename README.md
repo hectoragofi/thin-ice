@@ -155,7 +155,7 @@ Our first no-code runs ended after 5 to 15 minutes with most puzzles never reach
 2. **One puzzle at a time** stops a reply from holding several puzzles' analysis.
 3. **A per-puzzle clock** stops one puzzle from eating the run, so every puzzle is reached.
 
-With notes, cut-off sessions fell from 6 of 9 to 1 of 7 (Hydrogen, once, on a win in 5 after 20 minutes of paced play). Agents use notes as intended: worked lines and refutation lists, e.g. *"1.c1-a1 stops 1...c3-c2# AND threatens 2.c5-a3#"* (correct: it is the only winning move). We also raised OpenCode's own output cap to 64,000 in the task image, which only matters for Hydrogen.
+With notes, cut-off sessions fell from 6 of 9 to 1 of 7 (Hydrogen, once, on a win in 5 after 20 minutes of paced play). Agents use notes as intended: worked lines and refutation lists, e.g. *"1.c1-a1 stops 1...c3-c2# AND threatens 2.c5-a3#"* (correct: it is the only winning move). We also raised OpenCode's own output cap to 64,000 in the task image, which only matters for Hydrogen. The task ships its own OpenCode config (shell, file writing and web access denied; output cap raised to 64,000 tokens); the organisers confirmed on 15 Nov that changing the OpenCode config is allowed.
 
 ## Run it
 
