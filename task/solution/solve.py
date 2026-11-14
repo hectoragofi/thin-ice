@@ -25,7 +25,7 @@ from thinice.board import key, mask_of, move_name, parse_sq  # noqa: E402
 from thinice.search import find_win  # noqa: E402
 MODE = os.environ.get("SOLUTION", "book")
 SEARCH_SECONDS = float(os.environ.get("SEARCH_SECONDS", "60"))
-# STOP_AFTER=4 plays only the first four puzzles and then quits: the stop-early baseline.
+# STOP_AFTER=2 plays only the first two puzzles and then quits: the stop-early baseline.
 STOP_AFTER = int(os.environ.get("STOP_AFTER", "0"))
 
 

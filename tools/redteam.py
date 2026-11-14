@@ -150,7 +150,7 @@ def main() -> int:
     check("illegal moves used no move and changed no stone", after["moves_used"] == 0 and after["blue"] == p["blue"] and after["status"] == "open")
 
     # 5. Puzzles are played one at a time: later ones are locked, whatever the id looks like.
-    for pid in ("P05", "p05", " P05 ", "P32"):
+    for pid in ("P05", "p05", " P05 ", "P12"):
         code, body = call("GET", f"/api/puzzle/{pid.strip()}")
         check(f"locked puzzle cannot be viewed: {pid!r}", code == 404 and b"locked" in body and b"legal_moves" not in body, f"HTTP {code}")
         code, body = call("POST", "/api/move", {"id": pid, "move": "a1-a6"})

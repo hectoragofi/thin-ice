@@ -115,7 +115,7 @@ def main() -> None:
     seeds = sys.argv[1:] or ["1", "2", "3"]
     rows = [
         ("do nothing", lambda s: play(new_run(s), lambda a: None)),
-        ("stop early (first 4 puzzles, perfect)", lambda s: play(new_run(s), book, limit=4)),
+        ("stop early (first 2 puzzles, perfect)", lambda s: play(new_run(s), book, limit=2)),
         ("always first legal move", lambda s: play(new_run(s), first_legal)),
         ("random legal moves", lambda s: play(new_run(s), rng_policy(s))),
         ("win-in-1 if seen, else random", lambda s: play(new_run(s), mate_in_one_else_random(s))),

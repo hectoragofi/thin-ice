@@ -91,7 +91,7 @@ def main() -> None:
         ("reference: perfect play (solver)", harbor("reference", jobs, "-a", "oracle")),
         (f"reference: rules-only search, {args.search_seconds}s/puzzle", harbor("reference-search", jobs, "-a", "oracle", "--ae", "SOLUTION=search", "--ae", f"SEARCH_SECONDS={args.search_seconds}")),
         ("baseline: do nothing", harbor("do-nothing", jobs, "-a", "nop")),
-        ("baseline: stop early (4 puzzles, then quit)", harbor("stop-early", jobs, "-a", "oracle", "--ae", "STOP_AFTER=4")),
+        ("baseline: stop early (2 puzzles, then quit)", harbor("stop-early", jobs, "-a", "oracle", "--ae", "STOP_AFTER=2")),
     ]
     if args.model:
         keys = [a for k in KEY_NAMES if os.environ.get(k) for a in ("--ae", f"{k}={os.environ[k]}")]

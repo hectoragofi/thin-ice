@@ -19,7 +19,7 @@ timeout_sec = 120.0
 environment_mode = "separate"
 
 [agent]
-timeout_sec = 1800.0
+timeout_sec = 5400.0
 user = "agent"
 
 [environment]
