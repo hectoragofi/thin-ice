@@ -104,7 +104,7 @@ def vendor() -> None:
 
     The agent's own container gets none of this.
     """
-    for dest, modules in ((SERVER / "thinice", ("__init__", "board", "session")), (TASK / "solution" / "thinice", ("__init__", "board", "search"))):
+    for dest, modules in ((SERVER / "thinice", ("__init__", "board", "session", "explore")), (TASK / "solution" / "thinice", ("__init__", "board", "search"))):
         dest.mkdir(parents=True, exist_ok=True)
         for mod in modules:
             shutil.copyfile(ROOT / "thinice" / f"{mod}.py", dest / f"{mod}.py")

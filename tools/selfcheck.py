@@ -101,6 +101,31 @@ def main() -> None:
     v = att.view()
     assert mask_of(parse_sq(s) for s in v["blue"]) == att.blue and mask_of(parse_sq(s) for s in v["red"]) == att.red
     print("receipt and view checks passed")
+    explore_checks(run)
+
+
+def explore_checks(run: Run) -> None:
+    """The look-ahead tools answer from the rules alone and never touch a puzzle."""
+    from thinice.explore import walk, lines
+
+    for att in run.attempts.values():
+        if att.status != "open":
+            continue
+        before = (att.blue, att.red, att.used, att.status, list(att.history))
+        root = walk(att.blue, att.red, "")
+        assert root["moves"] == att.legal(), f"{att.pid}: rules and pack disagree on legal moves"
+        firsts = lines(att.blue, att.red, root["moves"][:40])
+        # Same answers with the solver's data removed: nothing comes from the pack.
+        saved, att.puzzle.nodes = att.puzzle.nodes, {}
+        try:
+            assert walk(att.blue, att.red, "") == root
+            assert lines(att.blue, att.red, root["moves"][:40]) == firsts
+        finally:
+            att.puzzle.nodes = saved
+        # The winning first move and the losing ones answer in exactly the same shape.
+        assert len({tuple(sorted(r)) for r in firsts}) == 1
+        assert (att.blue, att.red, att.used, att.status, list(att.history)) == before
+    print("explore checks passed: rules-only, pack-independent, no state change")
 
 
 if __name__ == "__main__":

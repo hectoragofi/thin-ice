@@ -17,16 +17,22 @@ There are 32 puzzles, `P01` to `P32`. In each one it is Blue's turn and Blue has
 - Each puzzle states how many Blue moves the forced win takes (`win in N`). You are allowed N+1 moves.
 - A puzzle is lost the moment you play a move after which the win is no longer forced, or when your moves run out. There is no undo and no second attempt.
 - Puzzles are independent and can be played in any order. They get harder: `P01`-`P02` are a win in 1 move, `P31`-`P32` a win in 16.
-- You have 30 minutes in total. This container has 2 CPU cores and 2 GB of memory.
+- You have 30 minutes in total. Unfinished puzzles count as not won.
+- Each of your turns has an output limit. A single very long stretch of thinking without a tool call can hit it, and then the session ends there, with every unfinished puzzle counting as not won. Work in small steps: think a little, check it with a tool, and continue.
 
-## How to play
+## What you can use
 
-MCP server `thin-ice`: `rules`, `list_puzzles`, `show_puzzle`, `play_move`, `new_practice_puzzle`.
+This is a test of planning by reasoning. You cannot run code: there is no shell, you cannot write files, and there are no subagents and no web access. You play with the game's tools (MCP server `thin-ice`) and your own thinking. You may also read files and keep a todo list, but nothing in this container helps with the game.
 
-The same actions from the shell: `ice list`, `ice show P01`, `ice move P01 a1-a6`, `ice practice 3` (add `--json` for JSON). `ice api` describes the HTTP API if you want to call the game from your own programs.
+Playing:
 
-## Practice
+- `rules`, `list_puzzles`, `show_puzzle(puzzle_id)`
+- `play_move(puzzle_id, move)`: plays one Blue move for real. Red replies at once. No undo.
+- `new_practice_puzzle(win_in)`: a fresh puzzle that never counts. When you get a practice move wrong it tells you which move would have won.
 
-`new_practice_puzzle` (or `ice practice N`) gives you a fresh puzzle that never counts. When you get a practice move wrong it tells you which move would have won. Use practice as much as you like, to learn the game or to check your own tools against it.
+Looking ahead (nothing is played, nothing changes, as often as you like):
 
-You may use anything in this container.
+- `explore_position(puzzle_id, moves, side)`: applies a move sequence to the puzzle's current position (Blue first, then alternating, space separated, for example `"f3-f4 c5-c1"`; empty for none) and shows the board, whose turn it is, the legal moves and which of them would make three in a row. `side` (`"blue"` or `"red"`) lists that colour's moves even when it is not its turn.
+- `explore_lines(puzzle_id, lines, side)`: the same for up to 40 sequences at once, one compact row per sequence.
+
+The look-ahead tools apply the rules and nothing else. They never tell you whether a position is winning, how Red would answer, or which move to play: working that out is the task. They work on open puzzles, scored and practice.

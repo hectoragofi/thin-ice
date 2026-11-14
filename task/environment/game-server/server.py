@@ -14,6 +14,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from thinice.board import RULES
+from thinice.explore import MAX_LINES, ExploreError, lines as explore_many, text_many, text_one, walk
 from thinice.session import GameError, Run, load_pack, pick, sign
 
 HERE = Path(__file__).resolve().parent
@@ -62,6 +63,15 @@ def do_practice(win_in):
         return att
 
 
+def snapshot(pid: str) -> tuple:
+    """The current position of an open puzzle. Exploring reads it and never writes anything."""
+    with LOCK:
+        att = RUN.get(pid)
+        if att.status != "open":
+            raise GameError(f"{att.pid} is {att.status}; exploration works on open puzzles")
+        return att.pid, att.blue, att.red
+
+
 mcp = FastMCP("thin-ice")
 
 
@@ -103,6 +113,26 @@ def new_practice_puzzle(win_in: int) -> str:
     try:
         return do_practice(win_in).text()
     except GameError as exc:
+        return f"ERROR: {exc}"
+
+
+@mcp.tool()
+def explore_position(puzzle_id: str, moves: str = "", side: str = "") -> str:
+    """Rules only, nothing is played. Applies `moves` (space-separated, Blue first, then alternating; empty for none) to the puzzle's current position and shows the board, whose turn it is, every legal move of `side` ("blue" or "red", default the side to move) and which of those moves would make three in a row. It never says who is winning, what Red would reply, or which move to play."""
+    try:
+        pid, blue, red = snapshot(puzzle_id)
+        return text_one(pid, walk(blue, red, moves, side))
+    except (GameError, ExploreError) as exc:
+        return f"ERROR: {exc}"
+
+
+@mcp.tool()
+def explore_lines(puzzle_id: str, lines: list[str], side: str = "") -> str:
+    """Rules only, nothing is played. Up to 40 lines per call, each a space-separated move sequence (Blue first, then alternating) applied to the puzzle's current position. One result row per line: whose turn it is after the line, the stones, the legal moves of `side` (default the side to move) and which of them would make three in a row, or that the game ended (and how), or which move was illegal. It never says who is winning, what Red would reply, or which move to play."""
+    try:
+        pid, blue, red = snapshot(puzzle_id)
+        return text_many(pid, explore_many(blue, red, lines, side))
+    except (GameError, ExploreError) as exc:
         return f"ERROR: {exc}"
 
 
@@ -162,6 +192,18 @@ async def api_practice(request: Request) -> JSONResponse:
         data = await _body(request)
         return JSONResponse({"ok": True, **do_practice(data.get("win_in")).view()})
     except GameError as exc:
+        return _err(exc)
+
+
+@mcp.custom_route("/api/explore", methods=["POST"])
+async def api_explore(request: Request) -> JSONResponse:
+    try:
+        data = await _body(request)
+        pid, blue, red = snapshot(str(data.get("id", "")))
+        if "lines" in data:
+            return JSONResponse({"ok": True, "id": pid, "results": explore_many(blue, red, data["lines"], str(data.get("side") or ""))})
+        return JSONResponse({"ok": True, "id": pid, **walk(blue, red, data.get("moves", ""), str(data.get("side") or ""))})
+    except (GameError, ExploreError) as exc:
         return _err(exc)
 
 

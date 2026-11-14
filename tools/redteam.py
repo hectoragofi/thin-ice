@@ -1,9 +1,10 @@
 """Tries to earn score without winning puzzles, against a live game server.
 
-    docker build -t thinice-game task/environment/game-server
-    docker run --rm -d -p 8000:8000 -e THINICE_RECEIPT=/tmp/receipt.json --name thinice-game thinice-game
+    pip install fastmcp==4.1.8
+    (cd task/environment/game-server && THINICE_RECEIPT=/tmp/receipt.json python server.py) &
     python tools/redteam.py http://localhost:8000
-    docker rm -f thinice-game
+
+(or the same server image in Docker). Point it at a fresh server: it plays real moves.
 
 Every attack must leave the score where honest play put it. Exits non-zero if one gets through.
 """
@@ -77,6 +78,45 @@ def main() -> int:
     after = js(call("GET", "/api/puzzle/P01")[1])
     check("illegal moves used no move and changed no stone", after["moves_used"] == 0 and after["blue"] == p["blue"] and after["status"] == "open")
 
+    # 4b. The look-ahead tools apply the rules only: they change nothing and reveal no verdict.
+    views = {pid: js(call("GET", f"/api/puzzle/{pid}")[1]) for pid in status0}
+    listing0 = js(call("GET", "/api/puzzles")[1])
+    explored = 0
+    for pid, v in views.items():
+        root = js(call("POST", "/api/explore", {"id": pid, "moves": ""})[1])
+        same = root.get("ok") is True and root.get("moves") == v["legal_moves"] and root.get("to_move") == "blue"
+        check(f"explore {pid}: root moves equal the puzzle's legal moves", same)
+        # every first move, and every first move followed by every Red reply to it (batched)
+        firsts = js(call("POST", "/api/explore", {"id": pid, "lines": v["legal_moves"][:40]})[1]).get("results", [])
+        keysets = {tuple(sorted(r)) for r in firsts}
+        check(f"explore {pid}: every first move answers in the same shape", len(keysets) == 1, str(keysets)[:120])
+        for r in firsts[:6]:
+            if r.get("game_over"):
+                continue
+            seqs = [" ".join(r["line"] + [m]) for m in r["moves"]][:40]
+            out = js(call("POST", "/api/explore", {"id": pid, "lines": seqs})[1])
+            explored += len(out.get("results", []))
+        blob = json.dumps(firsts).lower()
+        check(f"explore {pid}: no verdict words in answers", not any(w in blob for w in ("forced", "win in", "winning", "solution", "best", "reply\"", "nodes", "depth")))
+    after_views = {pid: js(call("GET", f"/api/puzzle/{pid}")[1]) for pid in status0}
+    check(f"{explored} explored lines changed no puzzle", after_views == views)
+    check("explored lines changed no score", js(call("GET", "/api/puzzles")[1]) == listing0)
+    # Lines with both colours, illegal Red moves, moves after the game ended, junk.
+    p01 = views["P01"]
+    for body in ({"id": "P01", "lines": ["zz"]}, {"id": "P01", "moves": "a1-a1"}, {"id": "P01", "lines": ["a1-a6"] * 41}, {"id": "P01", "lines": "x" * 100000}, {"id": "P01", "moves": " ".join(["a1-a6"] * 41)}, {"id": "P01", "side": "green"}, {"id": "P01", "lines": 5}, {"id": "P01", "lines": []}, {"id": "../receipt", "moves": ""}, {"id": "P99", "moves": ""}):
+        code, raw = call("POST", "/api/explore", body)
+        d = js(raw)
+        refused = code == 400 or all("error" in r for r in d.get("results", [{"error": 1}])) or "error" in d
+        check(f"explore junk is refused: {json.dumps(body)[:60]}", refused and b"nodes" not in raw, f"HTTP {code}")
+    win1 = js(call("POST", "/api/explore", {"id": "P01", "moves": ""})[1]).get("three_in_a_row", [])
+    if win1:
+        over = js(call("POST", "/api/explore", {"id": "P01", "moves": win1[0] + " " + p01["red"][0] + "-a1"})[1])
+        check("explore refuses moves after three in a row", "error" in over)
+    for method in ("GET", "PUT", "DELETE"):
+        code, _ = call(method, "/api/explore")
+        check(f"{method} /api/explore is refused", code in (404, 405), f"HTTP {code}")
+    check("still zero after exploring", score()[0] == 0)
+
     # 5. A lost puzzle stays lost, whatever the id looks like.
     wrong = None
     for move in p["legal_moves"]:
@@ -127,6 +167,12 @@ def main() -> int:
     check("only one of many simultaneous moves is accepted", len(accepted) == 1, f"{len(accepted)} accepted of {len(replies)}")
     solved, value, status = score()
     check("score equals puzzles actually won", abs(value - sum(s == "solved" for s in status.values()) / len(status)) < 1e-5 and solved <= 1, f"solved={solved} score={value}")
+
+    for pid, st in score()[2].items():
+        if st != "open":
+            code, _ = call("POST", "/api/explore", {"id": pid, "moves": ""})
+            check(f"exploring finished puzzle {pid} is refused", code == 400)
+            break
 
     # 8. Nothing above leaked a solution.
     listing = call("GET", "/api/puzzles")[1] + call("GET", "/api/puzzle/P05")[1]
