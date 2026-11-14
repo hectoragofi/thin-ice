@@ -3,8 +3,14 @@
     python training/reinforce.py --model Qwen/Qwen3-0.6B --labels data/7x6/labels.jsonl --out data/runs/rl-qwen3-0.6b
 
 Each round the model is shown positions and plays one move in each. The environment answers
-with one bit: the move kept Blue's forced win (reward 1) or it did not (reward 0; an illegal
-or unreadable answer is also 0). The model is never shown the solver's move. It then takes
+with one bit for that move (an illegal or unreadable answer is always 0). Two rewards:
+
+  --reward progress   (default) 1 if the move brings Blue's forced win one move closer, i.e. the
+                      move is one of the fastest winning moves in the position; else 0.
+  --reward keeps-win  1 if Blue still has a forced win after the move (at any distance); else 0.
+                      This is the first run's reward; about 18% of random legal moves earn it.
+
+The model is never shown the solver's move or which move would have been rewarded. It then takes
 gradient steps that raise the probability of its own rewarded moves (policy gradient with a
 0/1 reward, plus replay of earlier rewarded moves), and is evaluated by playing the held-out
 puzzle pool with the same prompt and the same rollout as training/train.py.
@@ -36,6 +42,7 @@ def parse() -> argparse.Namespace:
     p.add_argument("--model", default="Qwen/Qwen3-0.6B")
     p.add_argument("--labels", default="data/7x6/labels.jsonl", help="positions with the solver's verdict on every move; only used to compute the reward")
     p.add_argument("--out", default="data/runs/rl-qwen3-0.6b")
+    p.add_argument("--reward", choices=["progress", "keeps-win"], default="progress", help="progress: fastest winning move; keeps-win: any move that keeps the forced win")
     p.add_argument("--rounds", type=int, default=8)
     p.add_argument("--random-first", type=int, default=400_000, help="moves played in round 0, all drawn at random from the legal moves")
     p.add_argument("--per-round", type=int, default=100_000, help="moves played in every later round")
@@ -54,8 +61,10 @@ def parse() -> argparse.Namespace:
     return p.parse_args()
 
 
-def load_positions(path, exclude: set) -> list:
-    """(blue, red, legal move names, names of the moves the environment rewards, depth)."""
+def load_positions(path, exclude: set, reward: str) -> list:
+    """(blue, red, legal move names, names of the moves the environment rewards, depth).
+
+    The rewarded set is used only by env_reward; the learner never sees it."""
     out = []
     with open(path, encoding="utf-8") as fh:
         for line in fh:
@@ -63,13 +72,20 @@ def load_positions(path, exclude: set) -> list:
             if canon(rec["blue"], rec["red"]) in exclude:
                 continue
             legal = [move_name(m) for m in rec["moves"]]
-            good = frozenset(move_name(m) for m in rec["moves"] if m[2] >= WIN)
+            wins = [m for m in rec["moves"] if m[2] >= WIN]
+            if reward == "progress":  # the smallest winning value is the fastest win
+                fastest = min(m[2] for m in wins)
+                good = frozenset(move_name(m) for m in wins if m[2] == fastest)
+            else:
+                good = frozenset(move_name(m) for m in wins)
             out.append((mask_of(rec["blue"]), mask_of(rec["red"]), legal, good, rec["depth"]))
     return out
 
 
 def env_reward(position, move: str) -> int:
-    """All the learner is told about a move: 1 if Blue still has its forced win after it, else 0."""
+    """All the learner is told about a move: one bit. With --reward progress, 1 if the move is a
+    fastest winning move (Blue's forced win is one move closer); with --reward keeps-win, 1 if
+    Blue still has a forced win after it. Illegal or unreadable moves are never in the set: 0."""
     return int(move in position[3])
 
 
@@ -113,7 +129,7 @@ def main() -> None:
             if taken[puzzle.need] <= args.eval_per_tier:
                 kept.append(puzzle)
         pool = kept
-    positions = load_positions(args.labels, set() if args.keep_held_out else held_out_positions())
+    positions = load_positions(args.labels, set() if args.keep_held_out else held_out_positions(), args.reward)
     random.shuffle(positions)
     print(f"{len(positions)} training positions, {len(pool)} held-out puzzles, {sum(p.numel() for p in params) / 1e6:.1f}M trainable parameters", flush=True)
 
@@ -172,7 +188,7 @@ def main() -> None:
             **tag,
         )
         history.append(res)
-        (out / "curve.json").write_text(json.dumps({"model": args.model, "method": "reward-only", "history": history}, indent=2))
+        (out / "curve.json").write_text(json.dumps({"model": args.model, "method": "reward-only", "reward": args.reward, "history": history}, indent=2))
         tiers = " ".join(f"{n}:{r:.2f}" for n, r in sorted(rates.items())[:6])
         print(f"[eval] round={tag['round']:>2} moves={totals['moves']:>8} rewarded={totals['rewarded']:>7} six-tier={res['six_tier']:.3f} score={res['score']:.3f} legal={res['legal_rate']:.2f} | {tiers}", flush=True)
 

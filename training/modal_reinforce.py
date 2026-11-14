@@ -64,6 +64,7 @@ def reinforce(model: str, name: str, extra: list) -> str:
 def main(
     model: str = "Qwen/Qwen3-0.6B",
     name: str = "",
+    reward: str = "progress",
     rounds: int = 8,
     random_first: int = 200_000,
     per_round: int = 60_000,
@@ -77,7 +78,7 @@ def main(
 ):
     name = name or "rl-" + model.split("/")[-1].lower()
     extra = [
-        "--rounds", str(rounds), "--random-first", str(random_first), "--per-round", str(per_round),
+        "--reward", reward, "--rounds", str(rounds), "--random-first", str(random_first), "--per-round", str(per_round),
         "--explore", explore, "--act-bs", str(act_bs), "--bs", str(bs), "--accum", str(accum),
         "--lr", str(lr), "--minutes", str(minutes), "--eval-per-tier", str(eval_per_tier),
     ]  # fmt: skip
