@@ -35,7 +35,8 @@ Reviewers score Innovation, Impact and Implementation. Lead with why it matters,
 - "We attacked our own reward: 96 attacks plus 13 on the clock. None got through. The score is signed by the game server, the agent never touches it."
 
 **4:15 to 5:00. It also teaches. Scenes 8 and 9.**
-- "And it is a training ground, not only a test. A tiny model, Qwen3 0.6B, goes from 0.003 to 0.320 after training on the feedback practice mode gives: it learns to imitate the winning move. That is close to the Gemini 4 models in the same test."
+- "And it is a training ground, not only a test. A tiny model, Qwen3 0.6B, learns from the reward alone: one bit for each move it plays, never the answer. It goes from 0.003 to 0.207. By the last round its own moves are rewarded 34% of the time, random moves 7%."
+- "Shown the winning move instead, the dashed line, it reaches 0.320. The Gemini 4 models score 0.40 to 0.52 in the same test."
 - "Everything reproduces with one command. Questions?"
 
 Likely questions:
@@ -53,6 +54,6 @@ Likely questions:
 
 **1:45 to 2:20. Scenes 4 and 5.** "Simple rules-only search: 0.917. Frontier models: about half, on screen. Their horizon is about three moves: win in four is where they fall through."
 
-**2:20 to 2:50. Scenes 7 and 8.** "The reward survived 109 attacks. And a 0.6-billion-parameter model, trained to imitate the winning moves that practice mode reveals, goes from 0.003 to 0.320."
+**2:20 to 2:50. Scenes 7 and 8.** "The reward survived 109 attacks. And a 0.6-billion-parameter model, given only one bit per move and never the answer, goes from 0.003 to 0.207; shown the winning move, 0.320."
 
 **2:50 to 3:00. Scene 9.** "Thin Ice. Every mistake, proven. One command to reproduce it."

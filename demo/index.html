@@ -168,18 +168,18 @@ B.mistake = (el) => {
 
 B.gap = (el) => {
   el.innerHTML = `<h2>Score: puzzles won out of 12</h2><div id="ch"></div>`;
-  const W = 1680, rowH = 82, L = 560, R = 160, rows = D.ladder, H = rows.length * rowH + 60;
+  const W = 1680, rowH = D.ladder.length > 7 ? 68 : 82, L = 560, R = 160, rows = D.ladder, H = rows.length * rowH + 60;
   const s = svg(W, H), x = v => L + v * (W - L - R);
   for (const t of [0, 0.25, 0.5, 0.75, 1]) { sv(s, 'line', {x1: x(t), x2: x(t), y1: 0, y2: H - 50, stroke: '#d4d6db', 'stroke-width': 2});
     sv(s, 'text', {x: x(t), y: H - 12, 'font-size': 28, fill: '#4b5563', 'text-anchor': 'middle'}, t.toFixed(2)); }
   const bars = [];
   rows.forEach((r, i) => {
-    const y = i * rowH + 12, col = r.kind === 'agent' ? '#b45309' : r.kind === 'ref' ? '#101317' : '#9ca3af';
+    const y = i * rowH + 12, col = r.kind === 'agent' ? '#b45309' : r.kind === 'older' ? '#e0b48a' : r.kind === 'ref' ? '#101317' : '#9ca3af';
     sv(s, 'text', {x: L - 24, y: y + 44, 'font-size': 34, 'text-anchor': 'end', fill: '#101317', 'font-weight': r.kind === 'agent' ? 700 : 500}, r.label);
     if (r.value == null) { sv(s, 'text', {x: L + 10, y: y + 44, 'font-size': 34, fill: '#9ca3af', 'font-style': 'italic'}, 'pending'); return; }
-    const bar = sv(s, 'rect', {x: L, y: y + 8, height: 52, width: 0, fill: col, rx: 4}); bars.push([bar, x(r.value) - L]);
+    const bar = sv(s, 'rect', {x: L, y: y + 8, height: rowH - 30, width: 0, fill: col, rx: 4}); bars.push([bar, x(r.value) - L]);
     let lab = r.value.toFixed(3);
-    if (r.kind === 'agent' && r.landed < r.expected) lab += `  (${r.landed} of ${r.expected} runs)`;
+    if ((r.kind === 'agent' || r.kind === 'older') && r.landed < r.expected) lab += `  (${r.landed} of ${r.expected} runs)`;
     sv(s, 'text', {x: x(Math.max(r.value, ...(r.runs || []))) + 22, y: y + 46, 'font-size': 34, fill: '#101317', 'font-weight': 700, 'font-variant-numeric': 'tabular-nums'}, lab);
     (r.runs || []).forEach(v => sv(s, 'circle', {cx: x(v), cy: y + 34, r: 9, fill: '#fff', stroke: '#101317', 'stroke-width': 3}));
   });
@@ -189,7 +189,7 @@ B.gap = (el) => {
 };
 
 function lineChart(series, opts) {
-  const W = opts.w || 1680, H = opts.h || 600, L = 110, R = 330, T = 20, Bt = 90;
+  const W = opts.w || 1680, H = opts.h || 600, L = 110, R = opts.R || 330, T = 20, Bt = 90;
   const s = svg(W, H), n = opts.xs.length;
   const x = i => L + (n === 1 ? 0 : i * (W - L - R) / (n - 1)), y = v => T + (1 - v / opts.ymax) * (H - T - Bt);
   for (let t = 0; t <= opts.ymax + 1e-9; t += opts.ystep) { sv(s, 'line', {x1: L, x2: W - R, y1: y(t), y2: y(t), stroke: '#d4d6db', 'stroke-width': 2});
@@ -214,11 +214,11 @@ function lineChart(series, opts) {
 
 B.depth = (el) => {
   el.innerHTML = `<h2>Solve rate by depth, one move per fresh call</h2><div id="ch"></div>`;
-  const tiers = ['1', '2', '3', '4', '5', '6'], cols = {argon: '#1d4ed8', carbon: '#b45309', hydrogen: '#0f766e'};
-  const series = Object.entries(D.probe).filter(([, p]) => p.by_tier).map(([k, p]) => ({label: p.label.replace('Gemini 4 ', ''), color: cols[k], ys: tiers.map(t => p.by_tier[t])}));
+  const tiers = ['1', '2', '3', '4', '5', '6'], cols = {argon: '#1d4ed8', carbon: '#b45309', hydrogen: '#0f766e', flash38: '#9ca3af', pro31: '#c4a484'};
+  const series = Object.entries(D.probe).filter(([, p]) => p.by_tier).map(([k, p]) => ({label: p.label.replace('Gemini 4 ', ''), color: cols[k] || '#9ca3af', width: p.older ? 5 : 7, ys: tiers.map(t => p.by_tier[t])}));
   const tr = D.small.trained;
-  if (tr && tr.tiers) series.push({label: D.small.label + ' trained', color: '#111827', dash: '14 12', width: 6, ys: tiers.map(t => tr.tiers[t])});
-  const {s, paths} = lineChart(series, {xs: tiers.map(t => 'win in ' + t), xlabel: 'puzzle depth (moves to a forced win)', ymax: 1, ystep: .25, ydec: 2, h: 620});
+  if (tr && tr.tiers) series.push({label: D.small.label + ' (imitation)', color: '#111827', dash: '14 12', width: 6, ys: tiers.map(t => tr.tiers[t])});
+  const {s, paths} = lineChart(series, {xs: tiers.map(t => 'win in ' + t), xlabel: 'puzzle depth (moves to a forced win)', ymax: 1, ystep: .25, ydec: 2, h: 620, R: 430});
   el.querySelector('#ch').appendChild(s);
   paths.forEach(p => { const L = p.getTotalLength(); p.style.strokeDasharray = p.getAttribute('stroke-dasharray') || `${L} ${L}`; });
   return { beat() {} };
@@ -241,16 +241,36 @@ B.exploit = (el) => {
 };
 
 B.learn = (el) => {
-  const c = D.curve, pts = c.points;
-  const title = c.kind === 'reward-only' ? `${esc(D.small.label)} learns from a 0/1 reward alone` : `${esc(D.small.label)} learns by imitating the winning move<br><span style="font-size:36px;font-weight:500;color:var(--dim)">trained on the feedback practice mode gives</span>`;
+  const c = D.curve, rl = c.kind === 'reward-only';
+  const title = rl ? `${esc(D.small.label)} learns from reward alone<br><span style="font-size:36px;font-weight:500;color:var(--dim)">one bit per move it plays; it is never shown the answer</span>`
+                   : `${esc(D.small.label)} learns by imitating the winning move<br><span style="font-size:36px;font-weight:500;color:var(--dim)">trained on the feedback practice mode gives</span>`;
   el.innerHTML = `<h2>${title}</h2><div id="ch"></div>`;
-  const fmt = v => v >= 1e6 ? (v / 1e6) + 'M' : v >= 1e3 ? Math.round(v / 1e3) + 'k' : String(v);
-  const probes = Object.values(D.probe).map(p => p.mean).filter(v => v != null);
-  const ymax = Math.max(0.6, ...pts.map(p => p.score));
-  const series = [{label: `${pts[pts.length - 1].score.toFixed(3)}`, color: '#111827', ys: pts.map(p => p.score)}];
-  const {s} = lineChart(series, {xs: pts.map(p => fmt(p.x)), xlabel: c.x_label,
-    ymax: Math.ceil(ymax * 10) / 10, ystep: .1, ydec: 1, h: 540,
-    band: probes.length ? {range: [Math.min(...probes), Math.max(...probes)], label: `Gemini 4: ${Math.min(...probes).toFixed(2)}-${Math.max(...probes).toFixed(2)}`} : null});
+  const series = rl ? [{label: 'reward only', color: '#111827', pts: c.points},
+                       {label: 'imitation', color: '#6b7280', dash: '14 12', width: 5, pts: c.imitation}]
+                    : [{label: 'imitation', color: '#111827', pts: c.points}];
+  const probes = Object.values(D.probe).filter(p => !p.older).map(p => p.mean).filter(v => v != null);
+  const W = 1680, H = 540, L = 110, R = 330, T = 20, Bt = 90;
+  const xmax = Math.max(...series.flatMap(se => se.pts.map(p => p.x))), xstep = xmax > 300000 ? 100000 : 50000;
+  const xend = Math.ceil(xmax / xstep) * xstep;
+  const ymax = Math.ceil(Math.max(0.6, ...series.flatMap(se => se.pts.map(p => p.score))) * 10) / 10;
+  const s = svg(W, H), x = v => L + v / xend * (W - L - R), y = v => T + (1 - v / ymax) * (H - T - Bt);
+  for (let t = 0; t <= ymax + 1e-9; t += .1) { sv(s, 'line', {x1: L, x2: W - R, y1: y(t), y2: y(t), stroke: '#d4d6db', 'stroke-width': 2});
+    sv(s, 'text', {x: L - 16, y: y(t) + 10, 'font-size': 28, fill: '#4b5563', 'text-anchor': 'end'}, t.toFixed(1)); }
+  for (let v = 0; v <= xend; v += xstep) sv(s, 'text', {x: x(v), y: H - Bt + 44, 'font-size': 30, fill: '#4b5563', 'text-anchor': 'middle'}, v ? (v / 1000) + 'k' : '0');
+  sv(s, 'text', {x: (L + W - R) / 2, y: H - 8, 'font-size': 28, fill: '#101317', 'text-anchor': 'middle', 'font-weight': 600},
+     rl ? 'thousands: moves played (reward only), examples seen (imitation)' : 'training examples, thousands');
+  if (probes.length) { const a = Math.min(...probes), b = Math.max(...probes);
+    sv(s, 'rect', {x: L, width: W - R - L, y: y(b), height: Math.max(y(a) - y(b), 3), fill: '#b45309', opacity: .16});
+    sv(s, 'text', {x: W - R + 16, y: (y(a) + y(b)) / 2 + 10, 'font-size': 28, fill: '#b45309', 'font-weight': 600}, `Gemini 4: ${a.toFixed(2)}-${b.toFixed(2)}`); }
+  const used = [];
+  series.forEach(se => {
+    const P = se.pts.map(p => [x(p.x), y(p.score)]);
+    sv(s, 'path', {d: 'M' + P.map(q => q.join(',')).join('L'), fill: 'none', stroke: se.color, 'stroke-width': se.width || 7, 'stroke-dasharray': se.dash || '', 'stroke-linejoin': 'round'});
+    P.forEach(q => sv(s, 'circle', {cx: q[0], cy: q[1], r: 8, fill: se.color}));
+    const last = se.pts[se.pts.length - 1]; let ly = y(last.score);
+    while (used.some(u => Math.abs(u - ly) < 40)) ly += 40; used.push(ly);
+    sv(s, 'text', {x: W - R + 16, y: ly + 10, 'font-size': 30, fill: se.color, 'font-weight': 700}, `${se.label} ${last.score.toFixed(3)}`);
+  });
   el.querySelector('#ch').appendChild(s);
   return { beat() {} };
 };

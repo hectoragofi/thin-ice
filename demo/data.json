@@ -52,6 +52,28 @@
    "kind": "agent"
   },
   {
+   "label": "Gemini 3.8 Flash",
+   "value": 0.4167,
+   "runs": [
+    0.4167
+   ],
+   "landed": 1,
+   "expected": 3,
+   "kind": "older"
+  },
+  {
+   "label": "Gemini 3.1 Pro",
+   "value": 0.3889,
+   "runs": [
+    0.4167,
+    0.4167,
+    0.3333
+   ],
+   "landed": 3,
+   "expected": 3,
+   "kind": "older"
+  },
+  {
    "label": "Stop early (2 easiest)",
    "value": 0.1667,
    "kind": "base"
@@ -289,6 +311,20 @@
    },
    "mean": 0.483,
    "per_tier": 10
+  },
+  "flash38": {
+   "label": "Gemini 3.8 Flash",
+   "by_tier": {
+    "1": 1.0,
+    "2": 0.8,
+    "3": 0.3,
+    "4": 0.0,
+    "5": 0.0,
+    "6": 0.0
+   },
+   "mean": 0.35,
+   "per_tier": 10,
+   "older": true
   }
  },
  "small": {
@@ -321,10 +357,91 @@
   }
  },
  "curve": {
-  "kind": "imitation",
-  "source": "results/curve-qwen3-0.6b-7x6.json",
-  "x_label": "training examples",
+  "kind": "reward-only",
+  "source": "origin/reward-training:results/curve-rl-qwen3-0.6b-7x6.json",
+  "x_label": "thousands: moves played (reward only), examples seen (imitation)",
   "points": [
+   {
+    "x": 0,
+    "score": 0.0033,
+    "tiers": {
+     "1": 0.02,
+     "2": 0.0,
+     "3": 0.0,
+     "4": 0.0,
+     "5": 0.0,
+     "6": 0.0
+    },
+    "legal": 0.49877750611246946
+   },
+   {
+    "x": 400000,
+    "score": 0.16,
+    "tiers": {
+     "1": 0.62,
+     "2": 0.28,
+     "3": 0.02,
+     "4": 0.04,
+     "5": 0.0,
+     "6": 0.0
+    },
+    "legal": 1.0
+   },
+   {
+    "x": 440000,
+    "score": 0.14,
+    "tiers": {
+     "1": 0.62,
+     "2": 0.18,
+     "3": 0.04,
+     "4": 0.0,
+     "5": 0.0,
+     "6": 0.0
+    },
+    "legal": 1.0
+   },
+   {
+    "x": 480000,
+    "score": 0.17,
+    "tiers": {
+     "1": 0.66,
+     "2": 0.28,
+     "3": 0.08,
+     "4": 0.0,
+     "5": 0.0,
+     "6": 0.0
+    },
+    "legal": 1.0
+   },
+   {
+    "x": 520000,
+    "score": 0.1967,
+    "tiers": {
+     "1": 0.74,
+     "2": 0.34,
+     "3": 0.1,
+     "4": 0.0,
+     "5": 0.0,
+     "6": 0.0
+    },
+    "legal": 1.0
+   },
+   {
+    "x": 560000,
+    "score": 0.2067,
+    "tiers": {
+     "1": 0.78,
+     "2": 0.44,
+     "3": 0.02,
+     "4": 0.0,
+     "5": 0.0,
+     "6": 0.0
+    },
+    "legal": 0.9981255857544518
+   }
+  ],
+  "rl_status": "landed",
+  "imitation": [
    {
     "x": 0,
     "score": 0.0033,
@@ -443,7 +560,8 @@
     "legal": 1.0
    }
   ],
-  "rl_status": "pending"
+  "policy_hit_last": 0.3369375,
+  "random_hit_last": 0.07325
  },
  "facts": {
   "attacks_main": 96,
@@ -480,7 +598,7 @@
  "scenes": [
   {
    "id": "question",
-   "dur": 8,
+   "dur": 7,
    "cap": [
     "How far ahead can a frontier model think, without a computer to do the thinking?",
     "No shell, no code. Only its own reasoning."
@@ -488,7 +606,7 @@
   },
   {
    "id": "game",
-   "dur": 14,
+   "dur": 13,
    "cap": [
     "Thin Ice. A board game we invented. 7 by 6, four stones each.",
     "A stone slides until it hits something. Three in a row wins.",
@@ -497,7 +615,7 @@
   },
   {
    "id": "mistake",
-   "dur": 26,
+   "dur": 24,
    "cap": [
     "A real game. Gemini 4 Hydrogen, puzzle P07, Blue to win in 4.",
     "It played c1-g5.",
@@ -512,7 +630,7 @@
    "cap": [
     "Score is puzzles won out of 12. Perfect play: 1.000.",
     "Eighty lines of rules-only search: 0.917.",
-    "Frontier models: Argon 0.556, Carbon 0.472, Hydrogen 0.556."
+    "Gemini 4: Argon 0.556, Carbon 0.472, Hydrogen 0.556. Gemini 3.8 Flash 0.417 (1 of 3 runs), Gemini 3.1 Pro 0.389."
    ]
   },
   {
@@ -521,7 +639,7 @@
    "cap": [
     "Now one move per fresh call, graded to the end of the game.",
     "Win in one or two: easy. Win in four: 1 to 3 puzzles in 10.",
-    "The horizon is about three moves."
+    "The horizon is about three moves. Same test, Gemini 3.8 Flash: 0.350 on average."
    ]
   },
   {
@@ -542,10 +660,12 @@
   },
   {
    "id": "learn",
-   "dur": 9,
+   "dur": 16,
    "cap": [
-    "And a small model learns. Qwen3-0.6B: 0.003 untrained.",
-    "0.320 after training on the feedback practice mode gives: it imitates the winning move."
+    "And a small model learns from reward alone. Qwen3-0.6B gets one bit for each move it plays, and is never shown the answer.",
+    "It goes from 0.003 to 0.207.",
+    "By the last round its own moves are rewarded 34% of the time. Random moves: 7%.",
+    "Shown the winning move instead, it reaches 0.320."
    ]
   },
   {
@@ -556,5 +676,5 @@
    ]
   }
  ],
- "total": 110
+ "total": 113
 }
