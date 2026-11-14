@@ -115,8 +115,10 @@ Equal means can come by different routes. Beyond the five puzzles every run wins
 | Gemini 4 Argon | 1.00 | 0.80 | 0.40 | 0.10 | 0.10 | 0.00 | **0.400** |
 | Gemini 4 Hydrogen | 1.00 | 1.00 | 0.60 | 0.30 | 0.00 | 0.00 | **0.483** |
 | Gemini 4 Carbon | 1.00 | 1.00 | 0.90 | 0.10 | 0.10 | 0.00 | **0.517** |
-| Gemini 3.8 Flash (older generation) | 1.00 | 0.80 | 0.30 | 0.00 | 0.00 | 0.00 | **0.350** |
+| Gemini 3.8 Flash (older generation)* | 1.00 | 0.80 | 0.30 | 0.00 | 0.00 | 0.00 | **0.350** |
 | Random legal moves | | | | | | | 0.007 |
+
+\* Two 3.8 Flash runs overlapped by accident and shared one cache; the other scored 0.367 (one more win in 5). Either way it sits below every Gemini 4 model.
 
 Puzzles solved per tier. Removing the session does not remove the difficulty: the first move of a win in N still needs the full N-deep look-ahead. Two opposite failures show up:
 
