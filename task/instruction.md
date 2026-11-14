@@ -25,7 +25,7 @@ MCP server `thin-ice`: `rules`, `list_puzzles`, `show_puzzle`, `play_move`, `new
 
 **This is a test of your own look-ahead.** There is no shell, no file writing and no way to run code, so you cannot write a search program: you work out each move by thinking it through. Reading files is allowed but there is nothing about the game on disk.
 
-**Keep each turn short.** Your session ends for good if a single reply runs past the model's output limit (about 64,000 tokens including thinking), and puzzles you have not reached then score nothing. Think one move at a time and call a tool in between: settle the move in front of you, play it, see Red's reply, then think again. An unfinished line of thought is worth nothing; a played move is.
+**Keep each turn short.** Thinking is limited per reply (about 16,000 tokens), and a reply that ends without a tool call ends your session for good: puzzles you have not reached then score nothing. Think one move at a time and call a tool in between: settle the move in front of you, play it, see Red's reply, then think again. An unfinished line of thought is worth nothing; a played move is.
 
 ## Practice
 

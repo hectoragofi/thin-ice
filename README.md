@@ -65,7 +65,7 @@ Every row is a Harbor run on Modal (`-e modal`) at the commit in the job name, r
 | run | reward |
 |---|---|
 | Reference: perfect play (moves from the solver) | **1.000** |
-| Reference: rules-only search, 20 s per puzzle | RESULT_SEARCH |
+| Reference: rules-only search, 20 s per puzzle (wins every win in 1 to 5, never loses one, leaves deeper ones open) | 0.344 |
 | Gemini 4 Argon, 3 runs | RESULT_ARGON |
 | Gemini 4 Carbon, 3 runs | RESULT_CARBON |
 | Gemini 4 Hydrogen, 3 runs | RESULT_HYDROGEN |
