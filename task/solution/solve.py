@@ -56,7 +56,8 @@ def main() -> None:
                 left = p["moves_allowed"] - p["moves_used"]
                 found, _, _ = find_win(blue, red, left, max(1.0, budget - time.monotonic()))
                 if found is None:
-                    print(f"{pid}: no forced win proven in time, leaving it")
+                    print(f"{pid}: no forced win proven in time, giving it up")
+                    call("POST", "/api/skip", {"id": pid})
                     break
                 move = move_name(found)
             call("POST", "/api/move", {"id": pid, "move": move})

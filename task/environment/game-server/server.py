@@ -51,6 +51,13 @@ def do_move(pid: str, move: str):
         return att, out
 
 
+def do_skip(pid: str):
+    with LOCK:
+        att = RUN.skip(pid)
+        save()
+        return att
+
+
 def do_practice(win_in):
     with LOCK:
         try:
@@ -130,6 +137,17 @@ def save_note(puzzle_id: str, text: str) -> str:
 
 
 @mcp.tool()
+def skip_puzzle(puzzle_id: str) -> str:
+    """Give up the current scored puzzle. It counts as lost (no undo) and the next puzzle unlocks."""
+    try:
+        att = do_skip(puzzle_id)
+        nxt = RUN.current()
+        return f"{att.pid} given up (lost). " + (f"Next puzzle: {nxt.pid} (win in {nxt.puzzle.need})." if nxt else "No puzzles left.")
+    except GameError as exc:
+        return f"ERROR: {exc}"
+
+
+@mcp.tool()
 def new_practice_puzzle(win_in: int) -> str:
     """Start a practice puzzle whose forced win takes `win_in` Blue moves. Practice never counts for the score, and a wrong move is answered with the move that would have won."""
     try:
@@ -184,6 +202,16 @@ async def api_move(request: Request) -> JSONResponse:
         data = await _body(request)
         att, out = do_move(str(data.get("id", "")), str(data.get("move", "")))
         return JSONResponse({"ok": True, **out, "puzzle": att.view()})
+    except GameError as exc:
+        return _err(exc)
+
+
+@mcp.custom_route("/api/skip", methods=["POST"])
+async def api_skip(request: Request) -> JSONResponse:
+    try:
+        data = await _body(request)
+        att = do_skip(str(data.get("id", "")))
+        return JSONResponse({"ok": True, "id": att.pid, "status": att.status, "reason": att.reason})
     except GameError as exc:
         return _err(exc)
 

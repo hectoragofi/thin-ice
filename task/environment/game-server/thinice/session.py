@@ -169,11 +169,31 @@ class Run:
         self._practice_next = defaultdict(int)
         self.practice_attempts: dict = {}
 
+    def current(self):
+        """The scored puzzle in play: the first one still open. Puzzles are played one at a time, in order."""
+        return next((a for a in self.attempts.values() if a.status == "open"), None)
+
     def get(self, pid: str) -> Attempt:
         pid = str(pid).strip().upper()
         att = self.attempts.get(pid) or self.practice_attempts.get(pid)
         if att is None:
             raise GameError(f"unknown puzzle id {pid!r}; scored puzzles are {next(iter(self.attempts))}..{list(self.attempts)[-1]}")
+        cur = self.current()
+        if not att.practice and att.status == "open" and att is not cur:
+            raise GameError(
+                f"{pid} is locked: scored puzzles are played one at a time, in order. "
+                f"The current puzzle is {cur.pid}; win it, lose it, or give it up with skip_puzzle to unlock the next one."
+            )
+        return att
+
+    def skip(self, pid: str) -> Attempt:
+        """Gives up the current scored puzzle: it counts as lost and the next one unlocks."""
+        att = self.get(pid)
+        if att.practice:
+            raise GameError("practice puzzles cannot be skipped; just start another one")
+        if att.status != "open":
+            raise GameError(f"{att.pid} is already {att.status}")
+        att.status, att.reason = "failed", "skipped"
         return att
 
     def practice_new(self, win_in: int) -> Attempt:
@@ -217,8 +237,10 @@ class Run:
     def table(self) -> str:
         card = self.scorecard()
         lines = ["id   win-in  status  moves"]
+        cur = self.current()
         for r in card["puzzles"]:
-            lines.append(f"{r['id']:<4} {r['win_in']:<7} {r['status']:<7} {r['moves_used']}/{r['moves_allowed']}")
+            status = r["status"] if r["status"] != "open" else ("current" if cur and r["id"] == cur.pid else "locked")
+            lines.append(f"{r['id']:<4} {r['win_in']:<7} {status:<7} {r['moves_used']}/{r['moves_allowed']}")
         lines.append(f"Solved {card['solved']} of {card['total']}. Score: {card['score']:.3f}")
         return "\n".join(lines)
 
