@@ -32,4 +32,7 @@ COPY ice /usr/local/bin/ice
 RUN chmod 755 /usr/local/bin/ice
 
 ENV THINICE_URL=http://game:8000
+# OpenCode's default per-turn output cap (32000) cuts a long thought off and ends the run.
+# Raise it to the model's limit so a run ends by the agent's play, not by the harness.
+ENV OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX=64000
 WORKDIR /app
