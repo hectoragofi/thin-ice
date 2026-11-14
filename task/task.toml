@@ -1,0 +1,35 @@
+schema_version = "1.4"
+# The only thing the verifier reads: the game server's signed score sheet.
+artifacts = ["/receipt/receipt.json"]
+
+[task]
+name = "thin-ice/thin-ice"
+version = "1.0.0"
+description = "Win forced-win puzzles in Thin Ice, a new and exhaustively solved board game, against a perfect defender."
+authors = []
+keywords = ["planning", "lookahead", "game", "search", "tool-use"]
+
+[metadata]
+difficulty = "hard"
+category = "planning"
+tags = ["game", "solved-game", "mcp"]
+
+[verifier]
+timeout_sec = 120.0
+environment_mode = "separate"
+
+[agent]
+timeout_sec = 1800.0
+user = "agent"
+
+[environment]
+network_mode = "public"
+build_timeout_sec = 900.0
+os = "linux"
+cpus = 2
+memory_mb = 2048
+
+[[environment.mcp_servers]]
+name = "thin-ice"
+transport = "streamable-http"
+url = "http://game:8000/mcp"

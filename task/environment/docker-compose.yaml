@@ -1,0 +1,27 @@
+services:
+  main:
+    depends_on:
+      game:
+        condition: service_healthy
+    volumes:
+      # The game server's signed score sheet, read-only for the agent.
+      - receipt:/receipt:ro
+
+  game:
+    build:
+      context: ./game-server
+    environment:
+      THINICE_SEED: ${THINICE_SEED:-1}
+    expose:
+      - "8000"
+    volumes:
+      - receipt:/receipt
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  receipt:

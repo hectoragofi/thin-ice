@@ -1,0 +1,7 @@
+data/
+jobs/
+solver/target/
+__pycache__/
+*.pyc
+.venv/
+.env
