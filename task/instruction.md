@@ -10,13 +10,13 @@ You play Blue in **Thin Ice**, a two-player board game. These are the complete r
 
 ## Your task
 
-There are 12 puzzles, `P01` to `P12`. In each one it is Blue's turn and Blue has a forced win: a way to make 3 in a row no matter what Red does. Red is played by a perfect opponent that always picks the longest defence.
+There are 10 puzzles, `P01` to `P10`. In each one it is Blue's turn and Blue has a forced win: a way to make 3 in a row no matter what Red does. Red is played by a perfect opponent that always picks the longest defence.
 
-**Win as many puzzles as you can. Your score is the number of puzzles won divided by 12.**
+**Win as many puzzles as you can. Your score is the number of puzzles won divided by 10.**
 
 - Each puzzle states how many Blue moves the forced win takes (`win in N`). You are allowed N+1 moves.
 - A puzzle is lost the moment you play a move after which the win is no longer forced, or when your moves run out. There is no undo and no second attempt.
-- Puzzles are independent and can be played in any order. They get harder: `P01`-`P02` are a win in 1 move, `P11`-`P12` a win in 6. Every puzzle can be won with the look-ahead tools below, within the time limit.
+- Puzzles are independent and can be played in any order. They get harder: `P01` is a win in 2 moves, `P02` a win in 3, `P03`-`P04` a win in 4, `P05`-`P06` in 5, `P07`-`P08` in 6 and `P09`-`P10` in 7. `list_puzzles` shows each one. Every puzzle can be won with the look-ahead tools below, within the look-ahead budget and the time limit.
 - You have 150 minutes in total. Unfinished puzzles count as not won.
 - Each of your turns has an output limit. A single very long stretch of thinking without a tool call can hit it, and then the session ends there, with every unfinished puzzle counting as not won. Work in small steps: think a little, check it with a tool, and continue.
 
@@ -37,4 +37,4 @@ Looking ahead (nothing is played, no puzzle changes, but it costs look-ahead bud
 
 The look-ahead tools apply the rules and nothing else. They never tell you whether a position is winning, how Red would answer, or which move to play: working that out is the task. They work on open puzzles, scored and practice.
 
-**Look-ahead budget: 1500 explored positions for the whole run.** Every `explore_position` call costs 1 and every `explore_lines` call costs 1 per line you send (illegal lines included). The budget is shared by all puzzles, scored and practice alike, and it never refills. Every look-ahead answer and `list_puzzles` show how much is left. A request larger than what is left is refused whole and costs nothing. When the budget is used up the look-ahead tools refuse, but `play_move`, `show_puzzle` and the rest still work. Puzzles can be played in any order, so you decide how much of the budget each one deserves. (If a run is set up with a different budget, `list_puzzles` shows that number.)
+**Look-ahead budget: 4000 explored positions for the whole run.** Every `explore_position` call costs 1 and every `explore_lines` call costs 1 per line you send (illegal lines included). The budget is shared by all puzzles, scored and practice alike, and it never refills. Every look-ahead answer and `list_puzzles` show how much is left. A request larger than what is left is refused whole and costs nothing. When the budget is used up the look-ahead tools refuse, but `play_move`, `show_puzzle` and the rest still work. Puzzles can be played in any order, so you decide how much of the budget each one deserves. (If a run is set up with a different budget or a deeper top tier, `list_puzzles` shows the actual budget and puzzles.)

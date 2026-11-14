@@ -104,7 +104,8 @@ def write(rows: list, args, per_tier: dict, caps: dict) -> None:
         per_tier={str(n): c for n, c in sorted(per_tier.items())},
         pool=sizes,
         explore_budget=args.budget,
-        tools_reference={"horizon": args.horizon, "quiet_depth": toolplay.QUIET_DEPTH, "cap": {str(k): v for k, v in caps.items()}},
+        top_depth=args.top or max(per_tier),
+        tools_reference={"mode": toolplay.MODE, "horizon": args.horizon, "min_check": toolplay.MIN_CHECK, "quiet_depth": toolplay.QUIET_DEPTH, "cap": {str(k): v for k, v in caps.items()}},
     )
     nl = chr(10)
     (PACKS / "scored.jsonl").write_text(nl.join(kept) + nl, encoding="utf-8", newline=nl)
@@ -133,6 +134,7 @@ def main() -> None:
     ap.add_argument("--cap", default="", help="most explored positions per puzzle, by win-in, like 3:150,4:300")
     ap.add_argument("--per-tier", default="", help="scored puzzles per run, by win-in, like 1:1,4:2 (write)")
     ap.add_argument("--budget", type=int, default=0, help="default look-ahead budget (write)")
+    ap.add_argument("--top", type=int, default=0, help="default top depth (write); deeper tiers only with THINICE_TOP_DEPTH")
     ap.add_argument("--json", default="", help="also save per-puzzle rows here")
     args = ap.parse_args()
     caps = parse_map(args.cap)

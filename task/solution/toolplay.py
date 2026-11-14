@@ -31,13 +31,20 @@ import os
 import time
 import urllib.error
 import urllib.request
+from pathlib import Path
 
 URL = os.environ.get("THINICE_URL", "http://game:8000").rstrip("/")
-QUIET_DEPTH = int(os.environ.get("QUIET_DEPTH", "2"))  # allow non-threat moves when this few Blue moves remain
-HORIZON = int(os.environ.get("HORIZON", "99"))
-PUZZLE_CAP = os.environ.get("PUZZLE_CAP", "")  # like "1:2,2:80,3:200"; empty = no cap
-MODE = os.environ.get("MODE", "elim")  # elim: narrow the candidates by deepening checks; first: first move that passes
-MIN_CHECK = int(os.environ.get("MIN_CHECK", "2"))
+# The reference's settings are published with the task (manifest.json, "tools_reference"):
+# search settings only, no puzzle data. Environment variables override them.
+try:
+    _REF = json.loads((Path(__file__).resolve().parent / "manifest.json").read_text()).get("tools_reference", {})
+except (OSError, ValueError):
+    _REF = {}
+QUIET_DEPTH = int(os.environ.get("QUIET_DEPTH") or _REF.get("quiet_depth", 2))  # non-threat moves only this near the end
+HORIZON = int(os.environ.get("HORIZON") or _REF.get("horizon", 99))  # 99 = full proof first (exhaustive)
+PUZZLE_CAP = os.environ.get("PUZZLE_CAP", ",".join(f"{k}:{v}" for k, v in _REF.get("cap", {}).items()))
+MODE = os.environ.get("MODE") or _REF.get("mode", "elim")  # elim: narrow candidates by deepening checks
+MIN_CHECK = int(os.environ.get("MIN_CHECK") or _REF.get("min_check", 2))
 MAX_LINES = 40
 
 

@@ -9,66 +9,94 @@
     "slide": 1
   },
   "tiers": [
-    1,
     3,
     5,
     7,
     9,
-    11
+    11,
+    13,
+    15
   ],
   "win_in": [
-    1,
     2,
     3,
     4,
     5,
-    6
+    6,
+    7,
+    8
   ],
-  "per_tier": 2,
+  "per_tier": {
+    "2": 1,
+    "3": 1,
+    "4": 2,
+    "5": 2,
+    "6": 2,
+    "7": 2,
+    "8": 1
+  },
   "slack": 1,
   "pool": {
-    "1": {
-      "scored": 30,
-      "practice": 20,
-      "tools_reference_calls_max": 4,
-      "tools_reference_calls_median": 4.0
-    },
     "2": {
       "scored": 30,
       "practice": 20,
-      "tools_reference_calls_max": 11,
-      "tools_reference_calls_median": 7.0
+      "reference_positions_median": 46.0,
+      "reference_positions_max": 143
     },
     "3": {
-      "scored": 30,
+      "scored": 22,
       "practice": 20,
-      "tools_reference_calls_max": 45,
-      "tools_reference_calls_median": 12.0
+      "reference_positions_median": 84.0,
+      "reference_positions_max": 273
     },
     "4": {
-      "scored": 19,
+      "scored": 17,
       "practice": 20,
-      "tools_reference_calls_max": 51,
-      "tools_reference_calls_median": 21
+      "reference_positions_median": 230,
+      "reference_positions_max": 416
     },
     "5": {
-      "scored": 13,
+      "scored": 10,
       "practice": 20,
-      "tools_reference_calls_max": 57,
-      "tools_reference_calls_median": 33
+      "reference_positions_median": 272.5,
+      "reference_positions_max": 501
     },
     "6": {
-      "scored": 3,
+      "scored": 4,
       "practice": 20,
-      "tools_reference_calls_max": 48,
-      "tools_reference_calls_median": 47
+      "reference_positions_median": 377.0,
+      "reference_positions_max": 543
+    },
+    "7": {
+      "scored": 4,
+      "practice": 20,
+      "reference_positions_median": 547.5,
+      "reference_positions_max": 622
+    },
+    "8": {
+      "scored": 1,
+      "practice": 20,
+      "reference_positions_median": 542,
+      "reference_positions_max": 542
     }
   },
   "build_seed": 20261114,
   "positions": 16524225900,
   "tools_reference": {
-    "call_budget": 50,
-    "max_win": 6
+    "mode": "elim",
+    "horizon": 3,
+    "min_check": 2,
+    "quiet_depth": 2,
+    "cap": {
+      "2": 150,
+      "3": 300,
+      "4": 450,
+      "5": 550,
+      "6": 600,
+      "7": 700,
+      "8": 1600
+    }
   },
-  "explore_budget": 1500
+  "explore_budget": 4000,
+  "top_depth": 7
 }

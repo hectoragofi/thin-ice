@@ -24,7 +24,9 @@ BOOK = json.loads((ROOT / "task" / "solution" / "book.json").read_text())
 
 def new_run(seed, budget="default") -> Run:
     budget = MANIFEST.get("explore_budget") if budget == "default" else budget
-    return Run(pick(SCORED, seed, MANIFEST["tiers"], MANIFEST["per_tier"]), PRACTICE, seed=seed, explore_budget=budget)
+    top = MANIFEST.get("top_depth") or MANIFEST["win_in"][-1]
+    tiers = [d for d in MANIFEST["tiers"] if (d + 1) // 2 <= top]
+    return Run(pick(SCORED, seed, tiers, MANIFEST["per_tier"]), PRACTICE, seed=seed, explore_budget=budget)
 
 
 def play(run: Run, choose, limit=None) -> float:
@@ -81,6 +83,7 @@ def tools_only(seed, selective=True) -> float:
     run = new_run(seed)
     tools = LocalTools(run)
     if selective:
+        toolplay.MODE, toolplay.MIN_CHECK = ref.get("mode", "elim"), ref.get("min_check", 2)
         toolplay.play_run(tools, ref.get("horizon", 99), ",".join(f"{k}:{v}" for k, v in ref.get("cap", {}).items()), quiet=True)
     else:
         toolplay.play_run(tools, 99, "", quiet=True)

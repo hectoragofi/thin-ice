@@ -25,7 +25,7 @@ def grade() -> tuple:
     manifest = json.loads(MANIFEST.read_text())
     rows = card["puzzles"]
     # The run's dials come from the signed score sheet; the puzzle count follows from them.
-    top = int((card.get("settings") or {}).get("top_depth") or manifest["win_in"][-1])
+    top = int((card.get("settings") or {}).get("top_depth") or manifest.get("top_depth") or manifest["win_in"][-1])
     per = manifest["per_tier"]
     expected = sum(per if isinstance(per, int) else int(per[str((d + 1) // 2)]) for d in manifest["tiers"] if (d + 1) // 2 <= top)
     if len(rows) != expected:

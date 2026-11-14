@@ -26,8 +26,8 @@ RECEIPT = Path(os.environ.get("THINICE_RECEIPT", "/receipt/receipt.json"))
 _budget = (os.environ.get("THINICE_EXPLORE_BUDGET") or "").strip()
 # Empty means the published default. "unlimited" switches the budget off (for experiments).
 BUDGET = None if _budget.lower() == "unlimited" else int(_budget or MANIFEST["explore_budget"])
-# Top depth: the deepest tier (win in N moves) in the run; empty = all published tiers.
-TOP = int((os.environ.get("THINICE_TOP_DEPTH") or "").strip() or MANIFEST["win_in"][-1])
+# Top depth: the deepest tier (win in N moves) in the run; empty = the published default.
+TOP = int((os.environ.get("THINICE_TOP_DEPTH") or "").strip() or MANIFEST.get("top_depth") or MANIFEST["win_in"][-1])
 TIERS = [d for d in MANIFEST["tiers"] if (d + 1) // 2 <= TOP]
 if not TIERS:
     raise SystemExit(f"THINICE_TOP_DEPTH={TOP} leaves no tiers; published tiers are win in {MANIFEST['win_in']}")
