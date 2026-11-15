@@ -658,11 +658,12 @@ html.story .dnav { display:none; }
 
 <section class="scr" id="attacks"><div class="cv">
   <p class="rail"><b>07</b>Is the score sound?</p>
-  <h2 class="h2">96 attacks on the score. None got through.</h2>
+  <h2 class="h2">Proved with math, then attacked 96 times</h2>
   <figure class="fig"><div class="rw" style="align-items:center;gap:48px"><div class="sm big" style="flex:1">
-    <div class="rule"><p class="rn">01</p><p class="t">We tried 96 ways to cheat, from guessing to editing the score sheet. All were blocked.</p></div>
-    <div class="rule"><p class="rn">02</p><p class="t">13 more went after the per-puzzle clock. All were blocked.</p></div>
-    <div class="rule"><p class="rn">03</p><p class="t">The game server signs the score, and the checker runs where the AI cannot reach it.</p></div>
+    <div class="rule"><p class="rn">01</p><p class="t">A proof checker, Lean, re-checks every move and every Red reply: all 12 puzzles are proved to be forced wins for Blue, and the mistake shown above is proved to lose. <a href="#all/check" style="color:inherit;text-underline-offset:3px">See the proofs</a></p></div>
+    <div class="rule"><p class="rn">02</p><p class="t">We tried 96 ways to cheat, from guessing to editing the score sheet. All were blocked.</p></div>
+    <div class="rule"><p class="rn">03</p><p class="t">13 more went after the per-puzzle clock. All were blocked.</p></div>
+    <div class="rule"><p class="rn">04</p><p class="t">The game server signs the score, and the checker runs where the AI cannot reach it.</p></div>
   </div><div class="art side-art" data-img="sheet"></div></div></figure>
   <p class="figcap">The score sheet in the picture is an illustration, not a real run.</p>
 </div></section>
@@ -1196,6 +1197,7 @@ function sSummary() {
   const hz = horizonOf(w => { const ab = shareBy(all, w, w); return ab[0] / ab[1]; });
   const items = [
     'An invented game, fully solved: every move has an exact verdict.',
+    'Proved with math: a proof checker, Lean, confirms all 12 puzzles are forced wins for Blue.',
     'Models plan about ' + word(hz) + ' moves ahead, whatever they cost.',
     DX.length ? 'Deeper than that, they fail: ' + ds + ' of ' + dn + ' at 7 to 9 moves.' : '',
     pc(wrongShare()) + ' of losses are wrong moves the solver proves.',
