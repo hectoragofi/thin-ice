@@ -2,7 +2,7 @@
 
 Thin Ice is a small board game we made up for AfterQuery's "Break the Agent" challenge at Junction 2026, and then solved: all 16.5 billion positions of it. An AI agent gets 12 puzzles in which Blue can force a win, and has to find the moves by thinking. It has no shell and cannot run code. Because the game is solved, every move it plays is known to be right or wrong.
 
-What came out: the models we tried plan about three moves ahead. Ask for five and they almost always fall through.
+What came out: the models we tried plan about three moves ahead. Ask for five and they usually fall through: Gemini 4 won 14 of 196 puzzles that were five or six moves deep.
 
 You can [watch every game, or play the puzzles yourself](https://hectoragofi.github.io/thin-ice-replays/). There is also a [two-minute video](demo/thin-ice-demo.mp4) and a [short deck](demo/thin-ice-deck.pdf).
 
@@ -70,7 +70,7 @@ Things we checked before believing this:
 
 - It is not the clock. Of the 616 puzzles lost across all runs, 579 were lost to a move the solver proves wrong. Ten ran out of time.
 - Thinking harder helps a little. With reasoning effort set to high, Carbon and Opus both win 11 of 12 puzzles that are 3 or 4 moves away. At 5 and 6 moves they win 0 and 1 of 12.
-- A bigger model is not a deeper one. Haiku 5.5 costs about 13 cents a run and scores 0.500. Opus 5.5 costs about $3.30 and scores 0.531. Opus even lost the first puzzle, a win in one move, in 5 of its 8 runs.
+- A pricier model is not a deeper one. Haiku 5.5 costs about 13 cents a run and scores 0.500. Opus 5.5 costs about $3.30 and scores 0.531. Opus even lost the first puzzle, a win in one move, in 5 of its 8 runs.
 - We built a harder set with wins 7, 8 and 9 moves away. Opus and Carbon won 0 of 30. The solver won all of them.
 
 Twelve puzzles cannot rank models that are close. One puzzle is worth 0.083 and a single model's runs spread from 0.417 to 0.833. Carbon is probably ahead of Argon and Hydrogen. Fable's 0.750 is one run. Sonnet 5.5 has no score because its provider's safety filter refused the task, and Mistral Large 4 has none because the free hosting we had was too slow for the move clock.
@@ -103,7 +103,7 @@ harbor run -p task -a opencode -m <provider>/<model>      # an agent
 THINICE_SEED=7 harbor run -p task -a oracle               # a different draw of 12 puzzles
 ```
 
-The first run on a clean machine takes one to three minutes because it builds two images. After that a reference run takes about 40 seconds. A model run costs whatever the model costs: roughly 13 cents for Haiku 5.5 and 3 to 5 dollars for Gemini 4 or Opus 5.5, going by what the harness reported for ours.
+The first run on a clean machine takes one to three minutes because it builds two images. After that a reference run takes about 40 seconds. A model run costs whatever the model costs: roughly 13 cents for Haiku 5.5, 2 to 4 dollars for Opus 5.5 and 2.60 to 5 dollars for the Gemini 4 models, going by the harness's own estimates for our runs.
 
 ## Can the score be gamed?
 
@@ -117,7 +117,7 @@ One gap we know about: someone with a shell inside the agent's container could r
 
 ## Can a model learn here?
 
-Practice inside a session does not help. We told Haiku 5.5, Argon and Carbon to play 12 practice puzzles before the scored ones, and their scores moved by less than one puzzle either way.
+Practice inside a session does not help. We told Haiku 5.5, Argon and Carbon to play 12 practice puzzles before the scored ones, and their scores moved by about one puzzle at most.
 
 Training does. A Qwen3 model with 0.6 billion parameters, trained on the moves the solver says win, goes from 0.003 to 0.320 on puzzles it never saw. Trained only on a yes or no after each of its own moves, never shown an answer, it gets to 0.207. Those numbers are from a simpler test with one move per call, where Gemini 4 scores 0.40 to 0.52, so do not compare them with the table above. A 4B model at the same amount of training is only slightly ahead of the 0.6B. Details in [docs/training.md](docs/training.md).
 
