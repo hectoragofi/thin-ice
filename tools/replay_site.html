@@ -7,7 +7,7 @@
 /* palette and type from the presentation deck (project/deck.css); one light theme.
    The walkthrough screens are the deck's 1920 by 1080 canvas: every size is a deck pixel times --d. */
 :root { color-scheme: light; --ink:#17191C; --paper:#F1ECE2; --soft:#55585C; --faint:#6E6A62; --card:#FAF7F0; --hair:#D8D0BF;
-  --glacier:#2F5D93; --ice:#A9C4E6; --frost:#BCD3CC; --ember:#E0352B; --ember-text:#C42B22; --ember-fill:#EA6A60; --agent:#6E9BD1; --base:#CFC6B4;
+  --glacier:#2F5D93; --ice:#A9C4E6; --frost:#BCD3CC; --ember:#E0352B; --ember-text:#B54A28; --ember-fill:#EA6A60; --agent:#6E9BD1; --base:#CFC6B4;
   --serif:'Newsreader', Georgia, serif; --sans:'Inter', Arial, sans-serif; --mono:'Courier Prime', 'Courier New', monospace; --slide:800ms;
   --d: min(calc(100vw / 1920), max(0.6px, calc(100vh / 1080))); }
 * { box-sizing:border-box; }
@@ -79,24 +79,33 @@ table.vt { width:100%; border-collapse:collapse; font-size:calc(28 * var(--d)); 
 .stat { display:flex; gap:calc(48 * var(--d)); align-items:flex-start; border-top:3px solid var(--ink); padding-top:calc(24 * var(--d)); }
 .stat .bign { font-size:calc(104 * var(--d)); width:calc(520 * var(--d)); flex:none; color:var(--ember-text); }
 .stat .bd { flex:1; color:var(--ink); padding-top:calc(18 * var(--d)); }
+.tsc { overflow-x:auto; }
+.frs { display:flex; flex-direction:column; gap:28px; margin-top:36px; }
+.frs .stat { gap:32px; padding-top:18px; } .frs .stat .bign { font-size:72px; width:220px; } .frs .stat .bd { padding-top:12px; font-size:19px; line-height:1.45; }
+@media (max-width:1099px) { .frs .stat { gap:4px; } .frs .stat .bign { width:auto; font-size:52px; } .frs .stat .bd { padding-top:0; font-size:17px; } }
 .atk { display:grid; grid-template-columns:1fr 1fr; column-gap:calc(64 * var(--d)); }
 .atk p { border-top:2px solid var(--hair); padding:calc(16 * var(--d)) 0; font-size:calc(30 * var(--d)); line-height:1.3; display:flex; gap:calc(20 * var(--d)); align-items:baseline; }
 .atk .ok { color:var(--glacier); font-weight:700; }
 .atk .bl { color:var(--glacier); }
 
 /* charts on the screens */
-.lad { display:flex; flex-direction:column; gap:calc(8 * var(--d)); }
-.lr { display:grid; grid-template-columns:calc(500 * var(--d)) minmax(0, 1fr); gap:calc(24 * var(--d)); align-items:center; }
-.ll { text-align:right; font-size:calc(26 * var(--d)); line-height:1.1; color:var(--soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* the score ladder, as on the deck's ladder slide: colour by family, whisker lowest to highest run */
+.ldeb { font-family:var(--mono); font-weight:700; font-size:14px; letter-spacing:1px; text-transform:uppercase; color:var(--ink); margin-bottom:18px; }
+.lad { display:flex; flex-direction:column; gap:0; }
+.lr { display:grid; grid-template-columns:270px minmax(0, 1fr); column-gap:20px; align-items:center; }
+.ll { text-align:right; font-size:16px; line-height:1.2; color:#6E6A62; font-weight:400; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .ll.strong { color:var(--ink); font-weight:600; }
-.lt { padding-right:calc(240 * var(--d)); }
-.li { position:relative; height:calc(28 * var(--d)); }
-.li .b { position:absolute; left:0; top:0; bottom:0; } .li .b.ref { background:var(--ink); } .li .b.model { background:var(--agent); } .li .b.base { background:var(--base); }
-.li .b.one { background:#DCE6F2; border:2px dashed var(--glacier); }
-.li .w { position:absolute; top:50%; height:2px; margin-top:-1px; background:var(--ink); }
-.li .w::before, .li .w::after { content:''; position:absolute; top:calc(-9 * var(--d)); height:calc(18 * var(--d)); width:2px; background:var(--ink); } .li .w::before { left:0; } .li .w::after { right:0; }
-.li .v { position:absolute; top:50%; transform:translateY(-50%); font-size:calc(28 * var(--d)); font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
-.lgap { height:calc(10 * var(--d)); }
+.lt { padding-right:150px; }
+.li { position:relative; height:34px;
+  background:linear-gradient(to right, #6E6A62 0 2px, transparent 2px), linear-gradient(to right, transparent calc(25% - 1px), #E4DED2 calc(25% - 1px) calc(25% + 1px), transparent calc(25% + 1px) calc(50% - 1px), #E4DED2 calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px) calc(75% - 1px), #E4DED2 calc(75% - 1px) calc(75% + 1px), transparent calc(75% + 1px) calc(100% - 2px), #E4DED2 calc(100% - 2px) 100%); }
+.li .b { position:absolute; left:0; top:6px; height:22px; }
+.li .b.one { top:7px; height:20px; border:2px dashed; box-sizing:border-box; }
+.li .w { position:absolute; top:50%; height:2.5px; margin-top:-1.25px; background:var(--ink); }
+.li .w::before, .li .w::after { content:''; position:absolute; top:-8px; height:18px; width:2.5px; background:var(--ink); } .li .w::before { left:-1px; } .li .w::after { right:-1px; }
+.li .v { position:absolute; top:50%; transform:translateY(-50%); font-size:16px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.lax .li { height:26px; background:none; }
+.lax .li span { position:absolute; top:4px; transform:translateX(-50%); font-size:14px; color:#6E6A62; font-variant-numeric:tabular-nums; }
+.lgap { height:10px; }
 .dep { display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); grid-template-rows:auto 1fr; column-gap:calc(48 * var(--d)); flex:1; min-height:0; }
 .dep .an { grid-row:1; align-self:start; font-size:calc(28 * var(--d)); font-weight:600; border-left:3px solid var(--ember); padding-left:calc(16 * var(--d)); }
 .dep .dc { grid-row:2; display:flex; flex-direction:column; justify-content:flex-end; gap:calc(14 * var(--d)); min-width:0; }
@@ -340,8 +349,8 @@ footer .in { border-top:2px solid var(--ink); padding-top:16px; padding-bottom:5
   .h1 { font-size:96px; } .h2 { font-size:34px; }
   .stat { flex-direction:column; gap:6px; } .stat .bign { width:auto; font-size:64px; }
   .atk { grid-template-columns:minmax(0, 1fr); }
-  .lr { grid-template-columns:minmax(0, 1fr); gap:4px; } .ll { text-align:left; white-space:normal; }
-  .lt { padding-right:96px; }
+  .lr { grid-template-columns:minmax(0, 1fr); gap:0; } .ll { text-align:left; white-space:normal; font-size:14px; padding-top:6px; } .lax .ll { display:none; }
+  .lt { padding-right:92px; } .li .v { font-size:14px; } .li { height:30px; } .li .b { top:5px; height:20px; } .li .b.one { top:5px; }
   .dg { grid-template-columns:repeat(3, minmax(0, 1fr)); column-gap:14px; } .dg .bars { height:200px; gap:3px; } .dg .b2 { height:calc(var(--h) * 170px); } .dg .pv2 { font-size:12px; } .dg .x { font-size:13px; }
   .vt.num { font-size:12px !important; } .vt.num td, .vt.num th { padding:6px 2px; }
   .dep { column-gap:8px; } .dep .an { grid-column:1 / -1 !important; margin-bottom:12px; } .dep .n { font-size:22px; } .dep .b { height:calc(var(--h) * 220px); } .dep .x { font-size:14px; }
@@ -533,7 +542,7 @@ html.story .dnav { display:none; }
 .figcap { font-size:15px; line-height:1.5; color:var(--soft); font-style:italic; max-width:720px; margin:-8px 0 0; }
 .figcap a { font-style:normal; }
 .article .hb { height:380px; flex:none; }
-.article .lad { gap:10px; }
+.article .lad { gap:0; }
 .article .sm .rule p.t { font-size:19px; line-height:1.5; }
 .article .sm.big .rule p.t { font-size:21px; }
 .article #close .sm .rule p.t { font-family:var(--serif); font-size:26px; line-height:1.3; }
@@ -637,23 +646,25 @@ html.story .dnav { display:none; }
   <p class="rail"><b>04</b>Scores</p>
   <h2 class="h2" id="ldh"></h2>
   <div class="prose"><p>The share of the 12 puzzles each player won, averaged over all its counted runs. Perfect play and a simple search program show what is possible; two baselines that barely try show the floor.</p></div>
-  <figure class="fig"><div class="lad" id="lad" role="img" aria-label="Share of the 12 puzzles won, by player"></div></figure>
-  <p class="figcap">Bar: the average over all runs. Line: worst to best run.</p>
+  <figure class="fig"><p class="ldeb">Results &middot; puzzles won out of 12</p><div class="lad" id="lad" role="img" aria-label="Share of the 12 puzzles won, by player"></div></figure>
+  <p class="figcap">Bar: mean over clean runs. Whisker: lowest to highest run. Pale dashed bar: one run, a data point, not a rank.<br>Not measured: Claude Sonnet 5.5 (provider filter refused the task), Mistral Large 4 (hosting too slow for the clock).</p>
 </div></section>
 
 <section class="scr" id="horizon"><div class="cv">
   <p class="rail"><b>05</b>The horizon</p>
   <h2 class="h2" id="hzh"></h2>
   <div class="prose"><p id="hzs"></p></div>
-  <figure class="fig"><div class="hb" id="hb" role="img"></div></figure>
-  <p class="figcap" id="hzc"></p>
+  <figure class="fig xd"><div class="hz" id="hz" role="table" aria-label="Puzzles won, by moves to the win"></div></figure>
+  <p class="figcap" id="hzx"></p>
 </div></section>
 
 <section class="scr" id="fail"><div class="cv">
   <p class="rail"><b>06</b>How they lose</p>
   <h2 class="h2">They lose by wrong moves, not by the clock</h2>
-  <figure class="fig"><div class="col1" style="flex:none;gap:calc(44 * var(--d))" id="frs"></div></figure>
-  <p class="figcap"><a class="xl" href="#all/fail">Every model&rsquo;s losses, in detail</a></p>
+  <figure class="fig xd"><p class="ldeb" id="fae"></p><div class="tsc"><table class="vt num" id="fat"></table></div></figure>
+  <p class="figcap" id="fac"></p>
+  <div class="frs" id="frs"></div>
+  <p class="figcap" id="frc"></p>
 </div></section>
 
 <section class="scr" id="attacks"><div class="cv">
@@ -770,17 +781,12 @@ html.story .dnav { display:none; }
 <p class="note" id="ldx" style="margin-top:18px"></p></section>
 </details>
 
-<details class="grp" id="g-fail"><summary><span class="gt">How each model lost</span><span class="gd">Lost puzzles by cause, per model: wrong move, clock, out of moves, given up, never reached.</span></summary>
-<section class="sec xd"><table class="vt num" id="fat"></table><p class="note" id="fac" style="margin-top:18px"></p><p class="note" id="frc"></p></section>
-</details>
-
 <details class="grp" id="g-cost"><summary><span class="gt">Score against cost</span><span class="gd">Average cost per run against share of puzzles won.</span></summary>
 <section class="sec"><p class="note" id="costnote"></p><div class="cost" id="cost"></div></section>
 </details>
 
-<details class="grp" id="g-side"><summary><span class="gt">Side experiments</span><span class="gd">Deeper puzzles, more thinking effort, practice, one move per call, and training a small model. None of these enter the main scores.</span></summary>
+<details class="grp" id="g-side"><summary><span class="gt">Side experiments</span><span class="gd">More thinking effort, practice, one move per call, and training a small model. None of these enter the main scores.</span></summary>
 <section class="sec xd">
-<h3>Deeper puzzles: a win 7 to 9 moves away</h3><div class="hz" id="hz"></div><p class="note" id="hzx" style="margin-top:14px"></p>
 <h3>More thinking effort</h3><p class="note" id="efn"></p><table class="vt num" id="eft"></table>
 <h3 id="pxh">Practice inside a session</h3><div class="pxg" id="pxl" role="img" aria-label="Share of the 12 puzzles won, with and without an instruction to practise first"></div><p class="note" id="pxs" style="margin-top:14px"></p><p class="note" id="pxc"></p>
 <h3 id="pbh">One move per call</h3><p class="note" id="pbs"></p>
@@ -1015,7 +1021,7 @@ function screens() {
   H('lns', 'Lean 4 has its own copy of the rules and re-checks every move and every Red reply. All ' + nP + ' scored puzzles are proven forced wins, and ' + mv('c1-g5') + ' is proven to lose.');
   /* scores */
   const inBand = MODELS.filter(g => g.mean >= 0.4 && g.mean <= 0.6).length, srch = REF('reference-search');
-  H('ldh', inBand * 2 > MODELS.length ? 'Most models win 40 to 60% of the puzzles' : 'Models win ' + pc(low.mean) + ' to ' + pc(top.mean) + ' of the puzzles');
+  H('ldh', (inBand * 2 > MODELS.length ? 'Most models land at 0.4 to 0.6.' : 'Models land at ' + f2(low.mean) + ' to ' + f2(top.mean) + '.') + (srch && srch.runs[0].solved > Math.max(...MODELS.map(g => g.solved / g.runs.length)) ? ' Search wins ' + srch.runs[0].solved + '.' : ''));
   H('ldx', 'Not measured: Claude Sonnet 5.5 (the provider refused the task), Mistral Large 4 (hosting too slow for the clock).');
   sHorizonBars();
   sHorizon();
@@ -1044,16 +1050,7 @@ function sHorizonBars() {
   const { t, deep, dws } = poolTiers(), cols = [...TIERS.map(w => ({ w, c: t[w] })), ...dws.map(w => ({ w, c: deep[w], deep: true }))];
   const hz = horizonOf(w => t[w][0] / t[w][1]);
   H('hzh', 'Past ' + hz + ' moves ahead, the models fall through');
-  H('hzs', 'Share of puzzles won, all ' + word(MODELS.length) + ' models together, by how many moves away the win is.');
-  const el2 = el('hb'); el2.style.setProperty('--n', cols.length);
-  const fams = DX.map(x => x.g.short).join(' and ');
-  let h = '<div class="grp2" style="grid-column:1 / span ' + TIERS.length + '">The ' + P.length + ' puzzles</div>' + (dws.length ? '<div class="grp2 deep" style="grid-column:span ' + dws.length + '">Harder extra set: ' + fams + '</div>' : '');
-  h += cols.map(c => { const v = c.c[1] ? c.c[0] / c.c[1] : 0; return '<div class="col' + (c.deep ? ' deep' : '') + '" title="' + c.w + ' moves away: ' + c.c[0] + ' of ' + c.c[1] + ' won"><p class="v">' + (c.deep && c.c[1] <= 20 ? c.c[0] + '/' + c.c[1] : pc(v)) + '</p><div class="bar" style="--h:' + v.toFixed(4) + '"></div></div>'; }).join('');
-  h += cols.map(c => '<p class="x">' + c.w + '</p>').join('');
-  H('hb', h);
-  el2.setAttribute('aria-label', 'Share of puzzles won by moves to the win: ' + cols.map(c => c.w + ' moves ' + c.c[0] + ' of ' + c.c[1]).join(', '));
-  const rd = DEEP.find(g => g.of === 'reference');
-  H('hzc', 'Along the bottom: moves to the win. Perfect play wins every puzzle' + (rd ? ', the harder ones too.' : '.'));
+  H('hzs', 'Puzzles won, by how many moves away the win is. Darker means more won; past the red line is a deeper extra set.');
 }
 
 /* fail: three numbers over all models */
@@ -1092,11 +1089,11 @@ function sHorizon() {
   const deepT = [...new Set(DEEP.flatMap(g => PZ(g).map(q => q.win_in)))].sort((a, b) => a - b);
   const cols = [...TIERS, ...deepT];
   const shade = (s, n) => { if (!n) return ''; const r = s / n; if (!s) return ''; return r >= 0.75 ? 'background:#17191C;color:#F1ECE2' : r >= 0.5 ? 'background:#55585C;color:#F1ECE2' : r >= 0.25 ? 'background:#BCB4A3' : 'background:#E4DED2'; };
-  const cell = (w, t) => { const c = t && t[w], dv = w === deepT[0] ? ' dv' : ''; if (!c || !c[1]) return '<div class="na' + dv + '">&ndash;</div>'; return '<div class="' + (c[0] ? '' : 'z') + dv + '" style="' + shade(c[0], c[1]) + '">' + c[0] + '/' + c[1] + '</div>'; };
+  const cell = (w, t, all) => { const c = t && t[w], dv = w === deepT[0] ? ' dv' : ''; if (!c || !c[1]) return '<div class="na' + dv + '">&ndash;</div>'; return '<div class="' + (c[0] ? '' : 'z') + dv + '" style="' + shade(c[0], c[1]) + '" title="' + c[0] + ' of ' + c[1] + '">' + (all && c[0] === c[1] ? 'all' : c[0] + '/' + c[1]) + '</div>'; };
   HZC = cols.length;
   let h = '<div class="set" id="hzset">The ' + P.length + '-puzzle task</div>' + (deepT.length ? '<div class="set deep" style="grid-column:span ' + deepT.length + '">Deep set</div>' : '');
   h += '<div class="hh rl2">Puzzles won, by win in</div>' + cols.map(w => '<div class="hh' + (w === deepT[0] ? ' dv' : '') + '">' + w + '</div>').join('');
-  if (ref) { const t = Object.assign(tiersOf(ref.runs), rd ? tiersOf(rd.runs, PZ(rd)) : {}); h += '<div class="rl2">' + REFNAME.reference + '</div>' + cols.map(w => cell(w, t)).join(''); }
+  if (ref) { const t = Object.assign(tiersOf(ref.runs), rd ? tiersOf(rd.runs, PZ(rd)) : {}); h += '<div class="rl2">' + REFNAME.reference + '</div>' + cols.map(w => cell(w, t, true)).join(''); }
   rows.forEach(g => { const x = DX.find(y => y.g === g), t = x ? x.t : tiersOf(g.runs); h += '<div class="rl2 strong">' + g.label + ' &middot; ' + plural(g.runs.length, 'run') + '</div>' + cols.map(w => cell(w, t)).join(''); });
   H('hz', h); hzCols();
   const s = DX.reduce((a, x) => a + x.hi[0], 0), n = DX.reduce((a, x) => a + x.hi[1], 0), fam = new Set(DX.map(x => x.g.maker)).size;
@@ -1112,18 +1109,22 @@ function sHorizon() {
 const LI = (() => { const L = DATA.learn || {}; const im = L.imitation; if (!im) return null; return { im, i4: L.imitation4b, rw: L.reward, probe: L.probe || [], older: L.probe_older || [], other: L.probe_other || [], a: im.points[0], z: im.points[im.points.length - 1] }; })();
 const PROBE = LI ? LI.probe.filter(q => q.tiers && q.tiers.every(v => typeof v === 'number')) : [];
 const probeMean = t => PROBE.reduce((s, q) => s + q.tiers[t], 0) / PROBE.length;
-const OTHER_DASH = ['4 6', '14 6 3 6', ''];
+/* probes that never finished: named, never drawn */
+const partialNote = () => { const ps = ((DATA.learn || {}).probe_partial || []).map(n => { const k = n.toLowerCase().replace(/[^a-z0-9]/g, ''); const g = MODELS.find(m => k.includes(m.label.toLowerCase().replace(/[^a-z0-9]/g, ''))); return g ? g.label : n; });
+  return ps.length ? ' ' + ps.join(' and ') + (ps.length > 1 ? ' were' : ' was') + ' attempted, but the hosting was too slow to finish, so ' + (ps.length > 1 ? 'they have' : 'it has') + ' no line.' : ''; };
+const OTHER_DASH = ['', '4 6', '14 6 3 6'];
+const otherCol = q => /nemotron/i.test(q.label) ? '#5E8A7E' : '#D9603B';
 function sProbeText() {
   if (!PROBE.length) { H('pbs', 'No runs yet.'); return; }
   const hz = horizonOf(w => probeMean(TIERS.indexOf(w)));
   H('pbh', 'Same cliff: past win in ' + hz + ', they fall through');
   const short = l => l.replace(/^Gemini 4 /, '');
-  H('pbx', 'Mean score over win in 1 to 6: ' + [...PROBE].sort((a, b) => b.score - a.score).map(q => short(q.label) + ' ' + f3(q.score)).join(', ') + (LI ? ', Qwen3-0.6B trained here ' + f3(LI.z.y) : '') + '.' +
+  H('pbx', 'Mean score over win in 1 to 6: ' + [...PROBE, ...LI.other].sort((a, b) => b.score - a.score).map(q => short(nice(q.label)).replace(/^Claude /, '') + ' ' + f3(q.score)).join(', ') + (LI ? ', Qwen3-0.6B trained here ' + f3(LI.z.y) : '') + '.' +
     (LI.older.length ? ' Older: ' + LI.older.map(q => q.label + ' ' + f3(q.score)).join(', ') + '.' : '') + ' ' + (PROBE[0].per_tier || 10) + ' puzzles per tier.');
   const sw = (dash, w, c) => '<svg width="48" height="12" aria-hidden="true"><line x1="0" x2="48" y1="6" y2="6" stroke="' + c + '" stroke-width="' + w + '"' + (dash ? ' stroke-dasharray="' + dash + '"' : '') + '/></svg>';
-  H('pbl', '<span>' + sw('', 5, '#2F5D93') + 'Gemini 4, mean of ' + word(PROBE.length) + '</span><span>' + sw('', 3, '#A8A296') + 'each Gemini 4 model</span>' + (LI ? '<span>' + sw('12 9', 3.5, '#17191C') + 'Qwen3-0.6B, trained here</span>' : '') +
-    LI.other.map((q, i) => '<span>' + sw(OTHER_DASH[i % 3], 3.5, '#C42B22') + nice(q.label) + '</span>').join(''));
-  H('pbs', (LI.other.length ? 'Gemini models first, because the probe tool spoke only Google&rsquo;s API; ' + LI.other.map(q => nice(q.label)).join(' and ') + ' added since.' : 'Gemini only: the probe tool spoke only Google&rsquo;s API; the Claude models ran the full task instead.') + ' One position per call: no tools, no history, no clock, every move graded by the solver.');
+  H('pbl', '<span>' + sw('', 5, '#3F6FB5') + 'Gemini 4, mean of ' + word(PROBE.length) + '</span><span>' + sw('', 3, '#A8A296') + 'each Gemini 4 model</span>' +
+    LI.other.map((q, i) => '<span>' + sw(OTHER_DASH[i % 3], 3.5, otherCol(q)) + nice(q.label) + '</span>').join('') + (LI ? '<span>' + sw('12 9', 3.5, '#17191C') + 'Qwen3-0.6B, trained here</span>' : ''));
+  H('pbs', (LI.other.length ? 'Gemini models first, because the probe tool spoke only Google&rsquo;s API; ' + LI.other.map(q => nice(q.label)).join(' and ') + ' added since.' + partialNote() : 'Gemini only: the probe tool spoke only Google&rsquo;s API; the Claude models ran the full task instead.') + ' One position per call: no tools, no history, no clock, every move graded by the solver.');
 }
 function sProbeChart() {
   const host = el('pbc'); if (!host || host.clientWidth < 100) return; if (!PROBE.length || !host) return;
@@ -1136,8 +1137,8 @@ function sProbeChart() {
   const line = (vals, c, w, dash, dots) => { const pts = vals.map((v, i) => X(i) + ',' + Y(v)).join(' '); let o = '<polyline points="' + pts + '" fill="none" stroke="' + c + '" stroke-width="' + w + '" stroke-linejoin="round"' + (dash ? ' stroke-dasharray="' + dash + '"' : '') + '/>'; if (dots) vals.forEach((v, i) => { o += '<circle cx="' + X(i) + '" cy="' + Y(v) + '" r="' + dots + '" fill="' + c + '"><title>win in ' + TIERS[i] + ': ' + Math.round(v * 100) + '%</title></circle>'; }); return o; };
   PROBE.forEach(q => { s += line(q.tiers, '#A8A296', 3, '', 0); });
   if (LI) s += line(LI.z.tiers, '#17191C', 3.5, '12 9', 0);
-  if (LI) LI.other.forEach((q, i) => { s += line(q.tiers, '#C42B22', 3.5, OTHER_DASH[i % 3], 0); });
-  s += line(TIERS.map((w, i) => probeMean(i)), '#2F5D93', 5, '', Math.max(5, 9 * d));
+  if (LI) LI.other.forEach((q, i) => { s += line(q.tiers, otherCol(q), 3.5, OTHER_DASH[i % 3], 0); });
+  s += line(TIERS.map((w, i) => probeMean(i)), '#3F6FB5', 5, '', Math.max(5, 9 * d));
   host.innerHTML = '<svg width="' + W + '" height="' + Hh + '" role="img" aria-label="Share of puzzles solved by depth, one move per fresh call">' + s + '</svg>';
 }
 
@@ -1247,17 +1248,10 @@ function sPractice() {
   const pos = v => (v * 100).toFixed(2) + '%';
   let h = '';
   PX.forEach(p => {
-    h += '<div class="pxm"><p class="mn">' + p.label + '</p>';
-    p.arms.forEach(a => {
-      const pl = a.runs.map(r => r.played), lo = Math.min(...pl), hi = Math.max(...pl), seen = {};
-      let dots = '';
-      a.runs.forEach(r => { const key = r.reward.toFixed(4), j = seen[key] = (seen[key] || 0) + 1, cnt = a.runs.filter(q => q.reward.toFixed(4) === key).length;
-        const gap = Math.min(12 * dpx() / 0.667, 30 * dpx() / Math.max(1, cnt - 1));  /* a stack of equal scores stays inside its track */
-        dots += '<i class="d" style="left:' + pos(r.reward) + ';top:calc(50% + ' + ((j - 1 - (cnt - 1) / 2) * gap).toFixed(1) + 'px)" title="' + f3(r.reward) + '"></i>'; });
-      h += '<div><p class="al">' + (a.key === 'base' ? 'No instruction' : a.label) + ' <small>&middot; ' + plural(a.runs.length, 'run') + (a.key === 'base' ? '' : ', played ' + (lo === hi ? lo : lo + ' to ' + hi)) + '</small></p>' +
-        '<div class="pr"><div class="pt" aria-label="' + a.label + ': mean ' + f3(a.mean) + ' over ' + plural(a.runs.length, 'run') + '"><i class="m" style="left:' + pos(a.mean) + '"></i>' + dots + '</div><p class="pv">' + f3(a.mean) + '</p></div></div>';
-    });
-    h += '<div class="pr"><div class="ax2">' + [0, 0.5, 1].map(v => '<span style="left:' + pos(v) + '">' + v + '</span>').join('') + '</div><span></span></div></div>';
+    h += '<div class="pxm"><p class="mn">' + p.label + '</p><table class="vt num"><colgroup><col style="width:46%"></colgroup><tr><th>Instruction</th><th>Runs</th><th>Played</th><th>Mean</th></tr>';
+    p.arms.forEach(a => { const pl = a.runs.map(r => r.played), lo = Math.min(...pl), hi = Math.max(...pl);
+      h += '<tr><td>' + (a.key === 'base' ? 'None' : a.label) + '</td><td>' + a.runs.length + '</td><td>' + (a.key === 'base' ? '&ndash;' : lo === hi ? lo : lo + '&ndash;' + hi) + '</td><td><b>' + f3(a.mean) + '</b></td></tr>'; });
+    h += '</table></div>';
   });
   H('pxl', h); el('pxl').style.setProperty('--n', PX.length);
   H('pxs', PX.every(pxInside) ? 'One puzzle is 0.083, so every difference is within noise.' : 'One puzzle is 0.083; with this few runs, the differences cannot be read as a gain.');
@@ -1267,7 +1261,7 @@ function sPractice() {
     const mean = b => b.reduce((s, x) => s + x.r.solved, 0) / b.reduce((s, x) => s + x.r.total, 0);
     const mx = Math.max(...bk[2].map(x => x.r.practice));
     const parts = [['no practice', bk[0]], ['1 to 3 practice puzzles', bk[1]], ['4 to ' + mx, bk[2]]].filter(q => q[1].length).map(q => q[0] + ' ' + f3(mean(q[1])) + ' (' + plural(q[1].length, 'run') + ')');
-    H('pxc', 'Dot: one run; bar: the mean. Without the instruction practice was always on offer; in the ' + xs.length + ' Gemini runs: ' + parts.join(', ') + '. Training on the same feedback does help: below.');
+    H('pxc', 'Mean: share of the 12 won, over the runs. Played: practice puzzles played. Without the instruction practice was always on offer; in the ' + xs.length + ' Gemini runs: ' + parts.join(', ') + '. Training on the same feedback does help: below.');
   }
 }
 
@@ -1276,13 +1270,17 @@ function sLearnText() {
   const rl = LI.rw.points[LI.rw.points.length - 1];
   H('lne', 'Training ground &middot; ' + (LI.rw.model || 'Qwen3-0.6B').replace('Qwen/', '') + ', LoRA, held-out puzzles');
   if (rl.hit != null) { H('lnt', Math.round(rl.hit * 100) + '% of its own moves rewarded by the last round. Random moves: ' + Math.round(rl.rand * 100) + '%.'); }
-  H('lnx', 'Never shown the answer: rewarded only when a move brings the forced win one move closer. Held-out puzzles, one move per call. X axis: moves played (reward only) or examples seen (imitation). The band: the Gemini 4 models on the same one-move probe.');
+  { const at = (pts, x) => { const q = (pts || []).find(r => Math.abs(r.x - x) < x * 0.02); return q ? f3(q.y) : null; };
+    const i4p = LI && LI.i4 ? LI.i4.points : [], lastx = i4p.length ? i4p[i4p.length - 1].x : 0, a6 = lastx ? at(LI.im.points, lastx) : null;
+    H('lnx', 'Three runs of small open Qwen3 models, tested on puzzles they never saw. "Shown the answer": trained on the move the solver says wins. "Told only good or bad": never shown an answer, only whether its own move brought the win closer. '
+      + (a6 ? 'The 4B model stopped at ' + kfmt(lastx) + ' examples; at that same point the 0.6B had ' + a6 + ' against the 4B’s ' + f3(i4p[i4p.length - 1].y) + '. ' : '')
+      + 'One move per call. X axis: examples seen, or moves played for the good-or-bad run. The band: the Gemini 4 models on the same one-move test.'); }
 }
 function sLearnChart() {
   const host = el('lnc'); if (!host || host.clientWidth < 100) return; if (!LI || !LI.rw || !host) return;
   const d = dpx(), W = host.clientWidth, Hh = host.clientHeight || 320, fs = Math.max(13, Math.round(26 * d));
   const im = LI.im.points, rw = LI.rw.points, ps = LI.probe.map(q => q.score);
-  const i4 = LI.i4 ? LI.i4.points : [];
+  const i4 = LI.i4 ? LI.i4.points : [], hk = LI.other.find(q => /haiku/i.test(q.label) && typeof q.score === 'number');
   const xmax = Math.max(...im.map(q => q.x), ...rw.map(q => q.x), ...i4.map(q => q.x)), step = 200000, xtop = Math.ceil(xmax / step) * step, top = 0.6;
   const lw = narrow() ? fs * 11.5 : 300 * d;
   const m = { l: fs * 2.6, r: lw, t: fs * 0.8, b: fs * 2.2 };
@@ -1292,14 +1290,16 @@ function sLearnChart() {
   for (let v = 0; v <= top + 1e-9; v += 0.1) s += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="' + (v ? '#E4DED2' : '#6E6A62') + '" stroke-width="2"/><text class="ax" x="' + (m.l - fs * 0.5) + '" y="' + (Y(v) + fs * 0.35) + '" text-anchor="end" font-size="' + fs + '">' + v.toFixed(1) + '</text>';
   for (let v = 0; v <= xtop; v += step) s += '<text class="ax" x="' + X(v) + '" y="' + (Hh - m.b + fs * 1.4) + '" text-anchor="middle" font-size="' + fs + '">' + kfmt(v) + '</text>';
   const pl = (pts, c, w, dash) => '<polyline points="' + pts.map(q => X(q.x) + ',' + Y(q.y)).join(' ') + '" fill="none" stroke="' + c + '" stroke-width="' + w + '" stroke-linejoin="round" stroke-linecap="round"' + (dash ? ' stroke-dasharray="' + dash + '"' : '') + '/>';
-  s += pl(im, '#8A8780', 3.5, '12 9') + (i4.length ? pl(i4, '#2F5D93', 3.5, '4 6') : '') + pl(rw, '#17191C', 5, '');
+  if (hk && hk.score <= top) s += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + Y(hk.score) + '" y2="' + Y(hk.score) + '" stroke="#D9603B" stroke-width="3" stroke-dasharray="10 7"/>';
+  s += pl(im, '#8A8780', 3.5, '12 9') + (i4.length ? pl(i4, '#3F6FB5', 3.5, '4 6') : '') + pl(rw, '#17191C', 5, '');
   rw.forEach(q => { s += '<circle cx="' + X(q.x) + '" cy="' + Y(q.y) + '" r="' + Math.max(4, 9 * d) + '" fill="#17191C"><title>' + kfmt(q.x) + ' moves: ' + f3(q.y) + '</title></circle>'; });
   const zi = im[im.length - 1], zr = rw[rw.length - 1];
   /* end labels in the right margin, nudged apart */
   const labs = [];
   if (ps.length) labs.push({ y: Y((Math.max(...ps) + Math.min(...ps)) / 2), t: 'Gemini 4: ' + f2(Math.min(...ps)) + ' to ' + f2(Math.max(...ps)), c: '#2F5D93', w: 400 });
-  if (i4.length) labs.push({ y: Y(i4[i4.length - 1].y), t: 'Qwen3-4B, ' + kfmt(i4[i4.length - 1].x) + ' examples ' + f3(i4[i4.length - 1].y), c: '#2F5D93', w: 400 });
-  labs.push({ y: Y(zi.y), t: 'Qwen3-0.6B, imitation ' + f3(zi.y), c: '#55585C', w: 400 }, { y: Y(zr.y), t: 'Qwen3-0.6B, score only ' + f3(zr.y), c: '#17191C', w: 600 });
+  if (hk && hk.score <= top) labs.push({ y: Y(hk.score), t: nice(hk.label) + ' ' + f3(hk.score), c: '#B54A28', w: 400 });
+  if (i4.length) labs.push({ y: Y(i4[i4.length - 1].y), t: '4B, shown the answer, ' + kfmt(i4[i4.length - 1].x) + ': ' + f3(i4[i4.length - 1].y), c: '#2F5D93', w: 400 });
+  labs.push({ y: Y(zi.y), t: '0.6B, shown the answer: ' + f3(zi.y), c: '#55585C', w: 400 }, { y: Y(zr.y), t: '0.6B, told only good or bad: ' + f3(zr.y), c: '#17191C', w: 600 });
   labs.sort((a, b) => a.y - b.y); for (let i = 1; i < labs.length; i++) if (labs[i].y - labs[i - 1].y < fs * 1.3) labs[i].y = labs[i - 1].y + fs * 1.3;
   labs.forEach(l => { s += '<text x="' + (W - m.r + fs * 0.8) + '" y="' + (l.y + fs * 0.35) + '" font-size="' + fs + '" fill="' + l.c + '" font-weight="' + l.w + '">' + l.t + '</text>'; });
   const ux = X(xtop * 0.42), uy = Y(LI.a.y) - fs * 0.7;
@@ -1307,18 +1307,26 @@ function sLearnChart() {
   host.innerHTML = '<svg width="' + W + '" height="' + Hh + '" role="img" aria-label="' + (LI.rw.model || '').replace('Qwen/', '') + ' score on held-out puzzles as training proceeds, reward only and imitation">' + s + '</svg>';
 }
 
+/* family colours from the deck's ladder slide; the family is also in every label */
+const LCOL = { ref: ['#8A8780', '#17191C'], base: ['#DAD5CA', '#17191C'], g4: ['#3F6FB5', '#2F5D93'], gold: ['#A9C0DE', '#17191C'], claude: ['#D9603B', '#B54A28'], nvidia: ['#5E8A7E', '#17191C'] };
+const LPALE = { g4: '#DCE6F2', gold: '#E6EDF6', claude: '#F3C7B6', nvidia: '#D5E3DF' };
+const famOf = g => g.maker === 'Claude' ? 'claude' : g.maker === 'NVIDIA' ? 'nvidia' : G4.includes(g) ? 'g4' : 'gold';
+const LNAME = { 'reference': 'Perfect play (solver)', 'reference-search': 'Rules-only search, 80 lines', 'stop-early': 'Stop early (2 easiest)', 'do-nothing': 'Do nothing' };
 function sLadder() {
   const rows = [];
-  ['reference', 'reference-search'].forEach(id => { const g = REF(id); if (g) rows.push({ v: g.runs[0].reward, cls: 'ref', label: REFNAME[id] }); });
-  rows.push(null);
-  [...MODELS].sort((a, b) => b.mean - a.mean || a.label.localeCompare(b.label)).forEach(g => { const rs = g.runs.map(r => r.reward); rows.push({ v: g.mean, lo: Math.min(...rs), hi: Math.max(...rs), n: g.runs.length, cls: g.runs.length === 1 ? 'one' : 'model', label: g.label, strong: true }); });
+  ['reference', 'reference-search'].forEach(id => { const g = REF(id); if (g) rows.push({ v: g.runs[0].reward, fam: 'ref', label: LNAME[id] }); });
+  [...MODELS].sort((a, b) => b.mean - a.mean || a.label.localeCompare(b.label)).forEach(g => { const rs = g.runs.map(r => r.reward);
+    rows.push({ v: g.mean, lo: Math.min(...rs), hi: Math.max(...rs), n: g.runs.length, fam: famOf(g), label: g.label + ' &middot; ' + plural(g.runs.length, 'run'), strong: true }); });
+  ['stop-early', 'do-nothing'].forEach(id => { const g = REF(id); if (g) rows.push({ v: g.runs[0].reward, fam: 'base', label: LNAME[id] }); });
+  const pcx = v => (v * 100).toFixed(2) + '%';
   H('lad', rows.map(r => {
-    if (!r) return '<div class="lgap"></div>';
-    const w = r.n > 1 ? '<i class="w" style="left:' + (r.lo * 100) + '%;width:' + ((r.hi - r.lo) * 100) + '%"></i>' : '';
+    const [fill, text] = LCOL[r.fam], one = r.n === 1;
+    const bar = one ? '<i class="b one" style="width:' + pcx(r.v) + ';background:' + LPALE[r.fam] + ';border-color:' + fill + '"></i>' : '<i class="b" style="width:' + pcx(r.v) + ';background:' + fill + '"></i>';
+    const w = r.n > 1 && r.hi > r.lo ? '<i class="w" style="left:' + pcx(r.lo) + ';width:' + pcx(r.hi - r.lo) + '"></i>' : '';
     const right = Math.max(r.v, r.n > 1 ? r.hi : 0);
-    return '<div class="lr"><div class="ll' + (r.strong ? ' strong' : '') + '">' + r.label + '</div><div class="lt"><div class="li"><i class="b ' + r.cls + '" style="width:' + (r.v * 100) + '%"></i>' + w +
-      '<span class="v" style="left:calc(' + (right * 100) + '% + 14px)">' + pc(r.v) + (r.n === 1 ? ' &middot; 1 run only' : '') + '</span></div></div></div>';
-  }).join(''));
+    return '<div class="lr"><div class="ll' + (r.strong ? ' strong' : '') + '">' + r.label + '</div><div class="lt"><div class="li" title="' + r.label.replace(/&middot;/g, '·') + ': ' + f3(r.v) + (r.n > 1 ? ', runs ' + f3(r.lo) + ' to ' + f3(r.hi) : '') + '">' + bar + w +
+      '<span class="v" style="left:calc(' + pcx(right) + ' + 12px);color:' + (one ? LCOL[r.fam][1] : text) + '">' + f3(r.v) + (one ? ' &middot; 1 run' : '') + '</span></div></div></div>';
+  }).join('') + '<div class="lr lax"><div class="ll"></div><div class="lt"><div class="li">' + [0, 0.25, 0.5, 0.75, 1].map(v => '<span style="left:' + pcx(v) + '">' + v.toFixed(2) + '</span>').join('') + '</div></div></div>');
 }
 
 /* ------------------------------------------------ screen: the showcased mistake, stepped through */

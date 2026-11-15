@@ -2,7 +2,7 @@
 //
 //   NODE_PATH="$(npm root -g)" node demo/record.cjs shots    # one PNG per scene in demo/shots/ (to check)
 //   NODE_PATH="$(npm root -g)" node demo/record.cjs deck     # demo/thin-ice-deck.pdf (11 slides, 16:9)
-//   NODE_PATH="$(npm root -g)" node demo/record.cjs video    # demo/raw.webm + demo/start.txt (seconds to trim)
+//   NODE_PATH="$(npm root -g)" node demo/record.cjs video [short|long]   # demo/raw.webm + demo/start.txt (seconds to trim); short = ?cut=short
 //
 // Needs `npm i -g playwright` (or a local install) and its Chromium. ffmpeg turns raw.webm into the mp4.
 const { chromium } = require('playwright');
@@ -55,7 +55,7 @@ async function stills(ids, dir) {
     const ctx = await browser.newContext({ viewport: VIEW, recordVideo: { dir: path.join(DEMO, 'raw'), size: VIEW } });
     const t0 = Date.now();
     const page = await ctx.newPage();
-    await page.goto(url('?rec'));
+    await page.goto(url(process.argv[3] === 'long' ? '?rec' : '?rec&cut=short'));
     const start = await page.evaluate(() => performance.timeOrigin + performance.now());
     await page.waitForFunction(() => window.__demo && window.__demo.done, null, { timeout: 240000, polling: 250 });
     await page.waitForTimeout(1500); // hold the closing card
