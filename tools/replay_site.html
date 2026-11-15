@@ -68,15 +68,38 @@ button { font:inherit; color:inherit; }
 .pairs .v { font-size:14px; text-align:center; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .pairs .x { font-family:var(--mono); font-weight:700; font-size:15px; text-align:center; border-top:2px solid var(--ink); padding-top:6px; }
 .pkey { display:flex; gap:20px; font-size:15px; margin-top:10px; } .pkey span { display:inline-flex; align-items:center; gap:8px; } .pkey i { display:inline-block; width:16px; height:14px; }
+.lead2 { font-size:18px; max-width:860px; margin:0 0 18px; }
+.dd { margin-top:18px; } .dd .nm { font-weight:600; font-size:16px; margin-bottom:6px; }
+.dd .row { display:grid; grid-template-columns:minmax(0, 6fr) 34px minmax(0, 3fr); align-items:end; }
+.dd .set { font-family:var(--mono); font-weight:700; font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--soft); margin-bottom:8px; }
+.dd .set.deep { color:var(--glacier); }
+.dd .brk { align-self:stretch; border-left:2px dashed var(--faint); margin-left:16px; }
+.dd .depth { grid-template-columns:repeat(var(--n), minmax(0, 1fr)); } .dd .depth .pc { font-size:22px; } .dd .depth .ct { font-size:13px; }
+.dd .depth .bar.deep { background:var(--glacier); } .dd .depth .bar.zero { background:var(--ember); }
+.prac { margin-top:56px; padding-top:22px; border-top:1px solid var(--hair); }
+.prac h4 { font-family:var(--serif); font-weight:400; font-size:30px; line-height:1.12; margin:8px 0 10px; max-width:900px; }
+.prac .lead { font-size:18px; max-width:860px; margin:0 0 6px; } .prac .lead.dim { color:var(--soft); font-size:16px; }
+.pgrid { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap:28px 56px; margin-top:22px; }
+.pmod .nm { font-weight:600; font-size:16px; margin-bottom:6px; }
+.prow { display:grid; grid-template-columns:200px minmax(0, 1fr) 56px; gap:14px; align-items:center; padding:7px 0; border-bottom:1px solid var(--hair); }
+.prow .pl { font-size:15px; line-height:1.25; } .prow .pl small { display:block; color:var(--soft); font-size:13px; font-variant-numeric:tabular-nums; }
+.prow .pv { font-family:var(--serif); font-size:24px; text-align:right; font-variant-numeric:tabular-nums; }
+.ptrack { position:relative; height:40px; background:linear-gradient(var(--hair), var(--hair)) 0 50% / 100% 1px no-repeat; }
+.ptrack .d { position:absolute; width:12px; height:12px; margin:-6px 0 0 -6px; border-radius:50%; background:var(--agent); border:1.5px solid var(--ink); }
+.ptrack .m { position:absolute; top:4px; bottom:4px; width:3px; margin-left:-1.5px; background:var(--ink); }
+.paxis { display:grid; grid-template-columns:200px minmax(0, 1fr) 56px; gap:14px; font-size:13px; color:var(--soft); padding-top:4px; }
+.paxis .t { position:relative; height:16px; } .paxis .t span { position:absolute; transform:translateX(-50%); font-variant-numeric:tabular-nums; }
+.pkey2 { font-size:14px; color:var(--soft); margin-top:12px; display:flex; gap:18px; flex-wrap:wrap; } .pkey2 span { display:inline-flex; align-items:center; gap:7px; }
+.pkey2 .d { width:12px; height:12px; border-radius:50%; background:var(--agent); border:1.5px solid var(--ink); } .pkey2 .m { width:3px; height:16px; background:var(--ink); }
 .lchart svg { display:block; overflow:visible; } .lchart text { font-family:var(--sans); font-size:14px; fill:var(--ink); } .lchart .ax { fill:var(--soft); } .lchart .nm { font-family:var(--serif); font-size:20px; }
 /* ---------------------------------------------------------------- stage */
 .stage { height:100vh; height:100svh; min-height:620px; display:grid; grid-template-rows:auto auto minmax(0, 1fr); padding-top:22px; padding-bottom:26px; }
 .top { display:flex; justify-content:space-between; align-items:flex-end; gap:24px; border-bottom:2px solid var(--hair); }
 .top .eyebrow { margin-bottom:6px; }
-.sel { display:flex; flex-wrap:wrap; align-items:baseline; gap:0 20px; }
-.sel .mk { font-family:var(--mono); font-weight:700; font-size:13px; letter-spacing:1px; text-transform:uppercase; color:var(--soft); margin-left:10px; }
+.sel { display:flex; flex-wrap:wrap; align-items:baseline; gap:0 14px; }
+.sel .mk { font-family:var(--mono); font-weight:700; font-size:13px; letter-spacing:1px; text-transform:uppercase; color:var(--soft); margin-left:8px; }
 .sel .mk:first-child { margin-left:0; }
-.tab { background:none; border:0; border-bottom:2px solid transparent; margin-bottom:-2px; padding:4px 0 10px; cursor:pointer; font-family:var(--serif); font-size:22px; line-height:1.1; color:var(--soft); }
+.tab { background:none; border:0; border-bottom:2px solid transparent; margin-bottom:-2px; padding:4px 0 10px; cursor:pointer; font-family:var(--serif); font-size:20px; line-height:1.1; color:var(--soft); }
 .tab:hover { color:var(--ink); } .tab.on { color:var(--ink); border-bottom-color:var(--ink); }
 .msel { display:none; font:500 17px var(--sans); padding:8px 10px; border:2px solid var(--hair); border-radius:0; background:var(--card); color:var(--ink); max-width:100%; margin-bottom:12px; }
 .acts { display:flex; gap:28px; align-items:baseline; margin-left:auto; }
@@ -138,7 +161,7 @@ button { font:inherit; color:inherit; }
 .c.on { outline:3px solid var(--ink); outline-offset:1px; position:relative; z-index:1; }
 .c small { font-size:11px; }
 .c .t { font-weight:400; color:var(--soft); }
-.strip { display:grid; grid-template-columns:230px repeat(12, minmax(0, 1fr)); gap:4px; }
+.strip { display:grid; grid-template-columns:230px repeat(var(--n, 12), minmax(0, 1fr)); gap:4px; }
 .strip .c { height:32px; }
 .strip.compact { gap:3px; } .strip.compact .c { height:24px; font-size:13px; }
 .rl { display:flex; align-items:center; gap:10px; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; min-width:0; font-size:15px; color:var(--soft); }
@@ -191,7 +214,7 @@ footer .in { border-top:2px solid var(--ink); padding-top:16px; padding-bottom:5
   .closing h2 { font-size:30px; }
   .below { padding-top:56px; }
   .sec h3 { font-size:32px; }
-  .strip, .ov { grid-template-columns:repeat(12, minmax(0, 1fr)); gap:3px; }
+  .strip, .ov { grid-template-columns:repeat(12, minmax(0, 1fr)); gap:3px; } .strip { grid-template-columns:repeat(var(--n, 12), minmax(0, 1fr)); }
   .strip .corner, .ov .corner { display:none; }
   .rl, .ov .ol { grid-column:1 / -1; margin-top:8px; }
   .xrow { grid-column:1 / -1; white-space:normal; }
@@ -202,6 +225,7 @@ footer .in { border-top:2px solid var(--ink); padding-top:16px; padding-bottom:5
   .lrow { grid-template-columns:minmax(0, 1fr); gap:4px; } .llabel { text-align:left; }
   .depth.big .pc { font-size:26px; } .depth .ct { font-size:12px; }
   .learn { padding-top:48px; } .learn h3 { font-size:30px; } .lgrid { grid-template-columns:minmax(0, 1fr); gap:28px; } .pairs { gap:6px; } .pairs .v { font-size:12px; }
+  .prac h4 { font-size:24px; } .prow, .paxis { grid-template-columns:118px minmax(0, 1fr) 46px; gap:10px; } .prow .pl { font-size:14px; } .prow .pv { font-size:20px; }
 }
 </style></head><body>
 
@@ -226,9 +250,17 @@ footer .in { border-top:2px solid var(--ink); padding-top:16px; padding-bottom:5
 <div class="cta rise" style="--i:4"><button class="primary" id="tour1">New here? Take the 1-minute tour</button><button class="tb" id="watchbtn">Or watch a real game &darr;</button></div>
 </section>
 
+<section class="learn wrapw" id="deepsec" hidden>
+<p class="eyebrow">Side experiment · same rules, 6 harder puzzles</p><h3 id="dh">How far does the best model get?</h3>
+<p class="lead2" id="dtxt"></p>
+<div id="dchart"></div>
+<p class="depth-cap" id="dcap"></p>
+</section>
+
 <section class="learn wrapw" id="learnsec">
 <p class="eyebrow">Can this be learned?</p><h3 id="lh"></h3>
 <div class="lgrid"><div class="txt" id="ltxt"></div><div><div class="lchart" id="lchart"></div></div></div>
+<div class="prac" id="prac" hidden></div>
 </section>
 
 <section class="stage wrapw" id="stage">
@@ -271,11 +303,15 @@ const DATA = __DATA__;
 const el = id => document.getElementById(id);
 const RUNS = []; DATA.groups.forEach(g => g.runs.forEach(r => RUNS.push({ g, r })));
 const isModel = g => g.kind === 'model';
-const MODELS = DATA.groups.filter(g => isModel(g) && g.runs.length), REFS = DATA.groups.filter(g => !isModel(g) && g.runs.length);
+const isDeep = g => g.kind === 'deep';  /* side experiment "deep set": replayable, never in a main-test number */
+const MODELS = DATA.groups.filter(g => isModel(g) && g.runs.length), REFS = DATA.groups.filter(g => !isModel(g) && !isDeep(g) && g.runs.length);
+const DEEP = DATA.groups.filter(g => isDeep(g) && g.runs.length);
 const MRUNS = RUNS.filter(x => isModel(x.g));
 const TABS = MODELS.map(g => ({ id: g.slug, label: g.short, maker: g.maker, groups: [g] }));
 if (REFS.length) TABS.push({ id: 'refs', label: 'References', maker: 'Reference', groups: REFS });
-const tabOf = g => isModel(g) ? g.slug : 'refs';
+if (DEEP.length) TABS.push({ id: 'deep', label: 'Deep set', maker: 'Reference', groups: DEEP });
+const tabOf = g => isModel(g) ? g.slug : isDeep(g) ? 'deep' : 'refs';
+const PZ = g => g.puzzles || DATA.puzzles;
 const REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 const SLIDE = REDUCED ? 0 : 800, STEP = 1600;
 let k = 0, p = 0, f = 0, shownTab = null, token = 0, playing = false, playEnd = 0, timer = null, tour = null, tourTimer = null, B = null, M = null;
@@ -415,13 +451,13 @@ function verdict(fr, anim) {
 function draw(anim) {
   const v = cur(), c = v.c, fr = c.frames[f], stop = tour && tour.stops[tour.i];
   if (!v.demo) {
-    const x = v.x, q = P[p], tid = tabOf(x.g);
+    const x = v.x, q = PZ(x.g)[p], tid = tabOf(x.g);
     if (shownTab !== tid) { strip(TABS.find(t => t.id === tid)); shownTab = tid; }
     document.querySelectorAll('.tab').forEach(b => { b.classList.toggle('on', b.dataset.t === tid); b.setAttribute('aria-pressed', b.dataset.t === tid); });
     el('msel').value = tid;
     document.querySelectorAll('#strip .c.on').forEach(b => b.classList.remove('on'));
     const on = document.querySelector('#strip .c[data-k="' + k + '"][data-p="' + p + '"]'); if (on) on.classList.add('on');
-    const where = (isModel(x.g) ? x.g.label + ' · attempt ' + x.r.n + ' of ' + x.g.runs.length : x.g.label) + ' · puzzle ' + q.num + ' of ' + P.length;
+    const where = (isDeep(x.g) ? 'Deep set · ' : '') + (isModel(x.g) || (isDeep(x.g) && x.g.runs.length > 1) ? x.g.label + ' · attempt ' + x.r.n + ' of ' + x.g.runs.length : x.g.label) + ' · puzzle ' + q.num + ' of ' + PZ(x.g).length;
     el('eb').textContent = stop ? 'Tour ' + (tour.i + 1) + ' / ' + tour.stops.length + ' · ' + where : where;
     el('hl').innerHTML = stop ? stop.cap : headline(x, c, q);
   } else {
@@ -453,7 +489,7 @@ function draw(anim) {
     li.appendChild(b); ml.appendChild(li);
   });
   const on2 = ml.querySelector('button.on'); if (on2 && ml.scrollHeight > ml.clientHeight) { const li2 = on2.parentElement; if (li2.offsetTop < ml.scrollTop) ml.scrollTop = li2.offsetTop; else if (li2.offsetTop + li2.offsetHeight > ml.scrollTop + ml.clientHeight) ml.scrollTop = li2.offsetTop + li2.offsetHeight - ml.clientHeight; }
-  if (!tour && !v.demo) history.replaceState(null, '', '#' + v.x.g.slug + '/' + v.x.r.n + '/' + P[p].id + '/' + f);
+  if (!tour && !v.demo) history.replaceState(null, '', '#' + v.x.g.slug + '/' + v.x.r.n + '/' + PZ(v.x.g)[p].id + '/' + f);
 }
 function open(i, j) { const c = RUNS[i].r.cells[j]; k = i; p = j; f = c.state === 'lost' && c.bad !== null ? c.bad : 0; draw(false); }
 function toStage() { el('stage').scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth' }); }
@@ -481,21 +517,21 @@ function selector() {
   TABS.forEach(tb => {
     if (tb.maker !== mk) { mk = tb.maker; const m = document.createElement('span'); m.className = 'mk'; m.textContent = mk; s.appendChild(m); og = document.createElement('optgroup'); og.label = mk; ms.appendChild(og); }
     const b = document.createElement('button'); b.className = 'tab'; b.dataset.t = tb.id; b.textContent = tb.label;
-    b.title = tb.id === 'refs' ? 'Perfect play, rules-only search and two baselines' : tb.groups[0].label + ': ' + plural(tb.groups[0].runs.length, 'attempt') + ', mean ' + f3(tb.groups[0].mean);
+    b.title = tb.id === 'deep' ? 'Side experiment: 6 harder puzzles, win in 7 to 9 moves' : tb.id === 'refs' ? 'Perfect play, rules-only search and two baselines' : tb.groups[0].label + ': ' + plural(tb.groups[0].runs.length, 'attempt') + ', mean ' + f3(tb.groups[0].mean);
     b.onclick = () => pickTab(tb.id); s.appendChild(b);
-    const o = document.createElement('option'); o.value = tb.id; o.textContent = tb.id === 'refs' ? 'Perfect play and baselines' : tb.groups[0].label + ' (' + f3(tb.groups[0].mean) + ')'; og.appendChild(o);
+    const o = document.createElement('option'); o.value = tb.id; o.textContent = tb.id === 'deep' ? 'Deep set (side experiment)' : tb.id === 'refs' ? 'Perfect play and baselines' : tb.groups[0].label + ' (' + f3(tb.groups[0].mean) + ')'; og.appendChild(o);
   });
   ms.onchange = e => pickTab(e.target.value);
 }
-function pickTab(id) { const tb = TABS.find(t => t.id === id); stopPlay(); if (tour) leaveTour(true); k = idx(tb.groups[0].runs[0]); f = 0; draw(false); }
-function headers(gd, corner) {
+function pickTab(id) { const tb = TABS.find(t => t.id === id); stopPlay(); if (tour) leaveTour(true); k = idx(tb.groups[0].runs[0]); p = Math.min(p, RUNS[k].r.cells.length - 1); f = 0; draw(false); }
+function headers(gd, corner, pz) {
   const c = document.createElement('div'); c.className = 'corner'; c.textContent = corner || 'Puzzle'; gd.appendChild(c);
-  P.forEach(q => { const d = document.createElement('div'); d.className = 'ph'; d.innerHTML = q.num + '<span>' + plural(q.win_in, 'move') + '</span>'; gd.appendChild(d); });
+  (pz || P).forEach(q => { const d = document.createElement('div'); d.className = 'ph'; d.innerHTML = q.num + '<span>' + plural(q.win_in, 'move') + '</span>'; gd.appendChild(d); });
 }
 function cellBtn(c, i, j, label) {
   const b = document.createElement('button'); b.className = 'c ' + c.state; b.dataset.k = i; b.dataset.p = j;
   b.innerHTML = GLYPH[c.state] + (c.state === 'lost' && c.bad !== null ? '<small>' + c.bad + '</small>' : '');
-  b.title = label + ', puzzle ' + P[j].num + ': ' + WORD[c.state] + (c.state === 'lost' && c.bad !== null ? ' at step ' + c.bad : '');
+  b.title = label + ', puzzle ' + PZ(RUNS[i].g)[j].num + ': ' + WORD[c.state] + (c.state === 'lost' && c.bad !== null ? ' at step ' + c.bad : '');
   b.setAttribute('aria-label', b.title);
   b.onclick = () => { stopPlay(); if (tour) leaveTour(true); open(i, j); toStage(); };
   return b;
@@ -505,21 +541,22 @@ function states() {
   ['solved', 'lost', 'slow', 'time', 'skipped', 'open'].forEach(s => { const sp = document.createElement('span'); sp.innerHTML = '<span class="c ' + s + '">' + GLYPH[s] + (s === 'lost' ? '<small>3</small>' : '') + '</span>' + (s === 'lost' ? 'lost: the move at step 3 threw the win away' : WORD[s]); h.appendChild(sp); });
 }
 function strip(tb) {
-  const gd = el('strip'); gd.innerHTML = ''; headers(gd, tb.id === 'refs' ? 'Puzzle' : 'Attempt');
+  const gd = el('strip'), pz = PZ(tb.groups[0]), many = tb.id === 'refs' || tb.id === 'deep'; gd.innerHTML = ''; gd.style.setProperty('--n', pz.length); headers(gd, many ? 'Puzzle' : 'Attempt', pz);
   const rows = tb.groups.flatMap(g => g.runs.map(r => ({ g, r })));
   const xs = tb.groups.flatMap(g => g.excluded || []);
   gd.classList.toggle('compact', rows.length + xs.length > 10);
   rows.forEach(({ g, r }) => {
     const i = idx(r), l = document.createElement('div'); l.className = 'rl';
-    l.innerHTML = tb.id === 'refs' ? '<b>' + g.short + '</b>' + r.solved + ' of ' + r.total : '<b>Attempt ' + r.n + '</b>' + r.solved + ' of ' + r.total + ' won';
+    l.innerHTML = tb.id === 'refs' ? '<b>' + g.short + '</b>' + r.solved + ' of ' + r.total : tb.id === 'deep' ? '<b>' + g.short + (g.runs.length > 1 ? ', attempt ' + r.n : '') + '</b>' + r.solved + ' of ' + r.total + ' won' : '<b>Attempt ' + r.n + '</b>' + r.solved + ' of ' + r.total + ' won';
     gd.appendChild(l);
-    r.cells.forEach((c, j) => gd.appendChild(cellBtn(c, i, j, tb.id === 'refs' ? g.label : g.label + ', attempt ' + r.n)));
+    r.cells.forEach((c, j) => gd.appendChild(cellBtn(c, i, j, many ? g.label + (g.runs.length > 1 ? ', attempt ' + r.n : '') : g.label + ', attempt ' + r.n)));
   });
   xs.forEach(x => {
     const l = document.createElement('div'); l.className = 'rl x'; l.innerHTML = '<b>Excluded</b>'; gd.appendChild(l);
     const d = document.createElement('div'); d.className = 'xrow'; d.textContent = 'Not counted: ' + x.reason + ' (' + x.job + ')'; d.title = x.job + '/' + x.trial; gd.appendChild(d);
   });
-  if (tb.id === 'refs') { el('st').textContent = 'References and baselines'; el('sh').textContent = 'Perfect play and baselines'; el('sn').textContent = 'The solver, a rules-only search program, and two baselines, one attempt each. Click a cell to watch it on the board above.'; }
+  if (tb.id === 'deep') { el('st').textContent = 'Side experiment · deep set'; el('sh').textContent = 'Deep set: win in 7, 8 and 9 moves'; el('sn').textContent = 'The same rules, tools and checker, with ' + pz.length + ' harder puzzles: two each where Blue can force a win in 7, 8 and 9 moves. These attempts are not in any other score on this page. Click a cell to watch it on the board above.'; }
+  else if (tb.id === 'refs') { el('st').textContent = 'References and baselines'; el('sh').textContent = 'Perfect play and baselines'; el('sn').textContent = 'The solver, a rules-only search program, and two baselines, one attempt each. Click a cell to watch it on the board above.'; }
   else { const g = tb.groups[0]; el('st').textContent = g.label; el('sh').textContent = 'Every attempt'; el('sn').textContent = plural(g.runs.length, 'attempt') + ' counted, mean ' + f3(g.mean) + ' (' + g.solved + ' of ' + g.total + ' puzzles won)' + (g.excluded.length ? '; ' + plural(g.excluded.length, 'attempt') + ' not counted, listed at the bottom' : '') + '. Click a cell to watch it on the board above.'; }
 }
 function mix(s) { const a = [250, 247, 240], b = [110, 155, 209]; return 'rgb(' + a.map((v, i) => Math.round(v + (b[i] - v) * s)).join(',') + ')'; }
@@ -616,6 +653,77 @@ function learnPairs(host) {
   h += '</div><div class="pkey"><span><i style="background:#CFC6B4"></i>untrained</span><span><i style="background:#17191C"></i>after ' + kfmt(z.x) + ' training examples</span></div><p class="depth-cap">Share of held-out puzzles won, by how many moves ahead Blue must plan.</p>';
   host.insertAdjacentHTML('beforeend', h);
 }
+/* side experiment "deep set": depths 1 to 6 from the model's main-test attempts, 7 to 9 from its deep-set attempts */
+const DX = DEEP.filter(d => d.actor === 'The AI').map(d => {
+  const g = MODELS.find(m => m.slug === d.of); if (!g) return null;
+  const t = {}; for (let w = 1; w <= 9; w++) t[w] = [0, 0];
+  const add = (grp, pz) => grp.runs.forEach(r => r.cells.forEach((c, j) => { const w = pz[j].win_in; if (t[w]) { t[w][1]++; if (c.state === 'solved') t[w][0]++; } }));
+  add(g, P); add(d, PZ(d));
+  const sum = (a, b) => { let s = 0, n = 0; for (let w = a; w <= b; w++) { s += t[w][0]; n += t[w][1]; } return [s, n]; };
+  return { g, d, t, lo: sum(1, 6), hi: sum(7, 9) };
+}).filter(Boolean);
+function deepSentence() {
+  return DX.map(x => x.g.label + ' won ' + x.lo[0] + ' of ' + x.lo[1] + ' puzzles that need up to 6 moves and ' + x.hi[0] + ' of ' + x.hi[1] + ' that need 7 to 9.').join(' ');
+}
+function deepChart(host) {
+  host.innerHTML = '';
+  DX.forEach(x => {
+    const col = (w, cls) => { const [s, n] = x.t[w]; return '<div class="col" title="Win in ' + w + ': ' + s + ' of ' + n + ' puzzles won"><div class="pc">' + (n ? pct(s, n) : '') + '</div><div class="ct">' + s + '/' + n + '</div><div class="bar ' + cls + '" style="height:' + Math.max(2, Math.round(110 * (n ? s / n : 0))) + 'px"></div><div class="x">' + w + '</div></div>'; };
+    let a = '', b = ''; for (let w = 1; w <= 6; w++) a += col(w, ''); for (let w = 7; w <= 9; w++) b += col(w, 'deep');
+    host.insertAdjacentHTML('beforeend', '<div class="dd"><div class="nm">' + x.g.label + '</div><div class="row">' +
+      '<div><div class="set">Main test · ' + plural(x.g.runs.length, 'attempt') + ' × 12 puzzles</div><div class="depth" style="--n:6">' + a + '</div></div><div class="brk" aria-hidden="true"></div>' +
+      '<div><div class="set deep">Deep set · ' + plural(x.d.runs.length, 'attempt') + ' × ' + PZ(x.d).length + ' puzzles</div><div class="depth" style="--n:3">' + b + '</div></div></div></div>');
+  });
+}
+function deepCap() {
+  const rm = REFS.find(g => g.slug === 'reference'), rd = DEEP.find(g => g.of === 'reference');
+  return 'Puzzles won by how many moves ahead Blue must plan. Counts are puzzles won out of puzzles played.' + (rm && rd ? ' Perfect play (the solver) scores ' + f3(rm.runs[0].reward) + ' on the main test and ' + f3(rd.runs[0].reward) + ' on the deep set.' : '') + ' The deep-set attempts are not in any other score on this page.';
+}
+function deepSec() {
+  if (!DX.length) return;
+  el('deepsec').hidden = false;
+  el('dtxt').textContent = 'A second set with the same rules, tools and checker: ' + PZ(DX[0].d).length + ' puzzles, two each where Blue can force a win in 7, 8 and 9 moves. ' + deepSentence();
+  deepChart(el('dchart')); el('dcap').textContent = deepCap();
+}
+/* side experiment: same task with one added instruction line ("play N practice puzzles first"); never part of any other number */
+const PX = (DATA.practice || []).filter(p => p.arms.length > 1);
+function pxSentence() {
+  if (!PX.length) return '';
+  const per = PX.map(p => {
+    const b = p.arms[0], rest = p.arms.slice(1), d = rest.map(a => (a.mean - b.mean) * 12);
+    const big = d.reduce((m, x) => Math.abs(x) > Math.abs(m) ? x : m, 0);
+    const lo = Math.min(...p.arms.map(a => a.runs.length)), hi = Math.max(...p.arms.map(a => a.runs.length));
+    /* "within noise": each difference is under two standard errors, using the run-to-run spread pooled over all of this model's runs */
+    const all = p.arms.flatMap(a => a.runs.map(r => r.reward)), mu = all.reduce((s, x) => s + x, 0) / all.length;
+    const sd = Math.sqrt(all.reduce((s, x) => s + (x - mu) ** 2, 0) / Math.max(1, all.length - 1));
+    const inside = rest.every(a => Math.abs(a.mean - b.mean) < 2 * sd * Math.sqrt(1 / a.runs.length + 1 / b.runs.length));
+    return p.label + ' scored ' + rest.map(a => f3(a.mean) + ' when ' + a.label.toLowerCase()).join(' and ') + ', against ' + f3(b.mean) + ' without the instruction: a difference of at most ' +
+      Math.abs(big).toFixed(1) + ' of the 12 puzzles (one puzzle is 0.083). With ' + (lo === hi ? lo : lo + ' to ' + hi) + ' runs per group' + (inside ? ' that is within run-to-run noise.' : ' that is larger than run-to-run noise, but still very few runs.');
+  });
+  return per.join(' ');
+}
+function practiceExp() {
+  const host = el('prac'); if (!PX.length) { host.hidden = true; return; }
+  const pos = v => (v * 100).toFixed(2) + '%';
+  let h = '<p class="eyebrow">Side experiment · same task with one added instruction line</p><h4>Does practising inside one session help?</h4>';
+  h += '<p class="lead">The instruction tells the model to play a set number of practice puzzles before the real ones. ' + pxSentence() + '</p>';
+  if (LI) h += '<p class="lead dim">Practising inside one session is not the same as training on that feedback: the small model above learned from it across ' + kfmt(LI.z.x) + ' examples and went from ' + f3(LI.a.y) + ' to ' + f3(LI.z.y) + '. These runs are not in the scores, charts or model list elsewhere on this page.</p>';
+  h += '<div class="pgrid">';
+  PX.forEach(p => {
+    h += '<div class="pmod"><div class="nm">' + p.label + '</div>';
+    p.arms.forEach(a => {
+      const pl = a.runs.map(r => r.played), lo = Math.min(...pl), hi = Math.max(...pl);
+      const seen = {}; let dots = '';
+      a.runs.forEach(r => { const k = r.reward.toFixed(4), j = seen[k] = (seen[k] || 0) + 1, cnt = a.runs.filter(q => q.reward.toFixed(4) === k).length;
+        dots += '<i class="d" style="left:' + pos(r.reward) + ';top:calc(50% + ' + ((j - 1 - (cnt - 1) / 2) * 9) + 'px)" title="' + f3(r.reward) + ', ' + plural(r.played, 'practice puzzle') + ' played"></i>'; });
+      h += '<div class="prow"><div class="pl">' + a.label + '<small>' + plural(a.runs.length, 'run') + ' · played ' + (lo === hi ? lo : lo + ' to ' + hi) + '</small></div>' +
+        '<div class="ptrack" role="img" aria-label="' + a.label + ': mean ' + f3(a.mean) + ' over ' + plural(a.runs.length, 'run') + '"><i class="m" style="left:' + pos(a.mean) + '"></i>' + dots + '</div><div class="pv">' + f3(a.mean) + '</div></div>';
+    });
+    h += '<div class="paxis"><span>Share of the 12 puzzles won</span><div class="t">' + [0, 0.25, 0.5, 0.75, 1].map(v => '<span style="left:' + pos(v) + '">' + v + '</span>').join('') + '</div><span></span></div></div>';
+  });
+  h += '</div><div class="pkey2"><span><i class="d"></i>one run</span><span><i class="m"></i>mean</span><span>"played" is how many practice puzzles the runs actually started</span></div>';
+  host.innerHTML = h; host.hidden = false;
+}
 function learnText() {
   if (!LI) { el('learnsec').hidden = true; return; }
   const { im, rw, a, z, probe } = LI, rl = rw && rw.points[rw.points.length - 1];
@@ -691,6 +799,7 @@ function stops() {
   if (best1) S.push({ panel: 'ladder', cap: 'Perfect play wins all 12 puzzles. The best model, ' + best1.label + ', wins ' + Math.round(best1.mean * 100) + '% on average.' });
   const sl = shortLong();
   if (sl.b && sl.d) S.push({ panel: 'depth', cap: 'Up to 3 moves ahead, the models won ' + pct(sl.a, sl.b) + ' of puzzles. From 4 to 6 moves ahead, ' + pct(sl.c, sl.d) + '.' });
+  if (DX.length) S.push({ panel: 'deep', cap: deepSentence() });
   if (LI) S.push({ panel: 'learn', cap: 'Can this be learned? A tiny open model trained on this game\'s feedback goes from ' + f3(LI.a.y) + ' to ' + f3(LI.z.y) + ' on puzzles it never saw. The deep ones stay unsolved.' });
   return S;
 }
@@ -698,9 +807,12 @@ function go(i) {
   stopPlay(); clearTimeout(tourTimer); tour.i = i; const s = tour.stops[i];
   el('stage').classList.toggle('end', !!s.panel);
   if (s.panel) {
-    el('ceb').textContent = 'Tour ' + (i + 1) + ' / ' + tour.stops.length + ' · ' + ({ ladder: 'share of the 12 puzzles won', depth: 'puzzles won by how far ahead Blue must plan', learn: 'a small model, one position per question' })[s.panel];
+    el('ceb').textContent = 'Tour ' + (i + 1) + ' / ' + tour.stops.length + ' · ' + ({ ladder: 'share of the 12 puzzles won', depth: 'puzzles won by how far ahead Blue must plan', learn: 'a small model, one position per question', deep: 'side experiment: 6 harder puzzles, win in 7 to 9' })[s.panel];
     el('chl').innerHTML = s.cap; const cb = el('cbody');
-    if (s.panel === 'ladder') ladder(cb); else if (s.panel === 'learn') { cb.innerHTML = '<div class="lgrid"><div id="tp"></div><div class="lchart" id="tc"></div></div>'; learnPairs(el('tp')); learnChart(el('tc')); } else { cb.innerHTML = '<div class="depth" id="tdepth"></div>'; depth(el('tdepth'), true); const cap = document.createElement('p'); cap.className = 'depth-cap'; cap.textContent = el('depthcap').textContent; cb.appendChild(cap); }
+    if (s.panel === 'ladder') ladder(cb);
+    else if (s.panel === 'deep') { deepChart(cb); cb.insertAdjacentHTML('beforeend', '<p class="depth-cap">' + deepCap() + '</p>'); }
+    else if (s.panel === 'learn') { cb.innerHTML = '<div class="lgrid"><div id="tp"></div><div class="lchart" id="tc"></div></div>'; learnPairs(el('tp')); learnChart(el('tc'));
+      const lc = el('tp').querySelector('.depth-cap'); if (PX.length && lc) lc.outerHTML = '<p class="depth-cap">Side experiment, same task with one added instruction line: ' + PX.map(p => p.label + ' told to practise first scored ' + p.arms.slice(1).map(a => f3(a.mean) + ' (' + a.told + ')').join(' and ') + ' against ' + f3(p.arms[0].mean) + ' without.').join(' ') + ' Practising inside one session is not training on the feedback.</p>'; } else { cb.innerHTML = '<div class="depth" id="tdepth"></div>'; depth(el('tdepth'), true); const cap = document.createElement('p'); cap.className = 'depth-cap'; cap.textContent = el('depthcap').textContent; cb.appendChild(cap); }
     document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
     el('cnext').textContent = i === tour.stops.length - 1 ? 'Finish' : 'Next stop →';
     if (i < tour.stops.length - 1) tourTimer = setTimeout(nextStop, 7000);
@@ -723,7 +835,7 @@ function prevStop() { if (tour && tour.i > 0) go(tour.i - 1); }
 /* ------------------------------------------------ hash, keys, start */
 function fromHash() {
   const h = decodeURIComponent(location.hash.slice(1)).split('/'); if (h.length < 3) return false;
-  const i = RUNS.findIndex(x => x.g.slug === h[0] && String(x.r.n) === h[1]); const j = P.findIndex(q => q.id === h[2]);
+  const i = RUNS.findIndex(x => x.g.slug === h[0] && String(x.r.n) === h[1]); const j = i < 0 ? -1 : PZ(RUNS[i].g).findIndex(q => q.id === h[2]);
   if (i < 0 || j < 0) return false;
   k = i; p = j; f = Math.max(0, Math.min(parseInt(h[3], 10) || 0, RUNS[i].r.cells[j].frames.length - 1)); return true;
 }
@@ -758,7 +870,7 @@ document.addEventListener('keydown', e => {
   else if (key === 'ArrowLeft') { e.preventDefault(); el('prev').click(); }
   else if (key === 'ArrowRight') { e.preventDefault(); el('next').click(); }
   else if (key === 'ArrowUp' && p > 0) { e.preventDefault(); stopPlay(); p--; f = 0; draw(false); }
-  else if (key === 'ArrowDown' && p < P.length - 1) { e.preventDefault(); stopPlay(); p++; f = 0; draw(false); }
+  else if (key === 'ArrowDown' && p < RUNS[k].r.cells.length - 1) { e.preventDefault(); stopPlay(); p++; f = 0; draw(false); }
 });
 document.addEventListener('keyup', e => { if (e.key === ' ' && e.target.tagName !== 'SELECT') e.preventDefault(); });
 window.addEventListener('hashchange', () => { if (!tour && fromHash()) { stopPlay(); draw(false); } });
@@ -770,7 +882,7 @@ el('depthcap').textContent = 'Puzzles won by how many moves ahead Blue must plan
 depth(el('depth1'));
 el('src').textContent = 'Source: ' + DATA.source + '. Attempts counted per model: ' + MODELS.map(g => g.short + ' ' + g.runs.length).join(', ') +
   '. Attempts are not counted when an API error ended the session with puzzles still open, or when there is no score sheet; they are listed in each model\'s attempts. Red\'s line after a losing move comes from a rules-only search and is shown where that search finished within its budget.';
-learnText(); selector(); states(); overview(el('ov')); ladder(el('ladder')); layout();
+learnText(); practiceExp(); deepSec(); selector(); states(); overview(el('ov')); ladder(el('ladder')); layout();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { layout(); draw(false); });
 if (!fromHash()) firstView();
 draw(false); miniLoop();
