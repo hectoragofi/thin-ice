@@ -262,6 +262,44 @@ B.horizon = (el) => {
   return { beat(k) { if (k >= 1) cells.forEach(g => { g.style.transition = 'opacity .8s'; g.setAttribute('opacity', 1); }); } };
 };
 
+B.effort = (el) => {
+  el.innerHTML = `<h2>More thinking moves the middle, not the edge</h2><div id="ch"></div>`;
+  const rows = D.effort_rows || [];
+  if (!rows.length) { el.querySelector('#ch').innerHTML = `<div class="sub">${P}</div>`; return { beat() {} }; }
+  const cols = [['mid', '3 to 4 moves away'], ['edge', '5 to 6 moves away']];
+  const W = 1680, L = 620, top = 64, rowH = 96, cw = 340, H = top + rows.length * rowH + 20, s = svg(W, H);
+  cols.forEach(([, lab], i) => sv(s, 'text', {x: L + i * cw + cw / 2, y: 40, 'font-size': 30, fill: '#4b5563', 'text-anchor': 'middle'}, lab));
+  sv(s, 'text', {x: L + 2 * cw + 150, y: 40, 'font-size': 30, fill: '#4b5563', 'text-anchor': 'middle'}, 'mean score');
+  const hl = [];
+  rows.forEach((r, j) => {
+    const y = top + j * rowH, high = r.level === 'high';
+    if (j && rows[j - 1].model !== r.model) sv(s, 'line', {x1: 0, x2: W, y1: y - 2, y2: y - 2, stroke: '#d4d6db', 'stroke-width': 2});
+    sv(s, 'text', {x: L - 24, y: y + rowH / 2 + 4, 'font-size': 32, 'font-weight': high ? 700 : 500, fill: '#101317', 'text-anchor': 'end'},
+       `${r.model}, ${r.level === 'default' ? 'default effort' : r.level + ' effort'}`);
+    sv(s, 'text', {x: L - 24, y: y + rowH / 2 + 34, 'font-size': 22, fill: '#4b5563', 'text-anchor': 'end'}, r.runs === 1 ? '1 run' : `${r.runs} runs`);
+    cols.forEach(([k], i) => {
+      const c = r.bands && r.bands[k], x0 = L + i * cw + 10, w = cw - 20;
+      if (!c || !c.of) return;
+      const v = c.solved / c.of, fill = v >= .75 ? '#15803d' : v <= .1 ? '#c81e1e' : '#b45309';
+      const g = sv(s, 'g', {});
+      sv(g, 'rect', {x: x0, y: y + 8, width: w, height: rowH - 16, fill, opacity: v <= .1 ? .85 : .25 + .6 * v, rx: 10});
+      sv(g, 'text', {x: x0 + w / 2, y: y + rowH / 2 + 12, 'font-size': 34, 'font-weight': 700, fill: v > .1 && v < .5 ? '#101317' : '#fff', 'text-anchor': 'middle', 'font-variant-numeric': 'tabular-nums'},
+         `${c.solved} of ${c.of}`);
+      if (high) hl.push(g);
+    });
+    sv(s, 'text', {x: L + 2 * cw + 150, y: y + rowH / 2 + 12, 'font-size': 34, 'font-weight': high ? 700 : 500, fill: '#101317', 'text-anchor': 'middle', 'font-variant-numeric': 'tabular-nums'}, f3(r.mean));
+  });
+  el.querySelector('#ch').appendChild(s);
+  return { beat() {} };
+};
+
+B.summary = (el) => {
+  const S = D.summary || {lines: []};
+  el.innerHTML = `<div class="center"><div class="big" style="font-size:60px;line-height:1.15">${esc(S.head || '').replace('. ', '.<br>')}</div>
+    <div style="margin-top:36px;font-size:38px;line-height:1.3">${S.lines.map((l, i) => `<p class="fade" id="s${i}" style="margin:0 0 20px"><b>${i + 1}.</b>&nbsp; ${esc(l)}</p>`).join('')}</div></div>`;
+  return { beat(k) { if (k === 0) S.lines.forEach((_, i) => setTimeout(() => { const e = el.querySelector('#s' + i); if (e) e.classList.add('on'); }, 500 + i * 1800)); } };
+};
+
 B.fair = (el) => {
   const f = D.facts;
   el.innerHTML = `<h2>The mistakes are fair</h2><div class="tiles">
@@ -285,12 +323,14 @@ B.learn = (el) => {
   const pr = D.practice || [], pm = D.practice_max_puzzles;
   const who = [...new Set(pr.map(p => esc(p.model.replace('Gemini 4 ', '').replace('Claude ', ''))))].join(', ');
   const note = pr.length ? `<div style="font-size:30px;color:var(--dim);margin:-10px 0 14px">Told to practise in-session (${who}): every change ${pm <= 1 ? 'within one puzzle' : 'up to ' + pm + ' puzzles'}. Training moves the score.</div>` : '';
-  el.innerHTML = `<h2>${title}</h2>${note}<div id="ch"></div>`;
+  const sz = D.sizes || [];
+  const sizeNote = sz.length > 1 ? `<div style="font-size:30px;color:var(--dim);margin:-6px 0 14px">Bigger model, same feedback, at ${sz[0].examples / 1000}k examples: ${sz.map(x => esc(x.label.replace('Qwen3-', '')) + ' ' + x.score.toFixed(3)).join(', ')}.</div>` : '';
+  el.innerHTML = `<h2>${title}</h2>${note}${sizeNote}<div id="ch"></div>`;
   const series = rl ? [{label: 'reward only', color: '#111827', pts: c.points},
                        {label: 'imitation', color: '#6b7280', dash: '14 12', width: 5, pts: c.imitation}]
                     : [{label: 'imitation', color: '#111827', pts: c.points}];
   const probes = Object.values(D.probe).filter(p => !p.older).map(p => p.mean).filter(v => v != null);
-  const W = 1680, H = pr.length ? 470 : 540, L = 110, R = 330, T = 20, Bt = 90;
+  const W = 1680, H = (pr.length ? 470 : 540) - (sz.length > 1 ? 50 : 0), L = 110, R = 330, T = 20, Bt = 90;
   const xmax = Math.max(...series.flatMap(se => se.pts.map(p => p.x))), xstep = xmax > 300000 ? 100000 : 50000;
   const xend = Math.ceil(xmax / xstep) * xstep;
   const ymax = Math.ceil(Math.max(0.6, ...series.flatMap(se => se.pts.map(p => p.score))) * 10) / 10;

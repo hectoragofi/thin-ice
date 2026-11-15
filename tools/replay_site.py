@@ -17,6 +17,7 @@ resource is the Google Fonts stylesheet of the presentation deck (offline: Georg
 """
 from __future__ import annotations
 
+import base64
 import json
 import re
 import sys
@@ -247,7 +248,8 @@ def demo() -> dict:
 def learning() -> dict:
     out = {}
     for key, rel, xk in (("imitation", "results/curve-qwen3-0.6b-7x6.json", "examples_seen"),
-                         ("reward", "results/curve-rl-qwen3-0.6b-7x6.json", "moves_played")):
+                         ("reward", "results/curve-rl-qwen3-0.6b-7x6.json", "moves_played"),
+                         ("imitation4b", "results/curve-qwen3-4b-7x6.json", "examples_seen")):
         f = ROOT / rel
         try:
             d = json.loads(f.read_text(encoding="utf-8"))
@@ -413,6 +415,103 @@ def collect(models=None):
 PAGE = (Path(__file__).resolve().parent / "replay_site.html").read_text(encoding="utf-8")
 
 
+# ------------------------------------------------------------------ Play: the 12 scored puzzles of the default run
+PACKS = ROOT / "task" / "environment" / "game-server" / "packs"
+PLAY_SEED = "1"  # the game server's default THINICE_SEED: the same P01..P12 every model played
+
+
+def probe_system() -> str:
+    """The exact system text of the one-move probe (tools/probe.py), read from its source without importing it."""
+    import ast
+    from thinice.board import RULES
+    tree = ast.parse((ROOT / "tools" / "probe.py").read_text(encoding="utf-8"))
+    node = next(n for n in tree.body if isinstance(n, ast.Assign) and any(getattr(t, "id", "") == "SYSTEM" for t in n.targets))
+    return eval(compile(ast.Expression(node.value), "probe.py", "eval"), {"RULES": RULES})  # noqa: S307 - the repo's own constant
+
+
+def play_data() -> dict:
+    from thinice.session import LOSS0, Attempt, load_pack, pick
+    manifest = json.loads((PACKS / "manifest.json").read_text(encoding="utf-8"))
+    chosen = pick(load_pack(PACKS / "scored.jsonl"), PLAY_SEED, manifest["tiers"], manifest["per_tier"])
+    system = probe_system()
+    puzzles, checked, missing = [], 0, 0
+    for i, p in enumerate(chosen):
+        for k, ents in p.nodes.items():
+            b, r = (mask_of(json.loads(x)) for x in k.split("|"))
+            assert sorted(moves(b, b | r)) == sorted((e[0], e[1]) for e in ents), f"{k}: table moves differ from the rules"
+            checked += 1
+        # every position a player can reach with moves left (any winning move, slow ones too, then Red's reply) is in the table
+        todo, seen = [(p.blue, p.red, 0)], set()
+        while todo:
+            b, r, used = todo.pop()
+            k = f"[{','.join(map(str, squares(b)))}]|[{','.join(map(str, squares(r)))}]"
+            if (k, used) in seen:
+                continue
+            seen.add((k, used))
+            if k not in p.nodes:
+                missing += 1
+                continue
+            todo += [(b ^ (1 << e[0]) ^ (1 << e[1]), r ^ (1 << e[3]) ^ (1 << e[4]), used + 1) for e in p.nodes[k] if e[2] > LOSS0 and used + 1 < p.cap]
+        pid = f"P{i + 1:02d}"
+        puzzles.append({"id": pid, "index": p.index, "need": p.need, "cap": p.cap, "blue": squares(p.blue), "red": squares(p.red),
+                        "nodes": p.nodes, "prompt": system + "\n\n" + Attempt(pid, p).text()})
+    # the reference run (perfect play) of the same seed: its moves, replayed in the browser logic, must solve all 12
+    ref = None
+    for t in sorted((JOBS / "clock-24d6707-reference").glob("task__*")):
+        f = t / "verifier" / "details.json"
+        if f.exists():
+            ref = json.loads(f.read_text(encoding="utf-8"))
+            break
+    assert ref and str(ref.get("seed")) == PLAY_SEED, "no reference run of the default seed"
+    rows = sorted(ref["puzzles"], key=lambda r: r["id"])
+    assert [r["index"] for r in rows] == [q["index"] for q in puzzles], "reference run played other puzzles"
+    assert not missing, f"{missing} reachable positions are missing from the table"
+    print(f"play: {len(puzzles)} puzzles, {checked} positions, rules match the table in all, every reachable position covered")
+    return {"seed": PLAY_SEED, "system": system, "puzzles": puzzles, "ref": [r["history"] for r in rows]}
+
+
+def check_play_in_node(play: dict) -> None:
+    """Runs the page's own play logic under node: legal moves equal the table, the reference moves solve all 12,
+    a losing first move is graded lost, typed notation parses, and the prompt equals the probe's text."""
+    import shutil
+    import subprocess
+    import tempfile
+    node = shutil.which("node")
+    if not node:
+        raise SystemExit("node not found: the play logic cannot be checked, so the page is not written")
+    block = PAGE[PAGE.index("/*PLAY-LOGIC*/"):PAGE.index("/*END-PLAY-LOGIC*/")]
+    harness = block + r"""
+const D = JSON.parse(require('fs').readFileSync(process.argv[2], 'utf8'));
+const PL = playLogic(D.w, D.h, D.files), fail = m => { console.error('FAIL ' + m); process.exit(1); };
+let pos = 0;
+D.play.puzzles.forEach((pz, i) => {
+  Object.entries(pz.nodes).forEach(([k, ents]) => {
+    const [b, r] = k.split('|').map(x => JSON.parse(x));
+    const js = PL.legal(b, r).map(m => m.join(',')).join(' '), tb = ents.map(e => e[0] + ',' + e[1]).sort((p, q) => { const [a1, a2] = p.split(',').map(Number), [b1, b2] = q.split(',').map(Number); return a1 - b1 || a2 - b2; }).join(' ');
+    if (js !== tb) fail(pz.id + ' ' + k + ': js ' + js + ' table ' + tb);
+    pos++;
+  });
+  const st = PL.start(pz);
+  if (PL.prompt(st, D.play.system) !== pz.prompt) fail(pz.id + ': prompt differs from the probe text');
+  D.play.ref[i].forEach(([b, r]) => { const m = PL.parse(b); const o = m && PL.move(st, m[0], m[1]); if (!o) fail(pz.id + ' ' + b + ' not playable'); if ((o.reply || null) !== (r || null)) fail(pz.id + ' reply ' + o.reply + ' vs ' + r); });
+  if (st.status !== 'solved') fail(pz.id + ': reference moves do not solve it (' + st.status + ')');
+  const s2 = PL.start(pz), bad = PL.entries(s2).find(e => e[2] < PL.LOSS0);
+  if (bad) { const o = PL.move(s2, bad[0], bad[1]); if (s2.status !== 'failed' || !['draw', 'loss'].includes(o.kind)) fail(pz.id + ': a losing first move was not graded lost'); }
+});
+const p = PL.parse(' C1 - a1 '); if (!p || p[0] !== 2 || p[1] !== 0) fail('typed notation');
+if (PL.parse('z9-a1') || PL.parse('c1a1')) fail('bad notation accepted');
+console.log('node play check: ' + pos + ' positions, ' + D.play.puzzles.length + ' puzzles solved by the reference moves, prompts equal, notation ok');
+"""
+    with tempfile.TemporaryDirectory() as td:
+        js, data = Path(td) / "check.js", Path(td) / "data.json"
+        js.write_text(harness, encoding="utf-8")
+        data.write_text(json.dumps({"w": W, "h": H, "files": FILES, "play": play}), encoding="utf-8")
+        res = subprocess.run([node, str(js), str(data)], capture_output=True, text=True, timeout=300)
+    print(res.stdout.strip() or res.stderr.strip())
+    if res.returncode:
+        raise SystemExit("play logic check failed, page not written: " + res.stderr.strip())
+
+
 def main() -> None:
     out = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "demo" / "replays.html"
     groups, excluded, puzzles = collect()
@@ -423,11 +522,15 @@ def main() -> None:
     effort = [{k: g[k] for k in ("slug", "label", "of", "jobs", "solved", "total", "mean", "cost", "cost_n")}
               | {"runs": [{"reward": r["reward"], "won": [c["state"] == "solved" for c in r["cells"]]} for r in g["runs"]]}
               for g in effort if g["runs"]]
-    data = {"w": W, "h": H, "files": FILES, "puzzles": puzzles, "groups": groups + deep_shown, "demo": demo(), "learn": learning(), "practice": practice, "effort": effort,
+    play = play_data()
+    check_play_in_node(play)
+    play_page = {"seed": play["seed"], "system": play["system"], "puzzles": [{k: v for k, v in q.items() if k != "prompt"} for q in play["puzzles"]]}
+    data = {"w": W, "h": H, "files": FILES, "puzzles": puzzles, "groups": groups + deep_shown, "demo": demo(), "learn": learning(), "practice": practice, "effort": effort, "play": play_page,
             "source": "jobs/final (job names clock-24d6707-* and nim-24d6707-*)"}
     js = json.dumps(data, separators=(",", ":"), sort_keys=True).replace("</", "<\\/")
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(PAGE.replace("__DATA__", js), encoding="utf-8", newline="\n")
+    art = {f.stem: "data:image/webp;base64," + base64.b64encode(f.read_bytes()).decode() for f in sorted((ROOT / "demo" / "art").glob("*.webp")) if f'data-img="{f.stem}"' in PAGE}
+    out.write_text(PAGE.replace("__DATA__", js).replace("__ART__", json.dumps(art)), encoding="utf-8", newline="\n")
     print(f"wrote {out} ({out.stat().st_size // 1024} KB)")
     for g in groups:
         mean = "no attempts" if g["mean"] is None else f"mean {g['mean']:.4f} ({g['solved']}/{g['total']})"
