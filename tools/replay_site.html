@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thin Ice replays</title>
+<!-- template for tools/replay_site.py: __DATA__ is replaced by the run data -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* palette and type from the presentation deck (demo deck.css); one light theme.
+   type scale: 14 labels, 17 text, 24 sub-heads, 40 headlines, 64 title */
+:root { color-scheme: light; --ink:#17191C; --paper:#F1ECE2; --soft:#55585C; --faint:#6E6A62; --card:#FAF7F0; --hair:#D8D0BF;
+  --glacier:#2F5D93; --ice:#A9C4E6; --frost:#BCD3CC; --ember:#E0352B; --ember-text:#C42B22; --ember-fill:#EA6A60; --agent:#6E9BD1; --base:#CFC6B4;
+  --serif:'Instrument Serif', Georgia, serif; --sans:'Inter', Arial, sans-serif; --mono:'Courier Prime', 'Courier New', monospace; --slide:800ms; }
+* { box-sizing:border-box; }
+html { background:var(--paper); }
+body { margin:0; background:var(--paper); color:var(--ink); font:17px/1.5 var(--sans); }
+p { margin:0; } ul { margin:0; padding:0; list-style:none; }
+button { font:inherit; color:inherit; }
+:focus-visible { outline:2px solid var(--glacier); outline-offset:3px; }
+.eyebrow { font-family:var(--mono); font-weight:700; font-size:14px; letter-spacing:1px; text-transform:uppercase; color:var(--ink); }
+.mono { font-family:var(--mono); font-weight:700; white-space:nowrap; }
+.mark { background:var(--ember-fill); color:var(--ink); padding:0 6px; }
+.tb { background:none; border:0; padding:4px 0; font:500 17px var(--sans); color:var(--ink); cursor:pointer; text-decoration:underline; text-decoration-color:var(--hair); text-decoration-thickness:2px; text-underline-offset:6px; white-space:nowrap; }
+.tb:hover { text-decoration-color:var(--ink); }
+.tb[disabled] { color:var(--faint); cursor:default; text-decoration-color:transparent; }
+.primary { background:var(--ink); color:var(--paper); border:0; border-radius:0; padding:14px 24px; font:600 18px var(--sans); cursor:pointer; }
+.primary:hover { background:#000; }
+.dot { display:inline-block; width:14px; height:14px; border-radius:50%; vertical-align:-2px; } .dot.b { background:var(--glacier); } .dot.r { background:var(--ember); }
+.sw { display:inline-block; width:18px; height:14px; vertical-align:-2px; } .sw.good { background:var(--ice); } .sw.bad { background:var(--ember-fill); }
+.dash { display:inline-block; width:26px; height:0; border-top:3px dashed var(--glacier); vertical-align:4px; }
+.wrapw { max-width:1680px; margin:0 auto; padding-left:48px; padding-right:48px; }
+
+/* ---------------------------------------------------------------- opening: the first screen */
+.intro { min-height:100vh; min-height:100svh; display:flex; flex-direction:column; padding-top:28px; padding-bottom:28px; }
+.intro h1 { font-family:var(--serif); font-weight:400; font-size:64px; line-height:1; letter-spacing:-1.5px; margin:10px 0 10px; }
+.intro h1 em { color:var(--soft); }
+.intro .sub { font-size:20px; max-width:980px; }
+.three { display:grid; grid-template-columns: 1fr 1fr 1.25fr; gap:56px; margin-top:22px; border-top:2px solid var(--ink); padding-top:16px; }
+.panel { display:flex; flex-direction:column; gap:14px; min-width:0; }
+.facts { display:flex; flex-direction:column; }
+.facts li { border-top:2px solid var(--hair); padding:9px 0; font-size:18px; line-height:1.4; }
+.facts li:first-child { border-top:0; padding-top:0; }
+.mini { position:relative; }
+#rulefacts li { color:var(--soft); transition:color 300ms; } #rulefacts li.on { color:var(--ink); font-weight:600; }
+.res { font-family:var(--serif); font-size:30px; line-height:1.15; }
+.cta { display:flex; flex-wrap:wrap; gap:16px 32px; align-items:center; margin-top:auto; padding-top:20px; }
+
+/* ---------------------------------------------------------------- depth chart */
+.depth { display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:10px; align-items:end; }
+.depth .col { display:flex; flex-direction:column; align-items:stretch; gap:6px; min-width:0; }
+.depth .pc { font-family:var(--serif); font-size:24px; line-height:1; text-align:center; font-variant-numeric:tabular-nums; }
+.depth .ct { font-size:14px; color:var(--soft); text-align:center; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.depth .bar { background:var(--ink); min-height:2px; }
+.depth .bar.drop { background:var(--ember); }
+.depth .x { font-family:var(--mono); font-weight:700; font-size:15px; text-align:center; border-top:2px solid var(--ink); padding-top:6px; }
+.depth-cap { font-size:15px; color:var(--soft); margin-top:6px; }
+.depth.big .pc { font-size:40px; } .depth.big .ct { font-size:15px; } .depth.big .x { font-size:18px; }
+
+/* ---------------------------------------------------------------- can this be learned */
+.learn { padding-top:72px; padding-bottom:24px; }
+.learn h3 { font-family:var(--serif); font-weight:400; font-size:44px; line-height:1.08; letter-spacing:-0.5px; margin:8px 0 18px; max-width:980px; }
+.lgrid { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1.25fr); gap:56px; align-items:start; }
+.lgrid .txt { display:flex; flex-direction:column; gap:14px; font-size:18px; max-width:560px; }
+.lgrid .txt p.dim { color:var(--soft); font-size:16px; }
+.pairs { display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:14px; align-items:end; margin-top:8px; }
+.pairs .pg { display:flex; flex-direction:column; gap:6px; }
+.pairs .bars { display:flex; gap:4px; align-items:flex-end; height:130px; }
+.pairs .bars div { flex:1; min-height:2px; }
+.pairs .b0 { background:var(--base); } .pairs .b1 { background:var(--ink); }
+.pairs .v { font-size:14px; text-align:center; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.pairs .x { font-family:var(--mono); font-weight:700; font-size:15px; text-align:center; border-top:2px solid var(--ink); padding-top:6px; }
+.pkey { display:flex; gap:20px; font-size:15px; margin-top:10px; } .pkey span { display:inline-flex; align-items:center; gap:8px; } .pkey i { display:inline-block; width:16px; height:14px; }
+.lchart svg { display:block; overflow:visible; } .lchart text { font-family:var(--sans); font-size:14px; fill:var(--ink); } .lchart .ax { fill:var(--soft); } .lchart .nm { font-family:var(--serif); font-size:20px; }
+/* ---------------------------------------------------------------- stage */
+.stage { height:100vh; height:100svh; min-height:620px; display:grid; grid-template-rows:auto auto minmax(0, 1fr); padding-top:22px; padding-bottom:26px; }
+.top { display:flex; justify-content:space-between; align-items:flex-end; gap:24px; border-bottom:2px solid var(--hair); }
+.top .eyebrow { margin-bottom:6px; }
+.sel { display:flex; flex-wrap:wrap; align-items:baseline; gap:0 20px; }
+.sel .mk { font-family:var(--mono); font-weight:700; font-size:13px; letter-spacing:1px; text-transform:uppercase; color:var(--soft); margin-left:10px; }
+.sel .mk:first-child { margin-left:0; }
+.tab { background:none; border:0; border-bottom:2px solid transparent; margin-bottom:-2px; padding:4px 0 10px; cursor:pointer; font-family:var(--serif); font-size:22px; line-height:1.1; color:var(--soft); }
+.tab:hover { color:var(--ink); } .tab.on { color:var(--ink); border-bottom-color:var(--ink); }
+.msel { display:none; font:500 17px var(--sans); padding:8px 10px; border:2px solid var(--hair); border-radius:0; background:var(--card); color:var(--ink); max-width:100%; margin-bottom:12px; }
+.acts { display:flex; gap:28px; align-items:baseline; margin-left:auto; }
+.legend { display:flex; flex-wrap:wrap; gap:4px 26px; align-items:center; font-size:15px; color:var(--ink); padding:12px 0 18px; }
+.legend > span { display:inline-flex; align-items:center; gap:8px; }
+.area { display:grid; grid-template-columns:auto minmax(0, 1fr); grid-template-rows:auto minmax(0, 1fr); grid-template-areas:"board lede" "board side"; column-gap:56px; min-height:0; }
+.lede { grid-area:lede; max-width:620px; }
+.lede h2 { font-family:var(--serif); font-weight:400; font-size:40px; line-height:1.1; letter-spacing:-0.5px; margin:8px 0 20px; }
+.lede h2 .mono, .closing h2 .mono { font-size:0.82em; }
+.bcol { grid-area:board; }
+.side { grid-area:side; max-width:620px; min-height:0; display:flex; flex-direction:column; }
+.board { position:relative; }
+.cell { position:absolute; background:var(--card); border:2px solid var(--hair); }
+.cell.hi { background:var(--frost); border-color:var(--frost); }
+.lab { position:absolute; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-weight:700; font-size:14px; color:var(--soft); }
+.stone { position:absolute; border-radius:50%; z-index:1; }
+.stone.b { background:var(--glacier); } .stone.r { background:var(--ember); }
+.stone.slide { transition:left var(--slide) cubic-bezier(.3, 0, .2, 1), top var(--slide) cubic-bezier(.3, 0, .2, 1); }
+.board svg { position:absolute; left:0; top:0; z-index:2; pointer-events:none; overflow:visible; }
+.board .tag { position:absolute; z-index:3; display:flex; align-items:center; justify-content:center; text-align:center; font-family:var(--mono); font-weight:700; font-size:13px; line-height:1.1; color:var(--glacier); border:2px dashed var(--glacier); padding:2px; }
+.board .tag[hidden] { display:none; }
+.verdict { min-height:140px; padding:20px 24px; display:flex; flex-direction:column; justify-content:center; gap:8px; border:2px solid var(--hair); transition:opacity 450ms ease; }
+.verdict.good { background:var(--ice); border-color:var(--ice); } .verdict.bad { background:var(--ember-fill); border-color:var(--ember-fill); }
+.verdict.line { border-style:dashed; border-color:var(--ink); }
+.verdict.pending { opacity:0; transition:none; }
+.v-eb { font-family:var(--mono); font-weight:700; font-size:14px; letter-spacing:1px; text-transform:uppercase; }
+.v-title { font-family:var(--serif); font-size:34px; line-height:1.08; }
+.v-title .mono { font-size:28px; }
+.v-body { font-size:17px; line-height:1.45; }
+.ctl { display:flex; flex-wrap:wrap; gap:8px 28px; align-items:baseline; margin:16px 0 6px; }
+.ctl .pos { margin-left:auto; font-family:var(--mono); font-weight:700; font-size:14px; letter-spacing:1px; text-transform:uppercase; color:var(--soft); font-variant-numeric:tabular-nums; }
+.moves { position:relative; list-style:none; margin:8px 0 0; padding:0; overflow-y:auto; min-height:0; flex:1 1 auto; border-top:2px solid var(--hair); }
+.moves li { border-bottom:2px solid var(--hair); }
+.moves li.hd { padding:10px 10px 6px; font-family:var(--mono); font-weight:700; font-size:14px; letter-spacing:1px; text-transform:uppercase; }
+.moves button { width:100%; text-align:left; padding:6px 10px; border:0; border-left:3px solid transparent; background:transparent; cursor:pointer; display:flex; align-items:baseline; gap:12px; font-size:17px; font-variant-numeric:tabular-nums; }
+.moves button:hover { background:var(--card); }
+.moves button.on { background:var(--card); border-left-color:var(--ink); }
+.moves .k { width:1.6em; font-family:var(--mono); font-weight:700; color:var(--soft); } .moves .g { color:var(--glacier); } .moves .r { color:var(--soft); }
+.moves .ln { color:var(--soft); }
+.closing { display:none; grid-column:1 / -1; grid-row:1 / -1; min-height:0; overflow:auto; }
+.closing h2 { font-family:var(--serif); font-weight:400; font-size:44px; line-height:1.08; letter-spacing:-0.5px; margin:8px 0 24px; max-width:1000px; }
+.closing .cbody { max-width:1000px; }
+.stage.end .closing { display:block; } .stage.end .bcol, .stage.end .lede, .stage.end .side { display:none; }
+
+/* ---------------------------------------------------------------- below the fold */
+.below { padding-top:72px; padding-bottom:40px; }
+.sec { max-width:1180px; } .sec + .sec { margin-top:96px; }
+.sec h3 { font-family:var(--serif); font-weight:400; font-size:40px; line-height:1.1; margin:8px 0 8px; }
+.sec .note { color:var(--soft); margin-bottom:22px; max-width:720px; }
+.ph { text-align:center; font-family:var(--mono); font-weight:700; font-size:15px; line-height:1.1; padding-bottom:6px; }
+.ph span { display:block; font-family:var(--sans); font-weight:400; font-size:13px; color:var(--soft); }
+.corner { font-size:13px; color:var(--soft); align-self:end; padding-bottom:6px; }
+.c { font-family:var(--mono); font-weight:700; font-size:14px; padding:0; border-radius:0; border:2px solid var(--hair); background:var(--card); color:var(--ink); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:1px; font-variant-numeric:tabular-nums; min-width:0; overflow:hidden; white-space:nowrap; }
+.c.solved { background:var(--ice); border-color:var(--ice); }
+.c.lost, .c.slow { background:var(--ember-fill); border-color:var(--ember-fill); }
+.c.time { color:var(--ember-text); }
+.c.open { background:transparent; color:var(--soft); font-weight:400; border-style:dashed; }
+.c:hover { border-color:var(--ink); }
+.c.on { outline:3px solid var(--ink); outline-offset:1px; position:relative; z-index:1; }
+.c small { font-size:11px; }
+.c .t { font-weight:400; color:var(--soft); }
+.strip { display:grid; grid-template-columns:230px repeat(12, minmax(0, 1fr)); gap:4px; }
+.strip .c { height:32px; }
+.strip.compact { gap:3px; } .strip.compact .c { height:24px; font-size:13px; }
+.rl { display:flex; align-items:center; gap:10px; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; min-width:0; font-size:15px; color:var(--soft); }
+.rl b { color:var(--ink); font-weight:600; }
+.xrow { grid-column:span 12; font-size:14px; color:var(--soft); display:flex; align-items:center; padding:0 10px; border:2px dashed var(--hair); min-height:24px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.rl.x b { color:var(--soft); }
+.states { display:flex; flex-wrap:wrap; gap:8px 22px; font-size:15px; color:var(--ink); margin:0 0 16px; }
+.states > span { display:inline-flex; align-items:center; gap:8px; }
+.states .c { width:34px; height:24px; cursor:default; }
+.ov { display:grid; grid-template-columns:minmax(220px, 1.7fr) repeat(12, minmax(0, 1fr)); gap:4px; }
+.ov .c { height:44px; }
+.ov .ol { display:flex; flex-direction:column; min-width:0; align-self:center; padding-right:8px; }
+.ov .ol .n { font-family:var(--serif); font-size:22px; line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ov .ol .tm { font-size:14px; color:var(--soft); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.ov .sep { grid-column:1 / -1; border-top:2px solid var(--hair); margin:10px 0 6px; }
+.ladder { display:flex; flex-direction:column; gap:10px; }
+.lrow { display:grid; grid-template-columns:250px minmax(0, 1fr); gap:20px; align-items:center; }
+.llabel { text-align:right; font-size:17px; line-height:1.2; }
+.llabel span { display:block; font-size:14px; color:var(--soft); }
+.llabel.ref, .llabel.base { color:var(--soft); }
+.ltrack { display:flex; align-items:center; gap:12px; min-width:0; }
+.lbar { height:30px; } .lbar.ref { background:var(--ink); } .lbar.model { background:var(--agent); } .lbar.base { background:var(--base); }
+.lval { font-family:var(--serif); font-size:26px; line-height:1; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.lgap { height:6px; }
+.cost svg { display:block; overflow:visible; }
+.cost text { font-family:var(--sans); font-size:14px; fill:var(--ink); }
+.cost .ax { fill:var(--soft); }
+.cost .nm { font-family:var(--serif); font-size:20px; }
+footer .in { border-top:2px solid var(--ink); padding-top:16px; padding-bottom:56px; display:flex; flex-direction:column; gap:8px; font-size:15px; color:var(--soft); max-width:1180px; }
+.rise { animation:rise 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay:calc(var(--i, 0) * 110ms); }
+@keyframes rise { from { opacity:0; transform:translateY(16px); } }
+@media (prefers-reduced-motion: reduce) { .rise { animation:none; } .verdict { transition:none; } }
+
+/* ---------------------------------------------------------------- narrow screens: everything stacks and scrolls */
+@media (max-width: 899px) {
+  .wrapw { padding-left:16px; padding-right:16px; }
+  .intro { min-height:0; padding-top:24px; }
+  .intro h1 { font-size:42px; letter-spacing:-0.5px; } .intro .sub { font-size:18px; }
+  .three { grid-template-columns:minmax(0, 1fr); gap:36px; margin-top:24px; }
+  .res { font-size:26px; }
+  .stage { height:auto; min-height:0; padding-top:40px; }
+  .top { flex-direction:column; align-items:stretch; gap:6px; border-bottom:0; }
+  .sel { display:none; } .msel { display:block; }
+  .acts { padding-bottom:0; }
+  .area { grid-template-columns:minmax(0, 1fr); grid-template-rows:none; grid-template-areas:"lede" "board" "side"; }
+  .lede h2 { font-size:32px; margin:6px 0 16px; }
+  .side { margin-top:20px; }
+  .moves { overflow:visible; }
+  .v-title { font-size:28px; } .v-title .mono { font-size:24px; }
+  .closing h2 { font-size:30px; }
+  .below { padding-top:56px; }
+  .sec h3 { font-size:32px; }
+  .strip, .ov { grid-template-columns:repeat(12, minmax(0, 1fr)); gap:3px; }
+  .strip .corner, .ov .corner { display:none; }
+  .rl, .ov .ol { grid-column:1 / -1; margin-top:8px; }
+  .xrow { grid-column:1 / -1; white-space:normal; }
+  .ph { font-size:12px; } .ph span, .c .t { display:none; }
+  .c { font-size:12px; border-width:1px; } .c small { font-size:10px; }
+  .strip .c { height:30px; } .strip.compact .c { height:26px; } .ov .c { height:32px; }
+  .ov .ol .n { font-size:20px; }
+  .lrow { grid-template-columns:minmax(0, 1fr); gap:4px; } .llabel { text-align:left; }
+  .depth.big .pc { font-size:26px; } .depth .ct { font-size:12px; }
+  .learn { padding-top:48px; } .learn h3 { font-size:30px; } .lgrid { grid-template-columns:minmax(0, 1fr); gap:28px; } .pairs { gap:6px; } .pairs .v { font-size:12px; }
+}
+</style></head><body>
+
+<section class="intro wrapw" id="intro">
+<p class="eyebrow rise">Thin Ice &middot; a planning test for AI models</p>
+<h1 class="rise" style="--i:1">How far ahead can an AI model <em>plan</em>?</h1>
+<p class="sub rise" style="--i:2">A small board game where every position is solved. AI models play it, and every move is checked.</p>
+<div class="three rise" style="--i:3">
+  <div class="panel"><p class="eyebrow">1 &middot; The game</p>
+    <div class="mini" id="mini" aria-label="rules animation"></div>
+    <ul class="facts" id="rulefacts"><li>7 by 6 board, 4 stones each.</li><li>A stone slides until a stone or the edge stops it.</li><li>Three in a row wins.</li></ul></div>
+  <div class="panel"><p class="eyebrow">2 &middot; The test</p>
+    <ul class="facts"><li>12 puzzles. In each one, Blue has a guaranteed win in 1 to 6 moves.</li>
+    <li>An AI model plays Blue <span class="dot b"></span>. No code, no search program: only its own reasoning.</li>
+    <li>Red <span class="dot r"></span> is a perfect opponent: it always holds out as long as possible.</li>
+    <li>A puzzle is lost at the first move that gives up the guaranteed win.</li></ul></div>
+  <div class="panel"><p class="eyebrow">3 &middot; What happened</p>
+    <p class="res" id="res"></p>
+    <div class="depth" id="depth1"></div>
+    <p class="depth-cap" id="depthcap"></p></div>
+</div>
+<div class="cta rise" style="--i:4"><button class="primary" id="tour1">New here? Take the 1-minute tour</button><button class="tb" id="watchbtn">Or watch a real game &darr;</button></div>
+</section>
+
+<section class="learn wrapw" id="learnsec">
+<p class="eyebrow">Can this be learned?</p><h3 id="lh"></h3>
+<div class="lgrid"><div class="txt" id="ltxt"></div><div><div class="lchart" id="lchart"></div></div></div>
+</section>
+
+<section class="stage wrapw" id="stage">
+<div class="top">
+  <div><p class="eyebrow">Watch a real game</p><nav class="sel" id="sel" aria-label="model"></nav><select class="msel" id="msel" aria-label="model"></select></div>
+</div>
+<div class="legend"><span><span class="dot b"></span>Blue: the AI</span><span><span class="dot r"></span>Red: perfect opponent</span><span><span class="sw good"></span>kept the win</span><span><span class="sw bad"></span>threw the win away</span><span><span class="dash"></span>would have won</span><span class="acts"><button class="tb" id="tourbtn">Take the tour</button><button class="tb" id="fsbtn">Fullscreen</button></span></div>
+<div class="area" id="area">
+  <div class="lede"><p class="eyebrow" id="eb"></p><h2 id="hl"></h2></div>
+  <div class="bcol"><div class="board" id="board" aria-label="board"></div></div>
+  <div class="side">
+    <div class="verdict" id="note" aria-live="polite"><p class="v-eb" id="veb" hidden></p><p class="v-title" id="vt"></p><p class="v-body" id="vb"></p></div>
+    <div class="ctl"><button class="tb" id="prev">&larr; Back</button><button class="tb" id="play">Play</button><button class="tb" id="next">Next &rarr;</button><span class="pos" id="pos"></span></div>
+    <ol class="moves" id="moves"></ol>
+  </div>
+  <div class="closing" id="closing"><p class="eyebrow" id="ceb"></p><h2 id="chl"></h2><div class="cbody" id="cbody"></div>
+    <div class="ctl"><button class="tb" id="cprev">&larr; Previous stop</button><button class="tb" id="cnext">Next stop &rarr;</button><button class="tb" id="cleave">Leave tour</button></div></div>
+</div>
+</section>
+
+<div class="below wrapw">
+<section class="sec" id="runs"><p class="eyebrow" id="st"></p><h3 id="sh"></h3><p class="note" id="sn"></p>
+<div class="states" id="states"></div>
+<div class="strip" id="strip"></div></section>
+<section class="sec"><p class="eyebrow">Scores</p><h3>Share of the 12 puzzles won</h3>
+<p class="note">Each model's bar is its mean over all of its attempts: puzzles won divided by puzzles played. The two references know the game; the baselines show the floor.</p>
+<div class="ladder" id="ladder"></div></section>
+<section class="sec"><p class="eyebrow">All models, puzzle by puzzle</p><h3>Which puzzles were won</h3>
+<p class="note">Each cell counts the attempts that won the puzzle. Darker blue means more of them did; a red 0 means none did. Click a cell to watch that model's first lost attempt at it.</p>
+<div class="ov" id="ov"></div></section>
+<section class="sec"><p class="eyebrow">Cost</p><h3>Score against cost</h3>
+<p class="note" id="costnote"></p>
+<div class="cost" id="cost"></div></section>
+</div>
+<footer class="wrapw"><div class="in"><p id="src"></p>
+<p>Keys: left and right arrows step through the moves, up and down change the puzzle, space plays or pauses, T starts or leaves the tour (in the tour, space or right arrow goes to the next stop, Esc leaves), F toggles fullscreen.</p></div></footer>
+
+<script>
+const DATA = __DATA__;
+const el = id => document.getElementById(id);
+const RUNS = []; DATA.groups.forEach(g => g.runs.forEach(r => RUNS.push({ g, r })));
+const isModel = g => g.kind === 'model';
+const MODELS = DATA.groups.filter(g => isModel(g) && g.runs.length), REFS = DATA.groups.filter(g => !isModel(g) && g.runs.length);
+const MRUNS = RUNS.filter(x => isModel(x.g));
+const TABS = MODELS.map(g => ({ id: g.slug, label: g.short, maker: g.maker, groups: [g] }));
+if (REFS.length) TABS.push({ id: 'refs', label: 'References', maker: 'Reference', groups: REFS });
+const tabOf = g => isModel(g) ? g.slug : 'refs';
+const REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SLIDE = REDUCED ? 0 : 800, STEP = 1600;
+let k = 0, p = 0, f = 0, shownTab = null, token = 0, playing = false, playEnd = 0, timer = null, tour = null, tourTimer = null, B = null, M = null;
+const f3 = x => x.toFixed(3);
+const pct = (a, b) => Math.round(100 * a / b) + '%';
+const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+const mv = s => '<span class="mono">' + s + '</span>';
+const GLYPH = { solved: '✓', lost: '✗', slow: '…', time: '◔', skipped: '–', open: '○' };
+const WORD = { solved: 'won', lost: 'lost: a move threw the win away', slow: 'lost: out of moves', time: 'ran out of time', skipped: 'gave up', open: 'not reached' };
+const idx = r => RUNS.findIndex(x => x.r === r);
+const blueMoves = c => c.frames.filter(fr => fr.name && fr.side === 'Blue' && fr.kind !== 'line');
+const P = DATA.puzzles;
+
+/* ------------------------------------------------ boards (stage and opening) */
+function makeBoard(host, sz, gap, lab) {
+  host.innerHTML = '';
+  const o = { host, sz, gap, lab, cells: [], d: Math.round(sz * 0.68) };
+  host.style.width = (lab + gap + DATA.w * (sz + gap)) + 'px'; host.style.height = (DATA.h * (sz + gap) + lab) + 'px';
+  for (let s = 0; s < DATA.w * DATA.h; s++) { const c = document.createElement('div'), q = pos(o, s); c.className = 'cell'; Object.assign(c.style, { left: q.x + 'px', top: q.y + 'px', width: sz + 'px', height: sz + 'px' }); host.appendChild(c); o.cells.push(c); }
+  for (let y = 0; y < DATA.h; y++) { const l = document.createElement('div'); l.className = 'lab'; l.textContent = y + 1; Object.assign(l.style, { left: 0, top: (DATA.h - 1 - y) * (sz + gap) + 'px', width: lab + 'px', height: sz + 'px' }); host.appendChild(l); }
+  DATA.files.split('').forEach((ch, x) => { const l = document.createElement('div'); l.className = 'lab'; l.textContent = ch; Object.assign(l.style, { left: lab + gap + x * (sz + gap) + 'px', top: DATA.h * (sz + gap) + 'px', width: sz + 'px', height: lab + 'px' }); host.appendChild(l); });
+  o.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  o.svg.setAttribute('width', host.style.width.replace('px', '')); o.svg.setAttribute('height', DATA.h * (sz + gap)); host.appendChild(o.svg);
+  o.tag = document.createElement('div'); o.tag.className = 'tag'; o.tag.hidden = true; o.tag.textContent = 'would have won'; host.appendChild(o.tag);
+  return o;
+}
+function pos(o, s) { return { x: o.lab + o.gap + (s % DATA.w) * (o.sz + o.gap), y: (DATA.h - 1 - Math.floor(s / DATA.w)) * (o.sz + o.gap) }; }
+function mid(o, s) { const q = pos(o, s); return [q.x + o.sz / 2, q.y + o.sz / 2]; }
+function place(o, st, s) { const q = pos(o, s), d = (o.sz - o.d) / 2; st.style.left = q.x + d + 'px'; st.style.top = q.y + d + 'px'; }
+function stones(o, fr, prev) {
+  o.host.querySelectorAll('.stone').forEach(s => s.remove());
+  const base = prev || fr, at = {};
+  const put = (s, cls) => { const d = document.createElement('div'); d.className = 'stone ' + cls; d.style.width = d.style.height = o.d + 'px'; place(o, d, s); o.host.appendChild(d); at[s] = d; };
+  base.blue.forEach(s => put(s, 'b')); base.red.forEach(s => put(s, 'r'));
+  if (prev && fr.move && at[fr.move[0]]) { const st = at[fr.move[0]]; void st.offsetWidth; st.classList.add('slide'); place(o, st, fr.move[1]); }
+  o.cells.forEach((c, s) => c.classList.toggle('hi', !!(fr.move && fr.move.includes(s))));
+  o.svg.innerHTML = ''; o.tag.hidden = true;
+}
+function arrow(o, m, color, dash, edge) {
+  const [x1, y1] = mid(o, m[0]), [x2, y2] = mid(o, m[1]);
+  const L = Math.hypot(x2 - x1, y2 - y1); if (!L) return '';
+  const ux = (x2 - x1) / L, uy = (y2 - y1) / L, w = Math.max(3, Math.round(o.sz / 18)), hd = w * 4;
+  const back = edge ? o.sz / 2 + 3 : o.d / 2 + 2, ex = x2 - ux * back, ey = y2 - uy * back, bx = ex - ux * hd, by = ey - uy * hd;
+  const sx = x1 + ux * Math.min(o.sz * 0.18, L / 4), sy = y1 + uy * Math.min(o.sz * 0.18, L / 4);
+  const px = -uy * hd * 0.55, py = ux * hd * 0.55;
+  return '<line x1="' + sx + '" y1="' + sy + '" x2="' + bx + '" y2="' + by + '" stroke="' + color + '" stroke-width="' + w + '" stroke-linecap="butt"' + (dash ? ' stroke-dasharray="' + dash + '"' : '') + '/>' +
+    '<polygon points="' + ex + ',' + ey + ' ' + (bx + px) + ',' + (by + py) + ' ' + (bx - px) + ',' + (by - py) + '" fill="' + color + '"/>' +
+    '<circle cx="' + x1 + '" cy="' + y1 + '" r="' + w * 1.3 + '" fill="' + color + '"/>';
+}
+function arrows(o, fr) {
+  let h = '';
+  if (fr.move) {
+    const color = fr.kind === 'bad' ? '#E0352B' : fr.kind === 'line' ? '#17191C' : fr.side === 'Blue' ? '#2F5D93' : '#17191C';
+    h += arrow(o, fr.move, color, fr.kind === 'line' ? (o.sz / 9) + ' ' + (o.sz / 9) : '');
+  }
+  if (fr.alt) {
+    h += arrow(o, fr.alt, '#2F5D93', (o.sz / 5) + ' ' + (o.sz / 9), true);
+    const q = pos(o, fr.alt[1]); o.tag.hidden = false;
+    Object.assign(o.tag.style, { left: q.x + 'px', top: q.y + 'px', width: o.sz + 'px', height: o.sz + 'px', fontSize: (o.sz < 60 ? 10 : 13) + 'px' });
+  }
+  o.svg.innerHTML = h;
+}
+function layout() {
+  const area = el('area'), wide = innerWidth >= 900, gap = wide ? 6 : 4, lab = 24;
+  let sz;
+  if (wide) sz = Math.min((area.clientHeight - lab) / DATA.h - gap, (area.clientWidth * 0.58 - lab - gap) / DATA.w - gap, 128);
+  else sz = Math.min((area.clientWidth - lab - gap) / DATA.w - gap, 64);
+  B = makeBoard(el('board'), Math.max(28, Math.floor(sz)), gap, lab);
+  const mw = el('mini').parentElement.clientWidth;
+  M = makeBoard(el('mini'), Math.max(20, Math.min(30, Math.floor((mw - 22) / DATA.w - 3))), 3, 18);
+  miniShow(false);
+  costChart(el('cost')); learnChart(el('lchart'));
+}
+
+/* ------------------------------------------------ opening: rules animation, result, depth chart */
+let mi = 0, miniTimer = null;
+const MINICAP = ['Four stones each.', 'A stone slides until something stops it.', 'Red moves the same way.', 'Three in a row wins.'];
+function miniShow(anim) {
+  const fs = DATA.demo.frames, fr = fs[mi];
+  stones(M, fr, anim && SLIDE && mi > 0 ? fs[mi - 1] : null);
+  const t = ++miniTok;
+  if (anim && SLIDE) setTimeout(() => { if (t === miniTok) arrows(M, fr); }, SLIDE); else arrows(M, fr);
+  const on = [0, 1, 1, 2][mi]; document.querySelectorAll('#rulefacts li').forEach((li, i) => li.classList.toggle('on', i === on));
+}
+let miniTok = 0;
+function miniLoop() { clearTimeout(miniTimer); miniTimer = setTimeout(() => { mi = (mi + 1) % DATA.demo.frames.length; miniShow(mi > 0); miniLoop(); }, mi === DATA.demo.frames.length - 1 ? 3200 : 2300); }
+function tiers() {
+  const t = {}; for (let w = 1; w <= 6; w++) t[w] = [0, 0];
+  MRUNS.forEach(x => x.r.cells.forEach((c, j) => { const w = P[j].win_in; t[w][1]++; if (c.state === 'solved') t[w][0]++; }));
+  return t;
+}
+function shortLong() {
+  const t = tiers(); let a = 0, b = 0, c = 0, d = 0;
+  for (let w = 1; w <= 3; w++) { a += t[w][0]; b += t[w][1]; }
+  for (let w = 4; w <= 6; w++) { c += t[w][0]; d += t[w][1]; }
+  return { a, b, c, d };
+}
+function depth(host, big) {
+  const t = tiers(); host.innerHTML = ''; host.classList.toggle('big', !!big);
+  const H = big ? 260 : 96;
+  for (let w = 1; w <= 6; w++) {
+    const [s, n] = t[w], col = document.createElement('div'); col.className = 'col';
+    col.innerHTML = '<div class="pc">' + (n ? pct(s, n) : '') + '</div><div class="ct">' + s + '/' + n + '</div>' +
+      '<div class="bar' + (w >= 4 ? ' drop' : '') + '" style="height:' + Math.max(2, Math.round(H * (n ? s / n : 0))) + 'px"></div><div class="x">' + w + '</div>';
+    col.title = 'Win in ' + w + ': ' + s + ' of ' + n + ' puzzles won';
+    host.appendChild(col);
+  }
+}
+
+/* ------------------------------------------------ the current view */
+function cur() {
+  const s = tour && tour.stops[tour.i];
+  if (s && s.demo) return { c: DATA.demo, demo: true };
+  const x = RUNS[k]; return { c: x.r.cells[p], x };
+}
+const lastF = () => cur().c.frames.length - 1;
+function headline(x, c, q) {
+  const a = x.g.actor, head = 'Blue can force a win in ' + plural(q.win_in, 'move') + '. ';
+  if (c.state === 'solved') return head + a + ' found it.';
+  if (c.state === 'open') return 'This attempt ended before reaching puzzle ' + q.num + '.';
+  if (c.state === 'time') return head + a + ' ran out of time.';
+  if (c.state === 'skipped') return head + a + ' gave up.';
+  if (c.state === 'slow') return head + a + ' was too slow.';
+  const b = c.bad !== null ? c.frames[c.bad] : null;
+  return head + a + (b && b.name ? ' played ' + mv(b.name) + '.' : ' did not finish.');
+}
+function verdict(fr, anim) {
+  const v = el('note');
+  v.className = 'verdict ' + (fr.kind === 'demo' || fr.kind === 'start' || fr.kind === 'reply' ? '' : fr.kind) + (anim && SLIDE ? ' pending' : '');
+  const sym = fr.kind === 'good' ? '✓ ' : fr.kind === 'bad' ? '✗ ' : '';
+  el('veb').hidden = fr.kind !== 'line'; el('veb').textContent = "Solver's line, not played";
+  if (fr.name && fr.kind !== 'demo') {
+    el('vt').innerHTML = sym + fr.side + ' ' + mv(fr.name) + (fr.verb ? ' ' + fr.verb : '');
+  } else el('vt').textContent = sym + (fr.title || (fr.kind === 'start' ? 'Puzzle start' : ''));
+  el('vb').textContent = fr.text;
+}
+function draw(anim) {
+  const v = cur(), c = v.c, fr = c.frames[f], stop = tour && tour.stops[tour.i];
+  if (!v.demo) {
+    const x = v.x, q = P[p], tid = tabOf(x.g);
+    if (shownTab !== tid) { strip(TABS.find(t => t.id === tid)); shownTab = tid; }
+    document.querySelectorAll('.tab').forEach(b => { b.classList.toggle('on', b.dataset.t === tid); b.setAttribute('aria-pressed', b.dataset.t === tid); });
+    el('msel').value = tid;
+    document.querySelectorAll('#strip .c.on').forEach(b => b.classList.remove('on'));
+    const on = document.querySelector('#strip .c[data-k="' + k + '"][data-p="' + p + '"]'); if (on) on.classList.add('on');
+    const where = (isModel(x.g) ? x.g.label + ' · attempt ' + x.r.n + ' of ' + x.g.runs.length : x.g.label) + ' · puzzle ' + q.num + ' of ' + P.length;
+    el('eb').textContent = stop ? 'Tour ' + (tour.i + 1) + ' / ' + tour.stops.length + ' · ' + where : where;
+    el('hl').innerHTML = stop ? stop.cap : headline(x, c, q);
+  } else {
+    el('eb').textContent = 'Tour ' + (tour.i + 1) + ' / ' + tour.stops.length + ' · how the game works';
+    el('hl').innerHTML = stop.cap;
+  }
+  const t = ++token, prev = anim && SLIDE && f > 0 && fr.move ? c.frames[f - 1] : null;
+  stones(B, fr, prev);
+  if (prev) setTimeout(() => { if (t === token) { arrows(B, fr); el('note').classList.remove('pending'); } }, SLIDE + 60);
+  else arrows(B, fr);
+  verdict(fr, !!prev);
+  el('pos').textContent = 'Step ' + f + ' of ' + (c.frames.length - 1);
+  el('prev').innerHTML = tour ? '&larr; Previous stop' : '&larr; Back';
+  el('next').innerHTML = tour ? 'Next stop &rarr;' : 'Next &rarr;';
+  el('prev').disabled = tour ? tour.i === 0 : f === 0;
+  el('next').disabled = tour ? false : f === c.frames.length - 1;
+  el('play').textContent = playing ? 'Pause' : 'Play';
+  const ml = el('moves'); ml.innerHTML = ''; let turn = 0;
+  c.frames.forEach((g, i) => {
+    if (i === 0) return;
+    if (i === c.line) { const h = document.createElement('li'); h.className = 'hd'; h.textContent = "Red now wins like this · solver's line, not played"; ml.appendChild(h); }
+    const li = document.createElement('li'), b = document.createElement('button');
+    let label;
+    if (g.kind === 'line') label = '<span class="k"></span><span class="ln">' + g.side + ' ' + mv(g.name) + '</span>';
+    else if (g.kind === 'reply' || (g.kind === 'demo' && g.side === 'Red')) label = '<span class="k"></span><span class="r">Red ' + mv(g.name) + '</span>';
+    else if (g.name) { turn++; label = '<span class="k">' + turn + '</span><span class="' + (g.kind === 'bad' ? 'mark' : 'g') + '">' + (g.kind === 'bad' ? '✗' : g.kind === 'good' ? '✓' : '') + ' Blue ' + mv(g.name) + (g.verb ? ', ' + g.verb : '') + '</span>'; }
+    else label = '<span class="k"></span><span class="mark">✗ ' + (g.title || '') + '</span>';
+    b.innerHTML = label; b.className = i === f ? 'on' : ''; b.onclick = () => { stopPlay(); f = i; draw(false); };
+    li.appendChild(b); ml.appendChild(li);
+  });
+  const on2 = ml.querySelector('button.on'); if (on2 && ml.scrollHeight > ml.clientHeight) { const li2 = on2.parentElement; if (li2.offsetTop < ml.scrollTop) ml.scrollTop = li2.offsetTop; else if (li2.offsetTop + li2.offsetHeight > ml.scrollTop + ml.clientHeight) ml.scrollTop = li2.offsetTop + li2.offsetHeight - ml.clientHeight; }
+  if (!tour && !v.demo) history.replaceState(null, '', '#' + v.x.g.slug + '/' + v.x.r.n + '/' + P[p].id + '/' + f);
+}
+function open(i, j) { const c = RUNS[i].r.cells[j]; k = i; p = j; f = c.state === 'lost' && c.bad !== null ? c.bad : 0; draw(false); }
+function toStage() { el('stage').scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth' }); }
+
+/* ------------------------------------------------ play */
+function stopPlay() { playing = false; clearTimeout(timer); el('play').textContent = 'Play'; }
+function startPlay() {
+  const last = lastF();
+  if (f >= last) { f = 0; draw(false); }
+  playing = true; playEnd = last; el('play').textContent = 'Pause';
+  timer = setTimeout(tick, f === 0 ? 1100 : stepTime());
+}
+const stepTime = () => (cur().demo ? 2600 : STEP);
+function tick() {
+  if (!playing) return;
+  if (f < playEnd) { f++; draw(true); }
+  if (f >= playEnd) { playing = false; el('play').textContent = 'Play'; if (tour) { clearTimeout(tourTimer); tourTimer = setTimeout(nextStop, 2800); } return; }
+  timer = setTimeout(tick, stepTime());
+}
+
+/* ------------------------------------------------ selector, strip, overview, ladder, cost */
+function selector() {
+  const s = el('sel'); s.innerHTML = ''; let mk = null;
+  const ms = el('msel'); ms.innerHTML = ''; let og = null;
+  TABS.forEach(tb => {
+    if (tb.maker !== mk) { mk = tb.maker; const m = document.createElement('span'); m.className = 'mk'; m.textContent = mk; s.appendChild(m); og = document.createElement('optgroup'); og.label = mk; ms.appendChild(og); }
+    const b = document.createElement('button'); b.className = 'tab'; b.dataset.t = tb.id; b.textContent = tb.label;
+    b.title = tb.id === 'refs' ? 'Perfect play, rules-only search and two baselines' : tb.groups[0].label + ': ' + plural(tb.groups[0].runs.length, 'attempt') + ', mean ' + f3(tb.groups[0].mean);
+    b.onclick = () => pickTab(tb.id); s.appendChild(b);
+    const o = document.createElement('option'); o.value = tb.id; o.textContent = tb.id === 'refs' ? 'Perfect play and baselines' : tb.groups[0].label + ' (' + f3(tb.groups[0].mean) + ')'; og.appendChild(o);
+  });
+  ms.onchange = e => pickTab(e.target.value);
+}
+function pickTab(id) { const tb = TABS.find(t => t.id === id); stopPlay(); if (tour) leaveTour(true); k = idx(tb.groups[0].runs[0]); f = 0; draw(false); }
+function headers(gd, corner) {
+  const c = document.createElement('div'); c.className = 'corner'; c.textContent = corner || 'Puzzle'; gd.appendChild(c);
+  P.forEach(q => { const d = document.createElement('div'); d.className = 'ph'; d.innerHTML = q.num + '<span>' + plural(q.win_in, 'move') + '</span>'; gd.appendChild(d); });
+}
+function cellBtn(c, i, j, label) {
+  const b = document.createElement('button'); b.className = 'c ' + c.state; b.dataset.k = i; b.dataset.p = j;
+  b.innerHTML = GLYPH[c.state] + (c.state === 'lost' && c.bad !== null ? '<small>' + c.bad + '</small>' : '');
+  b.title = label + ', puzzle ' + P[j].num + ': ' + WORD[c.state] + (c.state === 'lost' && c.bad !== null ? ' at step ' + c.bad : '');
+  b.setAttribute('aria-label', b.title);
+  b.onclick = () => { stopPlay(); if (tour) leaveTour(true); open(i, j); toStage(); };
+  return b;
+}
+function states() {
+  const h = el('states'); h.innerHTML = '';
+  ['solved', 'lost', 'slow', 'time', 'skipped', 'open'].forEach(s => { const sp = document.createElement('span'); sp.innerHTML = '<span class="c ' + s + '">' + GLYPH[s] + (s === 'lost' ? '<small>3</small>' : '') + '</span>' + (s === 'lost' ? 'lost: the move at step 3 threw the win away' : WORD[s]); h.appendChild(sp); });
+}
+function strip(tb) {
+  const gd = el('strip'); gd.innerHTML = ''; headers(gd, tb.id === 'refs' ? 'Puzzle' : 'Attempt');
+  const rows = tb.groups.flatMap(g => g.runs.map(r => ({ g, r })));
+  const xs = tb.groups.flatMap(g => g.excluded || []);
+  gd.classList.toggle('compact', rows.length + xs.length > 10);
+  rows.forEach(({ g, r }) => {
+    const i = idx(r), l = document.createElement('div'); l.className = 'rl';
+    l.innerHTML = tb.id === 'refs' ? '<b>' + g.short + '</b>' + r.solved + ' of ' + r.total : '<b>Attempt ' + r.n + '</b>' + r.solved + ' of ' + r.total + ' won';
+    gd.appendChild(l);
+    r.cells.forEach((c, j) => gd.appendChild(cellBtn(c, i, j, tb.id === 'refs' ? g.label : g.label + ', attempt ' + r.n)));
+  });
+  xs.forEach(x => {
+    const l = document.createElement('div'); l.className = 'rl x'; l.innerHTML = '<b>Excluded</b>'; gd.appendChild(l);
+    const d = document.createElement('div'); d.className = 'xrow'; d.textContent = 'Not counted: ' + x.reason + ' (' + x.job + ')'; d.title = x.job + '/' + x.trial; gd.appendChild(d);
+  });
+  if (tb.id === 'refs') { el('st').textContent = 'References and baselines'; el('sh').textContent = 'Perfect play and baselines'; el('sn').textContent = 'The solver, a rules-only search program, and two baselines, one attempt each. Click a cell to watch it on the board above.'; }
+  else { const g = tb.groups[0]; el('st').textContent = g.label; el('sh').textContent = 'Every attempt'; el('sn').textContent = plural(g.runs.length, 'attempt') + ' counted, mean ' + f3(g.mean) + ' (' + g.solved + ' of ' + g.total + ' puzzles won)' + (g.excluded.length ? '; ' + plural(g.excluded.length, 'attempt') + ' not counted, listed at the bottom' : '') + '. Click a cell to watch it on the board above.'; }
+}
+function mix(s) { const a = [250, 247, 240], b = [110, 155, 209]; return 'rgb(' + a.map((v, i) => Math.round(v + (b[i] - v) * s)).join(',') + ')'; }
+function overview(gd) {
+  gd.innerHTML = ''; headers(gd);
+  let sep = false;
+  [...MODELS, ...REFS].forEach(g => {
+    if (!isModel(g) && !sep) { const s = document.createElement('div'); s.className = 'sep'; gd.appendChild(s); sep = true; }
+    const l = document.createElement('div'); l.className = 'ol';
+    l.innerHTML = '<span class="n">' + g.label + '</span><span class="tm">' + (isModel(g) ? f3(g.mean) + ' · ' + plural(g.runs.length, 'attempt') : f3(g.runs[0].reward)) + '</span>';
+    gd.appendChild(l);
+    P.forEach((q, j) => {
+      if (!isModel(g)) { gd.appendChild(cellBtn(g.runs[0].cells[j], idx(g.runs[0]), j, g.label)); return; }
+      const n = g.runs.length, s = g.runs.filter(r => r.cells[j].state === 'solved').length;
+      const b = document.createElement('button'); b.className = 'c';
+      b.style.background = mix(s / n); if (s) b.style.borderColor = mix(s / n);
+      b.innerHTML = (s ? s : '<span class="mark">0</span>') + '<span class="t">/' + n + '</span>';
+      b.title = g.label + ', puzzle ' + q.num + ': won in ' + s + ' of ' + n + ' attempts'; b.setAttribute('aria-label', b.title);
+      b.onclick = () => { stopPlay(); if (tour) leaveTour(true); const r = g.runs.find(x => x.cells[j].state !== 'solved') || g.runs[0]; open(idx(r), j); toStage(); };
+      gd.appendChild(b);
+    });
+  });
+}
+function ladder(host) {
+  host.innerHTML = '';
+  const refs = REFS.filter(g => g.kind === 'ref'), base = REFS.filter(g => g.kind === 'base');
+  const ms = [...MODELS].sort((a, b) => b.mean - a.mean || a.label.localeCompare(b.label));
+  const row = (g, cls) => {
+    const v = isModel(g) ? g.mean : g.runs[0].reward, r = document.createElement('div'); r.className = 'lrow';
+    r.innerHTML = '<div class="llabel ' + cls + '">' + g.label + (isModel(g) ? '<span>' + plural(g.runs.length, 'attempt') + '</span>' : '') + '</div>' +
+      '<div class="ltrack"><div class="lbar ' + cls + '" style="width:calc(' + (v * 100) + '% - ' + (v * 90) + 'px)"></div><span class="lval">' + f3(v) + '</span></div>';
+    host.appendChild(r);
+  };
+  const gap = () => { const d = document.createElement('div'); d.className = 'lgap'; host.appendChild(d); };
+  refs.forEach(g => row(g, 'ref')); gap(); ms.forEach(g => row(g, 'model')); gap(); base.forEach(g => row(g, 'base'));
+}
+function costChart(host) {
+  const pts = MODELS.filter(g => g.cost > 0).map(g => ({ g, x: g.cost, y: g.mean }));
+  const miss = MODELS.filter(g => !(g.cost > 0)).map(g => g.label);
+  el('costnote').textContent = 'Each point is one model: its mean cost per attempt against its share of puzzles won. Costs are the test harness\'s estimates at list prices.' +
+    miss.map(n => /Nemotron/.test(n) ? ' ' + n + ' ran on a free hosted tier with no cost recorded, so it is not plotted.' : ' ' + n + ' has no recorded cost, so it is not plotted.').join('') +
+    ' The cost axis is logarithmic.';
+  if (!pts.length) { host.innerHTML = ''; return; }
+  const W = Math.min(host.clientWidth || 760, 900), narrow = W < 600, H = narrow ? 300 : 380;
+  const m = { l: narrow ? 44 : 60, r: narrow ? 16 : 40, t: 28, b: 56 };
+  const lo = Math.floor(Math.log10(Math.min(...pts.map(q => q.x)))), hi = Math.ceil(Math.log10(Math.max(...pts.map(q => q.x))));
+  const X = v => m.l + (Math.log10(v) - lo) / Math.max(1, hi - lo) * (W - m.l - m.r), Y = v => m.t + (1 - v) * (H - m.t - m.b);
+  let s = '';
+  for (let e = lo; e <= hi; e++) { const x = X(Math.pow(10, e)); s += '<line x1="' + x + '" y1="' + m.t + '" x2="' + x + '" y2="' + (H - m.b) + '" stroke="#D8D0BF" stroke-width="2"/><text class="ax" x="' + x + '" y="' + (H - m.b + 22) + '" text-anchor="middle">$' + (e < 0 ? Math.pow(10, e).toFixed(-e) : Math.pow(10, e)) + '</text>'; }
+  [0, 0.25, 0.5, 0.75, 1].forEach(v => { s += '<line x1="' + m.l + '" y1="' + Y(v) + '" x2="' + (W - m.r) + '" y2="' + Y(v) + '" stroke="#D8D0BF" stroke-width="' + (v ? 1 : 2) + '"/><text class="ax" x="' + (m.l - 8) + '" y="' + (Y(v) + 5) + '" text-anchor="end">' + v.toFixed(2) + '</text>'; });
+  s += '<line x1="' + m.l + '" y1="' + Y(1) + '" x2="' + (W - m.r) + '" y2="' + Y(1) + '" stroke="#17191C" stroke-width="2" stroke-dasharray="8 6"/><text x="' + (W - m.r) + '" y="' + (Y(1) - 8) + '" text-anchor="end">Perfect play: 1.000</text>';
+  s += '<text class="ax" x="' + ((m.l + W - m.r) / 2) + '" y="' + (H - 10) + '" text-anchor="middle">Mean cost per attempt (US dollars, log scale)</text>';
+  s += '<text class="ax" transform="translate(14,' + ((m.t + H - m.b) / 2) + ') rotate(-90)" text-anchor="middle">Share of puzzles won</text>';
+  const lab = pts.map(q => ({ q, x: X(q.x), y: Y(q.y) })).sort((a, b) => a.y - b.y || a.x - b.x);
+  const boxes = lab.map(a => ({ x0: a.x - 9, x1: a.x + 9, y0: a.y - 9, y1: a.y + 9 }));
+  const hit = r => boxes.some(b => r.x0 < b.x1 && r.x1 > b.x0 && r.y0 < b.y1 && r.y1 > b.y0);
+  let dots = '', names = '';
+  lab.forEach(a => {
+    const name = a.q.g.short, w = name.length * (narrow ? 8.5 : 10), h = 20;
+    const cands = [[12, 0], [-12 - w, 0], [12, -20], [-12 - w, -20], [12, 20], [-12 - w, 20], [-w / 2, -26], [-w / 2, 26], [12, 40], [-12 - w, 40], [12, -40], [-12 - w, -40]];
+    let pick = null;
+    for (const [dx, dy] of cands) { const r = { x0: a.x + dx, x1: a.x + dx + w, y0: a.y + dy - h / 2, y1: a.y + dy + h / 2 }; if (r.x0 >= 0 && r.x1 <= W && !hit(r)) { pick = r; break; } }
+    if (!pick) pick = { x0: a.x + 12, x1: a.x + 12 + w, y0: a.y - h / 2, y1: a.y + h / 2 };
+    boxes.push(pick);
+    const cy = (pick.y0 + pick.y1) / 2;
+    if (Math.abs(cy - a.y) > 4) { const lx = pick.x0 > a.x ? pick.x0 - 2 : pick.x1 < a.x ? pick.x1 + 2 : (pick.x0 + pick.x1) / 2; dots += '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + lx + '" y2="' + (cy > a.y ? pick.y0 + 2 : pick.y1 - 2) + '" stroke="#55585C" stroke-width="1"/>'; }
+    names += '<text class="nm" x="' + pick.x0 + '" y="' + (cy + 6) + '">' + name + '</text>';
+  });
+  lab.forEach(a => { dots += '<circle cx="' + a.x + '" cy="' + a.y + '" r="7" fill="#6E9BD1" stroke="#17191C" stroke-width="2"><title>' + a.q.g.label + ': ' + f3(a.q.y) + ', $' + a.q.x.toFixed(2) + ' per attempt</title></circle>'; });
+  s += dots + names;
+  host.innerHTML = '<svg width="' + W + '" height="' + H + '" role="img" aria-label="Mean cost per attempt against share of puzzles won">' + s + '</svg>';
+}
+
+/* ------------------------------------------------ can this be learned: small model curves (one-move setting) */
+const LI = (() => { const L = DATA.learn || {}; const im = L.imitation; if (!im) return null; return { im, rw: L.reward, probe: L.probe || [], a: im.points[0], z: im.points[im.points.length - 1] }; })();
+const f2 = x => x.toFixed(2);
+const kfmt = x => x >= 1000 ? Math.round(x / 1000) + 'k' : String(x);
+function practiceText() {
+  const xs = MRUNS.filter(x => typeof x.r.practice === 'number');
+  if (!xs.length) return '';
+  const bucket = [[], [], []]; xs.forEach(x => bucket[x.r.practice === 0 ? 0 : x.r.practice <= 3 ? 1 : 2].push(x));
+  const mean = b => b.reduce((s, x) => s + x.r.solved, 0) / b.reduce((s, x) => s + x.r.total, 0);
+  const parts = [['no practice', bucket[0]], ['1 to 3 practice puzzles', bucket[1]], ['4 or more', bucket[2]]].filter(q => q[1].length).map(q => q[0] + ' ' + f3(mean(q[1])) + ' (' + plural(q[1].length, 'attempt') + ')');
+  const ms = bucket.filter(b => b.length).map(mean), spread = Math.max(...ms) - Math.min(...ms);
+  const uni = [];
+  MODELS.forEach(g => { const v = g.runs.map(r => r.practice).filter(n => typeof n === 'number'); if (v.length > 1 && v.length === g.runs.length) { if (v.every(n => n === 0)) uni.push(g.label + ' never used it'); else if (v.every(n => n === 1)) uni.push(g.label + ' used it exactly once per attempt'); } });
+  return 'The frontier models in the main test had this kind of feedback on hand: a practice mode that shows the winning move after a mistake. In ' + bucket[0].length + ' of ' + plural(xs.length, 'counted attempt') + ' they never opened a practice puzzle. Share of puzzles won: ' + parts.join(', ') + '.' +
+    (uni.length ? ' ' + uni.join('; ') + '.' : '') + (spread < 0.06 ? ' Practice made no measurable difference in these runs.' : '');
+}
+function learnPairs(host) {
+  if (!LI) return;
+  const { a, z } = LI; let h = '<div class="pairs">';
+  for (let t = 0; t < 6; t++) h += '<div class="pg" title="' + (t + 1) + ' moves ahead: ' + f2(a.tiers[t]) + ' untrained, ' + f2(z.tiers[t]) + ' trained"><div class="v">' + f2(z.tiers[t]) + '</div><div class="bars"><div class="b0" style="height:' + Math.max(2, 130 * a.tiers[t]) + 'px"></div><div class="b1" style="height:' + Math.max(2, 130 * z.tiers[t]) + 'px"></div></div><div class="x">' + (t + 1) + '</div></div>';
+  h += '</div><div class="pkey"><span><i style="background:#CFC6B4"></i>untrained</span><span><i style="background:#17191C"></i>after ' + kfmt(z.x) + ' training examples</span></div><p class="depth-cap">Share of held-out puzzles won, by how many moves ahead Blue must plan.</p>';
+  host.insertAdjacentHTML('beforeend', h);
+}
+function learnText() {
+  if (!LI) { el('learnsec').hidden = true; return; }
+  const { im, rw, a, z, probe } = LI, rl = rw && rw.points[rw.points.length - 1];
+  el('lh').textContent = 'A tiny open model learns the short puzzles from this game\'s own feedback. The deep ones stay unsolved.';
+  const ps = probe.map(q => q.score), deep = z.tiers.slice(3);
+  let h = '<p>' + (im.model || 'The model').replace('Qwen/', '') + ' is a small open model. It was trained only on feedback this environment produces: a position and the move that wins it, the same information practice mode gives after a wrong move. It was tested on puzzles it never saw in training, not even mirrored or rotated.</p>';
+  h += '<p>Its score went from ' + f3(a.y) + ' untrained to ' + f3(z.y) + ' after ' + kfmt(z.x) + ' training examples, and its legal moves from ' + pct(a.legal, 1) + ' to ' + pct(z.legal, 1) + '.' + (rl ? ' A second run that was only told whether each of its own moves was good, never which move was right, reached ' + f3(rl.y) + '.' : '') + '</p>';
+  h += '<p>The gain is on short puzzles: 1 move ahead from ' + f2(a.tiers[0]) + ' to ' + f2(z.tiers[0]) + ', 2 moves ahead from ' + f2(a.tiers[1]) + ' to ' + f2(z.tiers[1]) + '. From 4 moves ahead it stays near zero (' + deep.map(f2).join(', ') + ').</p>';
+  h += '<div id="lpairs"></div>';
+  h += '<p class="dim">Setting: one position per question, no tools, no notes; 50 held-out puzzles for each depth from 1 to 6, score = mean over the six depths. This is not the 12-puzzle test above.' + (ps.length ? ' In the same one-move setting the Gemini 4 models score ' + f3(Math.min(...ps)) + ' to ' + f3(Math.max(...ps)) + ' (' + (probe[0].per_tier || 10) + ' puzzles per depth).' : '') + '</p>';
+  const pt = practiceText(); if (pt) h += '<p class="dim">' + pt + '</p>';
+  el('ltxt').innerHTML = h; learnPairs(el('lpairs'));
+}
+function learnChart(host) {
+  if (!LI) { host.innerHTML = ''; return; }
+  const W = Math.min(host.clientWidth || 640, 760), narrow = W < 560, H = narrow ? 300 : 380, m = { l: 52, r: narrow ? 12 : 24, t: 20, b: 56 };
+  const lo = 3, hi = 6, top = 0.6;
+  const X = v => m.l + (Math.log10(Math.max(v, 1000)) - lo) / (hi - lo) * (W - m.l - m.r), Y = v => m.t + (1 - v / top) * (H - m.t - m.b);
+  let s = '';
+  for (let e = lo; e <= hi; e++) { const x = X(Math.pow(10, e)); s += '<line x1="' + x + '" y1="' + m.t + '" x2="' + x + '" y2="' + (H - m.b) + '" stroke="#D8D0BF" stroke-width="2"/><text class="ax" x="' + x + '" y="' + (H - m.b + 22) + '" text-anchor="middle">' + kfmt(Math.pow(10, e)).replace('1000k', '1M') + '</text>'; }
+  [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6].forEach(v => { s += '<line x1="' + m.l + '" y1="' + Y(v) + '" x2="' + (W - m.r) + '" y2="' + Y(v) + '" stroke="#D8D0BF" stroke-width="' + (v ? 1 : 2) + '"/><text class="ax" x="' + (m.l - 8) + '" y="' + (Y(v) + 5) + '" text-anchor="end">' + v.toFixed(1) + '</text>'; });
+  const ps = LI.probe.map(q => q.score);
+  if (ps.length) { const y1 = Y(Math.max(...ps)), y2 = Y(Math.min(...ps)); s += '<rect x="' + m.l + '" y="' + y1 + '" width="' + (W - m.l - m.r) + '" height="' + Math.max(2, y2 - y1) + '" fill="#A9C4E6" opacity="0.55"/><text x="' + (m.l + 8) + '" y="' + (y1 - 8) + '">Gemini 4 models, same one-move setting: ' + f3(Math.min(...ps)) + ' to ' + f3(Math.max(...ps)) + '</text>'; }
+  s += '<line x1="' + m.l + '" y1="' + Y(LI.a.y) + '" x2="' + (W - m.r) + '" y2="' + Y(LI.a.y) + '" stroke="#55585C" stroke-width="2" stroke-dasharray="4 6"/><text class="ax" x="' + (W - m.r) + '" y="' + (Y(LI.a.y) - 8) + '" text-anchor="end">untrained: ' + f3(LI.a.y) + '</text>';
+  const line = (pts, color, dash, name) => {
+    const q = pts.filter(p => p.x > 0); if (!q.length) return;
+    s += '<polyline fill="none" stroke="' + color + '" stroke-width="3" points="' + q.map(p => X(p.x) + ',' + Y(p.y)).join(' ') + '"' + (dash ? ' stroke-dasharray="' + dash + '"' : '') + '/>';
+    q.forEach(p => { s += '<circle cx="' + X(p.x) + '" cy="' + Y(p.y) + '" r="4.5" fill="' + color + '"><title>' + kfmt(p.x) + ': ' + f3(p.y) + '</title></circle>'; });
+    const e = q[q.length - 1];
+    return { x: X(e.x), y: Y(e.y), name, color, v: e.y, x0: Math.min(...q.map(p => X(p.x))), yl: Math.max(...q.map(p => Y(p.y))) };
+  };
+  const ends = [line(LI.im.points, '#17191C', '', 'Imitation'), LI.rw ? line(LI.rw.points, '#2F5D93', '9 6', 'Reward only') : null].filter(Boolean);
+  /* imitation: above its last point; reward only: left of and below its whole run, clear of both lines */
+  ends.forEach((e, i) => { s += '<text class="nm" x="' + (i === 0 ? e.x - 10 : e.x0 - 8) + '" y="' + (i === 0 ? e.y - 14 : e.yl + 26) + '" text-anchor="end" fill="' + e.color + '">' + e.name + ' ' + f3(e.v) + '</text>'; });
+  s += '<text class="ax" x="' + ((m.l + W - m.r) / 2) + '" y="' + (H - 10) + '" text-anchor="middle">Training examples seen, log scale (reward only: moves played)</text>';
+  s += '<text class="ax" transform="translate(14,' + ((m.t + H - m.b) / 2) + ') rotate(-90)" text-anchor="middle">Score on held-out puzzles</text>';
+  host.innerHTML = '<svg width="' + W + '" height="' + H + '" role="img" aria-label="Small model score against training examples">' + s + '</svg>';
+}
+
+/* ------------------------------------------------ tour: stops picked from the data by rule */
+function stops() {
+  const S = [], R = MRUNS.length;
+  const clean = c => c.state === 'solved' && c.frames.every(fr => fr.kind !== 'bad');
+  S.push({ demo: true, cap: 'The game: stones slide until something stops them, and three in a row wins.' });
+  for (const w of [2, 1]) {
+    let hit = null;
+    for (const x of MRUNS) { const j = P.findIndex((q, jj) => q.win_in === w && clean(x.r.cells[jj])); if (j >= 0) { hit = { x, j }; break; } }
+    if (hit) { S.push({ i: idx(hit.x.r), j: hit.j, cap: 'An easy puzzle: Blue can force a win in ' + plural(w, 'move') + '. ' + hit.x.g.label + ' finds it.' }); break; }
+  }
+  const seen = new Map();
+  MRUNS.forEach(x => x.r.cells.forEach((c, j) => { const b = blueMoves(c)[0]; if (b && b.kind === 'bad') { const key = j + ' ' + b.name; if (!seen.has(key)) seen.set(key, []); seen.get(key).push(x); } }));
+  let best = null; seen.forEach((xs, key) => { if (!best || xs.length > best[1].length) best = [key, xs]; });
+  let Bm = null;
+  if (best && best[1].length > 1) {
+    const [key, xs] = best, j = +key.split(' ')[0], name = key.slice(key.indexOf(' ') + 1);
+    const x = xs.find(y => y.r.cells[j].line !== null) || xs[0];
+    S.push({ i: idx(x.r), j, cap: 'The most repeated mistake: ' + xs.length + ' attempts opened puzzle ' + P[j].num + ' with ' + mv(name) + '. It throws the win away.' });
+    Bm = { j, fr: blueMoves(x.r.cells[j])[0], at: idx(x.r) };
+  }
+  outer: for (const x of MRUNS) for (let j = 0; j < P.length; j++) {
+    const c = x.r.cells[j];
+    if (c.diag === "overlooked Red's immediate win" && !(Bm && Bm.j === j && Bm.at === idx(x.r))) { S.push({ i: idx(x.r), j, cap: 'A missed threat: after ' + mv(c.frames[c.bad].name) + ', Red makes three in a row on its next move.' }); break outer; }
+  }
+  let deep = null;
+  MRUNS.forEach(x => x.r.cells.forEach((c, j) => { if (c.state === 'solved' && (!deep || P[j].win_in > P[deep.j].win_in)) deep = { x, j }; }));
+  if (deep) { const n = MRUNS.filter(x => x.r.cells[deep.j].state === 'solved').length; S.push({ i: idx(deep.x.r), j: deep.j, cap: 'The longest win any model found: ' + plural(P[deep.j].win_in, 'move') + ' ahead. ' + n + ' of ' + R + ' attempts won this puzzle.' }); }
+  const ref = REFS.find(g => g.slug === 'reference');
+  if (Bm && ref && Bm.fr.alt_name) {
+    const m = Bm.fr.text.match(/\((\d+) of (\d+) possible/);
+    S.push({ i: idx(ref.runs[0]), j: Bm.j, cap: 'Perfect play on puzzle ' + P[Bm.j].num + ': ' + mv(Bm.fr.alt_name) + ' keeps the win' + (m ? ', ' + m[1] + ' of ' + m[2] + ' possible first moves.' : '.') });
+  }
+  const best1 = [...MODELS].sort((a, b) => b.mean - a.mean)[0];
+  if (best1) S.push({ panel: 'ladder', cap: 'Perfect play wins all 12 puzzles. The best model, ' + best1.label + ', wins ' + Math.round(best1.mean * 100) + '% on average.' });
+  const sl = shortLong();
+  if (sl.b && sl.d) S.push({ panel: 'depth', cap: 'Up to 3 moves ahead, the models won ' + pct(sl.a, sl.b) + ' of puzzles. From 4 to 6 moves ahead, ' + pct(sl.c, sl.d) + '.' });
+  if (LI) S.push({ panel: 'learn', cap: 'Can this be learned? A tiny open model trained on this game\'s feedback goes from ' + f3(LI.a.y) + ' to ' + f3(LI.z.y) + ' on puzzles it never saw. The deep ones stay unsolved.' });
+  return S;
+}
+function go(i) {
+  stopPlay(); clearTimeout(tourTimer); tour.i = i; const s = tour.stops[i];
+  el('stage').classList.toggle('end', !!s.panel);
+  if (s.panel) {
+    el('ceb').textContent = 'Tour ' + (i + 1) + ' / ' + tour.stops.length + ' · ' + ({ ladder: 'share of the 12 puzzles won', depth: 'puzzles won by how far ahead Blue must plan', learn: 'a small model, one position per question' })[s.panel];
+    el('chl').innerHTML = s.cap; const cb = el('cbody');
+    if (s.panel === 'ladder') ladder(cb); else if (s.panel === 'learn') { cb.innerHTML = '<div class="lgrid"><div id="tp"></div><div class="lchart" id="tc"></div></div>'; learnPairs(el('tp')); learnChart(el('tc')); } else { cb.innerHTML = '<div class="depth" id="tdepth"></div>'; depth(el('tdepth'), true); const cap = document.createElement('p'); cap.className = 'depth-cap'; cap.textContent = el('depthcap').textContent; cb.appendChild(cap); }
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+    el('cnext').textContent = i === tour.stops.length - 1 ? 'Finish' : 'Next stop →';
+    if (i < tour.stops.length - 1) tourTimer = setTimeout(nextStop, 7000);
+    return;
+  }
+  if (!s.demo) { k = s.i; p = s.j; }
+  f = 0; draw(false); startPlay();
+}
+function startTour() { const s = stops(); if (!s.length) return; tour = { i: 0, stops: s }; el('tourbtn').textContent = 'Leave tour'; toStage(); go(0); }
+function leaveTour(quiet) {
+  stopPlay(); clearTimeout(tourTimer);
+  const wasDemo = tour && tour.stops[tour.i].demo;
+  tour = null; el('stage').classList.remove('end'); el('tourbtn').textContent = 'Take the tour';
+  if (wasDemo) f = 0;
+  if (!quiet) draw(false);
+}
+function nextStop() { if (!tour) return; if (tour.i < tour.stops.length - 1) go(tour.i + 1); else leaveTour(); }
+function prevStop() { if (tour && tour.i > 0) go(tour.i - 1); }
+
+/* ------------------------------------------------ hash, keys, start */
+function fromHash() {
+  const h = decodeURIComponent(location.hash.slice(1)).split('/'); if (h.length < 3) return false;
+  const i = RUNS.findIndex(x => x.g.slug === h[0] && String(x.r.n) === h[1]); const j = P.findIndex(q => q.id === h[2]);
+  if (i < 0 || j < 0) return false;
+  k = i; p = j; f = Math.max(0, Math.min(parseInt(h[3], 10) || 0, RUNS[i].r.cells[j].frames.length - 1)); return true;
+}
+function firstView() {
+  const j = P.findIndex(q => q.id === 'P07'), g = MODELS.find(x => x.slug === 'hydrogen');
+  if (g && j >= 0) for (const r of g.runs) { const fi = r.cells[j].frames.findIndex(fr => fr.name === 'c1-g5' && fr.kind === 'bad'); if (fi > 0) { k = idx(r); p = j; f = fi; return; } }
+  const m = MODELS[0] || REFS[0];
+  for (const r of m.runs) { const jj = r.cells.findIndex(c => c.state === 'lost'); if (jj >= 0) { k = idx(r); p = jj; f = r.cells[jj].bad || 0; return; } }
+  k = idx(m.runs[0]); p = 0; f = 0;
+}
+function fullscreen() { try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else document.documentElement.requestFullscreen().catch(() => {}); } catch (e) {} }
+el('prev').onclick = () => { if (tour) return prevStop(); stopPlay(); if (f > 0) { f--; draw(false); } };
+el('next').onclick = () => { if (tour) return nextStop(); stopPlay(); if (f < lastF()) { f++; draw(true); } };
+el('play').onclick = () => { if (tour) clearTimeout(tourTimer); if (playing) stopPlay(); else startPlay(); };
+el('tourbtn').onclick = () => { if (tour) leaveTour(); else startTour(); };
+el('tour1').onclick = startTour;
+el('watchbtn').onclick = toStage;
+el('fsbtn').onclick = fullscreen;
+el('cprev').onclick = prevStop; el('cnext').onclick = nextStop; el('cleave').onclick = () => leaveTour();
+document.addEventListener('keydown', e => {
+  if (e.altKey || e.ctrlKey || e.metaKey || e.target.tagName === 'SELECT') return;
+  const key = e.key;
+  if (key === 't' || key === 'T') { e.preventDefault(); tour ? leaveTour() : startTour(); return; }
+  if (key === 'f' || key === 'F') { e.preventDefault(); fullscreen(); return; }
+  if (tour) {
+    if (key === 'ArrowRight' || key === ' ') { e.preventDefault(); nextStop(); }
+    else if (key === 'ArrowLeft') { e.preventDefault(); prevStop(); }
+    else if (key === 'Escape') { e.preventDefault(); leaveTour(); }
+    return;
+  }
+  if (key === ' ') { e.preventDefault(); el('play').click(); }
+  else if (key === 'ArrowLeft') { e.preventDefault(); el('prev').click(); }
+  else if (key === 'ArrowRight') { e.preventDefault(); el('next').click(); }
+  else if (key === 'ArrowUp' && p > 0) { e.preventDefault(); stopPlay(); p--; f = 0; draw(false); }
+  else if (key === 'ArrowDown' && p < P.length - 1) { e.preventDefault(); stopPlay(); p++; f = 0; draw(false); }
+});
+document.addEventListener('keyup', e => { if (e.key === ' ' && e.target.tagName !== 'SELECT') e.preventDefault(); });
+window.addEventListener('hashchange', () => { if (!tour && fromHash()) { stopPlay(); draw(false); } });
+let rz = 0; window.addEventListener('resize', () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(() => { layout(); draw(false); }); });
+
+const sl = shortLong();
+el('res').innerHTML = 'Up to 3 moves ahead: <b>' + pct(sl.a, sl.b) + '</b> of puzzles won. 4 to 6 moves ahead: <b>' + pct(sl.c, sl.d) + '</b>.';
+el('depthcap').textContent = 'Puzzles won by how many moves ahead Blue must plan (1 to 6), all ' + plural(MRUNS.length, 'attempt') + ' by ' + plural(MODELS.length, 'model') + ' pooled.';
+depth(el('depth1'));
+el('src').textContent = 'Source: ' + DATA.source + '. Attempts counted per model: ' + MODELS.map(g => g.short + ' ' + g.runs.length).join(', ') +
+  '. Attempts are not counted when an API error ended the session with puzzles still open, or when there is no score sheet; they are listed in each model\'s attempts. Red\'s line after a losing move comes from a rules-only search and is shown where that search finished within its budget.';
+learnText(); selector(); states(); overview(el('ov')); ladder(el('ladder')); layout();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { layout(); draw(false); });
+if (!fromHash()) firstView();
+draw(false); miniLoop();
+</script></body></html>
