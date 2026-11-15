@@ -1,34 +1,22 @@
 # Thin Ice
 
-Thin Ice is a small board game we made up for AfterQuery's "Break the Agent" challenge at Junction 2026, and then solved: all 16.5 billion positions of it. An AI agent gets 12 puzzles in which Blue can force a win, and has to find the moves by thinking. It has no shell and cannot run code. Because the game is solved, every move it plays is known to be right or wrong.
+Thin Ice is a fully solved reinforcement-learning environment, not a benchmark with a judge. We invented a small board game, solved all 16.5 billion positions by exhaustive retrograde analysis, and built 12 puzzles with exact verdicts: every move is provably right or wrong, the reward is puzzles won / 12, and there is no partial credit. The agent has no shell and cannot run code, so the planning has to happen in its own reasoning.
+
 
 What came out: the models we tried plan about three moves ahead. Ask for five and they usually fall through: Gemini 4 won 14 of 196 puzzles that were five or six moves deep.
 
-You can [watch every game, or play the puzzles yourself](https://hectoragofi.github.io/thin-ice-replays/). There is also a [two-minute video](demo/thin-ice-demo.mp4) and a [short deck](demo/thin-ice-deck.pdf).
-
-```
-6 . . . . . . .
-5 . . B . B . .        Blue to move and win in 4.
-4 . . . . R . .        25 legal moves.
-3 . . R R . . .         1 keeps the win (c1-a1).
-2 B . . . . . .        24 lose the game.
-1 . . B . . . R
-  a b c d e f g
-```
-
-This position is from a real Gemini 4 Hydrogen run. It played c1-g5, and Red then wins in two. The same wrong move turned up in 27 runs across seven models.
-
+You can [watch every game, or play the puzzles yourself](https://hectoragofi.github.io/thin-ice-replays/). There is also a [two-minute video](demo/thin-ice-demo.mp4) and a [short deck](demo/thin-ice-deck.pdf) that i would recommend reading as it presents everything nicely.
 ## The game
 
 - 7 columns by 6 rows. Blue and Red have 4 stones each and take turns moving one.
-- A stone slides in one of 8 directions and cannot stop early. It stops on the last empty cell before the edge or before another stone.
+- A stone slides in one of 8 directions and cannot stop early. It stops on the last empty cell before the edge or before another stone. It moves like the queen in chess but it can't take a piece.
 - Three of your stones in a row wins. If you cannot move, you lose.
 
 That is the whole rulebook. Forced wins still run up to 63 moves deep, and in most of our puzzles exactly one move keeps the win. Hence the name.
 
 ## The task
 
-It is a standard [Harbor](https://github.com/laude-institute/harbor) task, run with the stock OpenCode agent.
+It is a standard [Harbor](https://github.com/laude-institute/harbor) task, run with the stock OpenCode agent with a permission config: no shell, no file writing, no web.
 
 The agent plays Blue in 12 puzzles: two each where the win is 1, 2, 3, 4, 5 and 6 moves away. Red is the solver and always picks the longest defence. A puzzle is lost at the first move after which the win is no longer forced, and there is no undo. The agent gets one move more than the puzzle needs.
 
@@ -57,6 +45,9 @@ Same task for every model, 90 minutes per run, 101 runs in total.
 | Stop after the two easiest puzzles | 0.167 | |
 | Do nothing | 0.000 | |
 
+(The number of runs is inconsistent due to different access to frontier models)
+
+
 The scores hide the real pattern, which is depth. Puzzles won, by how many moves away the win is:
 
 | win in | 1 | 2 | 3 | 4 | 5 | 6 |
@@ -70,10 +61,10 @@ Things we checked before believing this:
 
 - It is not the clock. Of the 616 puzzles lost across all runs, 579 were lost to a move the solver proves wrong. Ten ran out of time.
 - Thinking harder helps a little. With reasoning effort set to high, Carbon and Opus both win 11 of 12 puzzles that are 3 or 4 moves away. At 5 and 6 moves they win 0 and 1 of 12.
-- A pricier model is not a deeper one. Haiku 5.5 costs about 13 cents a run and scores 0.500. Opus 5.5 costs about $3.30 and scores 0.531. Opus even lost the first puzzle, a win in one move, in 5 of its 8 runs.
+- Price does not buy reliability. Haiku 5.5 costs about 13 cents a run and scored 0.500; Opus 5.5 costs about $3.30 and scored 0.531, and lost the win-in-one puzzle in 5 of its 8 runs. Opus does reach deeper when it works. 8 of 32 at win in 5–6 versus 0 of 6 for Haiku (even thought this comparison is not exactly fair due to the different number of atempts), so the difference is consistency, not horizon.
 - We built a harder set with wins 7, 8 and 9 moves away. Opus and Carbon won 0 of 30. The solver won all of them.
 
-Twelve puzzles cannot rank models that are close. One puzzle is worth 0.083 and a single model's runs spread from 0.417 to 0.833. Carbon is probably ahead of Argon and Hydrogen. Fable's 0.750 is one run. Sonnet 5.5 has no score because its provider's safety filter refused the task, and Mistral Large 4 has none because the free hosting we had was too slow for the move clock.
+Twelve puzzles cannot rank models that are close. One puzzle is worth 0.083 and a single model's runs spread from 0.417 to 0.833. Carbon is probably ahead of Argon and Hydrogen. Fable's 0.750 is one run. Sonnet 5.5 has no score because its provider's safety filter refused the task.
 
 Everything else, including how runs were excluded, how each model lost and a second measurement with one move per API call, is in [docs/results.md](docs/results.md).
 
@@ -119,26 +110,17 @@ One gap we know about: someone with a shell inside the agent's container could r
 
 Practice inside a session does not help. We told Haiku 5.5, Argon and Carbon to play 12 practice puzzles before the scored ones, and their scores moved by about one puzzle at most.
 
-Training does. A Qwen3 model with 0.6 billion parameters, trained on the moves the solver says win, goes from 0.003 to 0.320 on puzzles it never saw. Trained only on a yes or no after each of its own moves, never shown an answer, it gets to 0.207. Those numbers are from a simpler test with one move per call, where Gemini 4 scores 0.40 to 0.52, so do not compare them with the table above. A 4B model at the same amount of training is only slightly ahead of the 0.6B. Details in [docs/training.md](docs/training.md).
+Training does. A Qwen3 model with 0.6 billion parameters, trained on the moves the solver says win, goes from 0.003 to 0.320 on puzzles it never saw. Trained only on a yes or no after each of its own moves, never shown an answer, it gets to 0.207. Those numbers are from a simpler test with one move per call, where Gemini 4 scores 0.40 to 0.52, so they are not really comparable with the table above. A 4B model at the same amount of training is only slightly ahead of the 0.6B. Details in [docs/training.md](docs/training.md).
 
 ## Why the agent gets no code
 
-We did not start there. On a 5x5 board with a shell, Gemini 4 Carbon wrote its own search and scored 1.000. Same on 7x6. We took the shell away and offered a look-ahead tool, and every model scored about 1.0 by checking every branch. We put a budget on the tool, and Argon solved everything with fewer lookups than our own reference needed.
 
-Writing a search is something these models can already do. Holding a five-move forced line in your head is not, so that is what the task measures. The organisers confirmed that removing code execution is allowed. The longer story, including the harness problems we hit, is in [docs/design.md](docs/design.md).
+We started with code. On a 5×5 board with a shell, Gemini 4 Carbon wrote its own search and scored 1.000; on 7×6 it did the same. We removed the shell and offered a rules-only look-ahead tool, and every model we tried scored about 1.0 by checking every branch. We budgeted the tool, and Argon still solved all 10 puzzles with fewer lookups than our own reference needed. At that point the tool was doing the planning, so we removed it too. What is left is the model's own look-ahead that's when it clicked, writing a search is a solved skill, holding a five-move or more forced line in the agents head is not, it gets confused.
+The longer story, including the harness problems we hit, is in [docs/design.md](docs/design.md).
 
-## What is in here
 
-```
-solver/       Rust. Solves the game and writes out every puzzle with the verdict on each move.
-thinice/      Python game core: rules, puzzle sessions, clocks, the rules-only search.
-task/         The Harbor task: instruction, game server, verifier, references.
-experiments/  The harder puzzle set and the practice variant, built from task/ by script.
-tools/        Grading, the attack suite, the one-move probe, the replay site generator.
-training/     The small-model experiments.
-lean/         The proofs.
-scripts/      evaluate.py, the one command above.
-docs/         The long versions of everything on this page.
-```
+## Key takeaways
 
-The game server has no rules engine in it. It only walks the tables the solver wrote, so it cannot disagree with the solver.
+- Planning horizon is measurable and stable: models solve 1–3, collapse at 5–6, and it is not the clock.
+- More effort fills the middle, not the edge, more money does not buy reliability.
+- In-session practice does not help, but training on the same feedback moves a 0.6B model from 0.003 to 0.320.
