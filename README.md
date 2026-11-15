@@ -184,7 +184,7 @@ With notes, cut-off sessions fell from 6 of 9 to 1 of 7 (Hydrogen, once, on a wi
 
 ## Run it
 
-Needs Harbor (`uv tool install harbor`, or `uv tool install "harbor[modal]"` for Modal) and Docker, or Modal with `-e modal`.
+Needs Harbor (`uv tool install harbor`, or `uv tool install "harbor[modal]"` for Modal) and Docker, or Modal with `-e modal`. Verified both ways: on plain local Docker (Harbor 0.26.0, Docker 28.4.0) perfect play scores 1.000, do nothing 0.000, stop early 0.167, rules-only search 0.917 and a Claude Haiku 5.5 run 0.500, the same as on Modal; the first run on a clean machine takes 1 to 3 minutes including image builds.
 
 ```bash
 # everything: references, baselines and 3 agent runs, one table at the end
@@ -217,7 +217,7 @@ The reward is the number of puzzles won against a perfect opponent, so the only 
 | Do nothing, or stop early | 0 for nothing; 1/12 per puzzle actually won |
 | Guess | A puzzle dies on the first non-winning move. Random play scores 0.00 - 0.08 |
 | Retry, undo, reset | Not in the API. State lives in the game server and only moves forward |
-| Write a program anyway | Shell, file editing, web fetch and web search are denied by a root-owned OpenCode config (`/etc/opencode/opencode.json`) the agent user cannot change; subagents inherit the same denials |
+| Write a program anyway | Shell, file editing, file writing, web fetch and web search are denied by a root-owned managed OpenCode config (`/etc/opencode/opencode.json`), and subagents inherit the same denials. The agent has no tool that can write a file, so it cannot add a config of its own; OpenCode reads its config only at startup. (A config file placed by hand before startup, with per-agent permissions, could re-enable the tools; the agent has no way to place one.) |
 | Use `save_note` for something else | A note is the agent's own text, kept in the game server's memory for that run only and shown back by `show_puzzle`. The server never reads it, it is not on the score sheet, and it is capped (4,000 characters, 100 per puzzle, 2,000 in total). It only lets a long analysis span several turns |
 | Peek at or play ahead on later puzzles | Locked until the current puzzle is won, lost or skipped; viewing or moving on a locked puzzle is refused, under any spelling of its id. A skip counts as lost and cannot be undone |
 | Beat the clock | A move after the puzzle's clock is refused and the puzzle is lost. The clock is server time, starts at the first look and cannot be restarted by re-reading, practising, skipping or another spelling of the id |
@@ -227,7 +227,7 @@ The reward is the number of puzzles won against a perfect opponent, so the only 
 | Tamper with the grader | Verification runs in a separate container that the agent never touches. The agent itself is not root |
 | Break the verifier's input | A missing, malformed or mis-signed score sheet scores 0 |
 
-`python tools/redteam.py <server url>` runs the attack suite against a live game server: 96 checks, all passing, including the puzzle lock and `skip_puzzle`; `--clock` adds 13 attacks on the clock (late winning moves under three id spellings, skip after expiry, re-looking, practice), all refused. The note tool was attacked through a real MCP client (locked puzzles, oversized notes, a fake score written into a note, the caps): the score and the signed receipt never change. In every agent run we read, notes contain only game analysis and no agent touched a non-game tool.
+`python tools/redteam.py <server url>` runs the attack suite against a live game server: 96 checks, all passing, including the puzzle lock and `skip_puzzle`; `--clock` adds 13 attacks on the clock (also run from inside the agent's container on local Docker: 96 of 96, and 13 of 13 after a rounding fix in the check itself) (late winning moves under three id spellings, skip after expiry, re-looking, practice), all refused. The note tool was attacked through a real MCP client (locked puzzles, oversized notes, a fake score written into a note, the caps): the score and the signed receipt never change. In every agent run we read, notes contain only game analysis and no agent touched a non-game tool.
 
 ### The puzzles are proven, not just solved
 

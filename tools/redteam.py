@@ -74,7 +74,7 @@ def clock_attacks() -> int:
         return 1
     time.sleep(1.5)
     p1 = view("P01")
-    check("the clock does not run before the first look", p1.get("seconds_left") == p1.get("clock_seconds") and p1["clock_seconds"] > 0, str(p1.get("seconds_left")))
+    check("the clock does not run before the first look", p1["clock_seconds"] > 0 and p1["clock_seconds"] - 1 <= p1.get("seconds_left", -1) <= p1["clock_seconds"], str(p1.get("seconds_left")))
     wait = p1["clock_seconds"] + 0.5
 
     # 1. A move that arrives after the clock is refused, even the winning one.
