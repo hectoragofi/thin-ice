@@ -41,6 +41,7 @@ MODELS = [
     ("haiku55", "Claude Haiku 5.5", "Haiku 5.5", "Claude", "model", "The AI", ["clock-24d6707-haiku55-x1", "clock-24d6707-haiku55-x2b"]),
     ("sonnet5", "Claude Sonnet 5", "Sonnet 5", "Claude", "model", "The AI", ["clock-24d6707-sonnet5-x1", "clock-24d6707-sonnet5-x2b"]),
     ("opus55", "Claude Opus 5.5", "Opus 5.5", "Claude", "model", "The AI", ["clock-24d6707-opus55-x*"]),
+    ("fable52", "Claude Fable 5.2", "Fable 5.2", "Claude", "model", "The AI", ["clock-24d6707-fable52-x*"]),
     ("nemotron3-ultra", "Nemotron 3 Ultra", "Nemotron 3 Ultra", "NVIDIA", "model", "The AI", ["nim-24d6707-nemotron3-ultra-x*"]),
     ("reference", "Perfect play (solver)", "Perfect play", "Reference", "ref", "The solver", ["clock-24d6707-reference"]),
     ("reference-search", "Rules-only search, 20 s per puzzle", "Rules-only search", "Reference", "ref", "The search", ["clock-24d6707-reference-search"]),
