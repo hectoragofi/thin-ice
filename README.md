@@ -150,9 +150,12 @@ Wins by depth (puzzles solved / puzzles played; 2 puzzles per tier per run):
 | Gemini 4 Carbon | 1.00 | 1.00 | 0.90 | 0.10 | 0.10 | 0.00 | **0.517** |
 | Gemini 3.1 Pro (older generation) | 1.00 | 0.90 | 0.50 | 0.10 | 0.00 | 0.00 | **0.417** |
 | Gemini 3.8 Flash (older generation)* | 1.00 | 0.80 | 0.30 | 0.00 | 0.00 | 0.00 | **0.350** |
+| Claude Haiku 5.5** | 1.00 | 0.70 | 0.30 | 0.10 | 0.10 | 0.00 | **0.367** |
 | Random legal moves | | | | | | | 0.007 |
 
 \* Two 3.8 Flash runs overlapped by accident and shared one cache; the other scored 0.367 (one more win in 5). Either way it sits below every Gemini 4 model.
+
+\*\* Graded on the first move in the reply (`--parse first`): Haiku states its move and then explains, naming later Blue and Red moves, so the default rule (the last move in the reply) picked the wrong one. All 554 cached Gemini replies were re-graded under the first-move rule with no change, so the rows are comparable. File: `results/probe/claude-haiku-5-5-parse-first.summary.json`; the earlier `claude-haiku-5-5.summary.json` is the mis-parsed run, kept as the record. Other Claude models and Nemotron were not probed.
 
 Puzzles solved per tier. Removing the session does not remove the difficulty: the first move of a win in N still needs the full N-deep look-ahead. Two opposite failures show up:
 
