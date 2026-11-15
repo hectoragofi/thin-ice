@@ -112,16 +112,16 @@ const sq = name => (parseInt(name.slice(1), 10) - 1) * BW + FILES.indexOf(name[0
 const B = {};
 
 B.title = (el) => {
-  const best = Math.max(...D.ladder.filter(r => r.kind === 'agent' && r.value != null).map(r => r.value));
+  const ms = D.ladder.filter(r => r.kind === 'agent' && r.value != null).map(r => r.value);
   el.innerHTML = `<div class="center"><div class="big" style="font-size:150px">Thin Ice</div>
-    <div class="sub" style="font-size:52px;color:var(--ink);margin-top:20px;line-height:1.3">Frontier models plan about three moves ahead,<br>and every one of their mistakes can be proven.</div>
-    <div class="sub" style="margin-top:40px">An invented, fully solved board game as an RL environment. No code, only reasoning.<br>Best Gemini 4 model ${f3(isFinite(best) ? best : null)} &middot; rules-only search ${f3(D.ladder[1].value)} &middot; perfect play ${f3(D.ladder[0].value)}</div>
+    <div class="sub" style="font-size:52px;color:var(--ink);margin-top:20px;line-height:1.3">Every model has a planning horizon.<br>Thin Ice measures where it is, and adding depth moves it.</div>
+    <div class="sub" style="margin-top:40px">An invented, fully solved board game as an RL environment. No code, only reasoning.<br>${D.models_measured} models, ${D.runs_measured} runs: ${f3(ms.length ? Math.min(...ms) : null)} to ${f3(ms.length ? Math.max(...ms) : null)} &middot; rules-only search ${f3(D.ladder[1].value)} &middot; perfect play ${f3(D.ladder[0].value)}</div>
     <div class="cmd mono" style="font-size:44px;padding:28px 40px;margin-top:50px;align-self:flex-start">github.com/hectoragofi/thin-ice</div></div>`;
   return { beat() {} };
 };
 
 B.question = (el) => {
-  el.innerHTML = `<div class="center"><div class="big">How far ahead can a frontier model think without a computer?</div>
+  el.innerHTML = `<div class="center"><div class="big">How far ahead can a frontier model plan without a computer?</div>
     <div class="sub fade" id="q2" style="margin-top:40px">No shell. No code. Only its own reasoning.</div></div>`;
   return { beat(k) { if (k >= 1) el.querySelector('#q2').classList.add('on'); } };
 };
@@ -153,7 +153,7 @@ B.mistake = (el) => {
     <p class="fade" id="m1">Played: <b class="mono">${esc(R.played)}</b></p>
     <p class="fade verdict bad" id="m2">Solver: loses. ${esc(R.verdict)}.${R.red_reply ? `<br><span style="font-weight:500">Red starts with <span class="mono">${esc(R.red_reply)}</span>.</span>` : ''}</p>
     <p class="fade verdict good" id="m3">Only <span class="mono">${esc(R.held.join(', '))}</span> held: ${R.keep_win} of ${R.legal}.</p>
-    <p class="fade" id="m4" style="font-size:34px;color:var(--dim)">Same wrong move in ${R.same_move_runs} separate runs. ${D.mistakes.graded} lost puzzles graded this way.</p></div></div>`;
+    <p class="fade" id="m4" style="font-size:34px;color:var(--dim)">Same wrong move in ${R.same_move_runs} runs across ${(R.same_move_models || []).length} models. ${D.mistakes.graded} lost puzzles graded this way.</p></div></div>`;
   const b = makeBoard(88); el.querySelector('#bd').appendChild(b.el);
   b.set(R.blue, R.red);
   const on = id => el.querySelector('#' + id).classList.add('on');
@@ -167,24 +167,25 @@ B.mistake = (el) => {
 };
 
 B.gap = (el) => {
-  el.innerHTML = `<h2>Score: puzzles won out of 12</h2><div id="ch"></div>`;
-  const W = 1680, rowH = D.ladder.length > 7 ? 68 : 82, L = 560, R = 160, rows = D.ladder, H = rows.length * rowH + 60;
-  const s = svg(W, H), x = v => L + v * (W - L - R);
-  for (const t of [0, 0.25, 0.5, 0.75, 1]) { sv(s, 'line', {x1: x(t), x2: x(t), y1: 0, y2: H - 50, stroke: '#d4d6db', 'stroke-width': 2});
-    sv(s, 'text', {x: x(t), y: H - 12, 'font-size': 28, fill: '#4b5563', 'text-anchor': 'middle'}, t.toFixed(2)); }
+  el.innerHTML = `<h2 style="margin-bottom:18px">Score: puzzles won out of 12</h2><div id="ch"></div>`;
+  const rows = D.ladder, W = 1680, rowH = Math.min(82, Math.floor(560 / rows.length)), fs = Math.min(34, Math.round(rowH * 0.66));
+  const L = 560, R = 300, H = rows.length * rowH + 50, s = svg(W, H + 44), x = v => L + v * (W - L - R);
+  for (const t of [0, 0.25, 0.5, 0.75, 1]) { sv(s, 'line', {x1: x(t), x2: x(t), y1: 0, y2: H - 40, stroke: '#d4d6db', 'stroke-width': 2});
+    sv(s, 'text', {x: x(t), y: H - 8, 'font-size': 26, fill: '#4b5563', 'text-anchor': 'middle'}, t.toFixed(2)); }
   const bars = [];
   rows.forEach((r, i) => {
-    const y = i * rowH + 12, col = r.kind === 'agent' ? '#b45309' : r.kind === 'older' ? '#e0b48a' : r.kind === 'ref' ? '#101317' : '#9ca3af';
-    sv(s, 'text', {x: L - 24, y: y + 44, 'font-size': 34, 'text-anchor': 'end', fill: '#101317', 'font-weight': r.kind === 'agent' ? 700 : 500}, r.label);
-    if (r.value == null) { sv(s, 'text', {x: L + 10, y: y + 44, 'font-size': 34, fill: '#9ca3af', 'font-style': 'italic'}, 'pending'); return; }
-    const bar = sv(s, 'rect', {x: L, y: y + 8, height: rowH - 30, width: 0, fill: col, rx: 4}); bars.push([bar, x(r.value) - L]);
-    let lab = r.value.toFixed(3);
-    if ((r.kind === 'agent' || r.kind === 'older') && r.landed < r.expected) lab += `  (${r.landed} of ${r.expected} runs)`;
-    sv(s, 'text', {x: x(Math.max(r.value, ...(r.runs || []))) + 22, y: y + 46, 'font-size': 34, fill: '#101317', 'font-weight': 700, 'font-variant-numeric': 'tabular-nums'}, lab);
-    (r.runs || []).forEach(v => sv(s, 'circle', {cx: x(v), cy: y + 34, r: 9, fill: '#fff', stroke: '#101317', 'stroke-width': 3}));
+    const y = i * rowH + 4, col = r.kind === 'agent' ? '#b45309' : r.kind === 'ref' ? '#101317' : '#9ca3af', mid = y + rowH / 2;
+    sv(s, 'text', {x: L - 24, y: mid + fs * 0.35, 'font-size': fs, 'text-anchor': 'end', fill: '#101317', 'font-weight': r.kind === 'agent' ? 700 : 500}, r.label);
+    if (r.value == null) { sv(s, 'text', {x: L + 10, y: mid + fs * 0.35, 'font-size': fs, fill: '#9ca3af', 'font-style': 'italic'}, 'pending'); return; }
+    const bar = sv(s, 'rect', {x: L, y: y + 5, height: rowH - 10, width: 0, fill: col, rx: 4}); bars.push([bar, x(r.value) - L]);
+    const lx = x(Math.max(r.value, ...(r.runs || []))) + 20;
+    sv(s, 'text', {x: lx, y: mid + fs * 0.35, 'font-size': fs, fill: '#101317', 'font-weight': 700, 'font-variant-numeric': 'tabular-nums'}, r.value.toFixed(3));
+    if (r.kind === 'agent') sv(s, 'text', {x: lx + fs * 3.3, y: mid + fs * 0.35, 'font-size': Math.round(fs * 0.8), fill: '#4b5563', 'font-variant-numeric': 'tabular-nums'}, r.landed === 1 ? '1 run' : `${r.landed} runs`);
+    if (r.kind === 'agent' && r.landed > 1) (r.runs || []).forEach(v => sv(s, 'circle', {cx: x(v), cy: mid, r: Math.max(5, rowH * 0.16), fill: '#fff', stroke: '#101317', 'stroke-width': 2.5, opacity: .85}));
   });
   el.querySelector('#ch').appendChild(s);
-  sv(s, 'text', {x: 0, y: H - 12, 'font-size': 26, fill: '#4b5563'}, 'bar = mean, dots = single runs');
+  const nm = (D.not_measured || []).map(m => `${m.label} (${m.reason})`).join(', ');
+  sv(s, 'text', {x: 0, y: H + 34, 'font-size': 24, fill: '#4b5563'}, 'bar = mean, dots = single runs' + (nm ? `.  Not measured: ${nm}.` : ''));
   return { beat(k) { if (k === 0) bars.forEach(([b, w]) => { b.style.transition = 'width 1.2s'; requestAnimationFrame(() => b.setAttribute('width', Math.max(w, 2))); }); } };
 };
 
@@ -213,22 +214,59 @@ function lineChart(series, opts) {
 }
 
 B.depth = (el) => {
-  el.innerHTML = `<h2>Solve rate by depth, one move per fresh call</h2><div id="ch"></div>`;
-  const tiers = ['1', '2', '3', '4', '5', '6'], cols = {argon: '#1d4ed8', carbon: '#b45309', hydrogen: '#0f766e', flash38: '#9ca3af', pro31: '#c4a484'};
-  const series = Object.entries(D.probe).filter(([, p]) => p.by_tier).map(([k, p]) => ({label: p.label.replace('Gemini 4 ', ''), color: cols[k] || '#9ca3af', width: p.older ? 5 : 7, ys: tiers.map(t => p.by_tier[t])}));
-  const tr = D.small.trained;
-  if (tr && tr.tiers) series.push({label: D.small.label + ' (imitation)', color: '#111827', dash: '14 12', width: 6, ys: tiers.map(t => tr.tiers[t])});
-  const {s, paths} = lineChart(series, {xs: tiers.map(t => 'win in ' + t), xlabel: 'puzzle depth (moves to a forced win)', ymax: 1, ystep: .25, ydec: 2, h: 620, R: 430});
+  const d = D.depth, t = d.by_tier;
+  el.innerHTML = `<h2>${esc(d.label)}: puzzles won by depth, all ${d.runs} runs</h2><div id="ch"></div>`;
+  if (!t) { el.querySelector('#ch').innerHTML = `<div class="sub">${P}</div>`; return { beat() {} }; }
+  const W = 1680, H = 600, L = 110, T = 60, Bt = 90, tiers = ['1', '2', '3', '4', '5', '6'], cw = (W - L) / tiers.length;
+  const s = svg(W, H), y = v => T + (1 - v) * (H - T - Bt);
+  for (const v of [0, .25, .5, .75, 1]) { sv(s, 'line', {x1: L, x2: W, y1: y(v), y2: y(v), stroke: '#d4d6db', 'stroke-width': 2});
+    sv(s, 'text', {x: L - 16, y: y(v) + 10, 'font-size': 28, fill: '#4b5563', 'text-anchor': 'end'}, v.toFixed(2)); }
+  const bars = [];
+  tiers.forEach((k, i) => {
+    const c = t[k], v = c.of ? c.solved / c.of : 0, x0 = L + i * cw + cw * 0.18, w = cw * 0.64;
+    const b = sv(s, 'rect', {x: x0, y: y(v), width: w, height: y(0) - y(v), fill: '#b45309', rx: 4}); bars.push([b, v]);
+    sv(s, 'text', {x: x0 + w / 2, y: y(v) - 16, 'font-size': 40, 'font-weight': 700, fill: '#101317', 'text-anchor': 'middle', 'font-variant-numeric': 'tabular-nums'}, `${c.solved}/${c.of}`);
+    sv(s, 'text', {x: x0 + w / 2, y: H - Bt + 44, 'font-size': 30, fill: '#4b5563', 'text-anchor': 'middle'}, 'win in ' + k);
+  });
+  sv(s, 'text', {x: (L + W) / 2, y: H - 8, 'font-size': 30, fill: '#101317', 'text-anchor': 'middle', 'font-weight': 600}, 'puzzle depth (moves to a forced win), 12-puzzle task');
   el.querySelector('#ch').appendChild(s);
-  paths.forEach(p => { const L = p.getTotalLength(); p.style.strokeDasharray = p.getAttribute('stroke-dasharray') || `${L} ${L}`; });
   return { beat() {} };
 };
 
+B.horizon = (el) => {
+  el.innerHTML = `<h2>Add depth: past the horizon at win in 7 to 9</h2><div id="ch"></div>`;
+  const rows = D.horizon || [], tiers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const W = 1680, L = 520, top = 70, rowH = 112, cw = (W - L) / tiers.length, H = top + rows.length * rowH + 70, s = svg(W, H);
+  tiers.forEach((t, i) => sv(s, 'text', {x: L + i * cw + cw / 2, y: 44, 'font-size': 30, fill: '#4b5563', 'text-anchor': 'middle', 'font-weight': t > 6 ? 700 : 400}, 'win in ' + t));
+  sv(s, 'rect', {x: L + 6 * cw - 4, y: 4, width: 3 * cw + 4, height: H - 64, fill: 'none', stroke: '#101317', 'stroke-width': 3, rx: 10, 'stroke-dasharray': '10 8'});
+  const cells = [];
+  rows.forEach((r, j) => {
+    const y = top + j * rowH, runs = r.main_runs === 1 ? '1 run' : `${r.main_runs} runs`;
+    sv(s, 'text', {x: L - 24, y: y + rowH / 2 - 2, 'font-size': 34, 'font-weight': 700, fill: '#101317', 'text-anchor': 'end'}, r.label);
+    sv(s, 'text', {x: L - 24, y: y + rowH / 2 + 32, 'font-size': 24, fill: '#4b5563', 'text-anchor': 'end'},
+       r.deep_runs ? `${runs}; deep set ${r.deep_runs === 1 ? '1 run' : r.deep_runs + ' runs'}` : `${runs}; deep set not run`);
+    tiers.forEach((t, i) => {
+      const c = (t > 6 ? r.deep : r.main) || null, cc = c && c[String(t)], x0 = L + i * cw + 8, w = cw - 16;
+      if (!cc || !cc.of) { sv(s, 'rect', {x: x0, y: y + 8, width: w, height: rowH - 16, fill: '#ffffff', stroke: '#d4d6db', 'stroke-width': 2, rx: 10});
+        sv(s, 'text', {x: x0 + w / 2, y: y + rowH / 2 + 10, 'font-size': 28, fill: '#9ca3af', 'text-anchor': 'middle'}, 'not run'); return; }
+      const v = cc.solved / cc.of, fill = v === 1 ? '#15803d' : v === 0 ? '#c81e1e' : '#b45309';
+      const g = sv(s, 'g', {opacity: t > 6 ? 0 : 1});
+      sv(g, 'rect', {x: x0, y: y + 8, width: w, height: rowH - 16, fill, opacity: v === 0 ? .85 : .25 + .6 * v, rx: 10});
+      sv(g, 'text', {x: x0 + w / 2, y: y + rowH / 2 + 13, 'font-size': 36, 'font-weight': 700, fill: v > 0 && v < .5 ? '#101317' : '#fff', 'text-anchor': 'middle', 'font-variant-numeric': 'tabular-nums'}, `${cc.solved}/${cc.of}`);
+      if (t > 6) cells.push(g);
+    });
+  });
+  sv(s, 'text', {x: L + 7.5 * cw, y: H - 18, 'font-size': 26, fill: '#101317', 'text-anchor': 'middle', 'font-weight': 600}, 'deep set: 6 puzzles, win in 7 to 9');
+  sv(s, 'text', {x: L + 3 * cw, y: H - 18, 'font-size': 26, fill: '#4b5563', 'text-anchor': 'middle'}, 'main task: 12 puzzles, win in 1 to 6');
+  el.querySelector('#ch').appendChild(s);
+  return { beat(k) { if (k >= 1) cells.forEach(g => { g.style.transition = 'opacity .8s'; g.setAttribute('opacity', 1); }); } };
+};
+
 B.fair = (el) => {
-  const r = D.reach, f = D.facts;
+  const f = D.facts;
   el.innerHTML = `<h2>The mistakes are fair</h2><div class="tiles">
     <div class="tile"><div class="v">${f.clock_min_per_move ?? P} min</div><div class="k">per move of the forced win, its own clock per puzzle (${f.clocks_total_min ?? P} of ${f.run_min ?? P} minutes)</div></div>
-    <div class="tile"><div class="v">${r.reached}/${r.puzzles}</div><div class="k">puzzles reached in ${r.runs} final runs; ${r.out_of_time} ran out of time</div></div>
+    <div class="tile"><div class="v">${D.gemini4_losses.wrong_move}/${D.gemini4_losses.lost}</div><div class="k">Gemini 4 losses that were wrong moves the solver proves; ${D.gemini4_losses.clock} ran out of time</div></div>
     <div class="tile"><div class="v">${f.tools.length} tools</div><div class="k mono" style="font-size:30px">${f.tools.map(esc).join('<br>')}</div></div></div>`;
   return { beat() {} };
 };
@@ -244,12 +282,15 @@ B.learn = (el) => {
   const c = D.curve, rl = c.kind === 'reward-only';
   const title = rl ? `${esc(D.small.label)} learns from reward alone<br><span style="font-size:36px;font-weight:500;color:var(--dim)">one bit per move it plays; it is never shown the answer</span>`
                    : `${esc(D.small.label)} learns by imitating the winning move<br><span style="font-size:36px;font-weight:500;color:var(--dim)">trained on the feedback practice mode gives</span>`;
-  el.innerHTML = `<h2>${title}</h2><div id="ch"></div>`;
+  const pr = D.practice || [], pm = D.practice_max_puzzles;
+  const who = [...new Set(pr.map(p => esc(p.model.replace('Gemini 4 ', '').replace('Claude ', ''))))].join(', ');
+  const note = pr.length ? `<div style="font-size:30px;color:var(--dim);margin:-10px 0 14px">Told to practise in-session (${who}): every change ${pm <= 1 ? 'within one puzzle' : 'up to ' + pm + ' puzzles'}. Training moves the score.</div>` : '';
+  el.innerHTML = `<h2>${title}</h2>${note}<div id="ch"></div>`;
   const series = rl ? [{label: 'reward only', color: '#111827', pts: c.points},
                        {label: 'imitation', color: '#6b7280', dash: '14 12', width: 5, pts: c.imitation}]
                     : [{label: 'imitation', color: '#111827', pts: c.points}];
   const probes = Object.values(D.probe).filter(p => !p.older).map(p => p.mean).filter(v => v != null);
-  const W = 1680, H = 540, L = 110, R = 330, T = 20, Bt = 90;
+  const W = 1680, H = pr.length ? 470 : 540, L = 110, R = 330, T = 20, Bt = 90;
   const xmax = Math.max(...series.flatMap(se => se.pts.map(p => p.x))), xstep = xmax > 300000 ? 100000 : 50000;
   const xend = Math.ceil(xmax / xstep) * xstep;
   const ymax = Math.ceil(Math.max(0.6, ...series.flatMap(se => se.pts.map(p => p.score))) * 10) / 10;
@@ -282,9 +323,10 @@ B.learn = (el) => {
 };
 
 B.repro = (el) => {
-  el.innerHTML = `<div class="center"><h1>Reproduce it</h1><div class="cmd mono">${esc(D.repro)}</div>
-    <div class="sub">github.com/hectoragofi/thin-ice</div>
-    <div class="big fade" id="r2" style="margin-top:50px;font-size:80px">Thin Ice. Every mistake, proven.</div></div>`;
+  el.innerHTML = `<div class="center"><div class="big" style="font-size:72px">Every model has a planning horizon.</div>
+    <div class="big fade" id="r2" style="font-size:56px;font-weight:600;color:var(--dim);margin-top:16px">Thin Ice measures where it is, and you can move it by adding depth.</div>
+    <div class="cmd mono">${esc(D.repro)}</div>
+    <div class="sub">github.com/hectoragofi/thin-ice</div></div>`;
   return { beat(k) { el.querySelector('#r2').classList.add('on'); } };
 };
 
