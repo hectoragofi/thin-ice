@@ -160,9 +160,9 @@ B.mistake = (el) => {
   const on = id => el.querySelector('#' + id).classList.add('on');
   return { beat(k) {
     if (k === 0) on('m0');
-    if (k === 1) { on('m1'); b.move(R.played_sq[0], R.played_sq[1], 'mark-bad'); }
-    if (k === 2) { on('m2'); if (R.red_reply_sq) b.move(R.red_reply_sq[0], R.red_reply_sq[1]); }
-    if (k === 3) { on('m3'); b.set(R.blue, R.red); setTimeout(() => b.move(R.held_sq[0], R.held_sq[1], 'mark-good'), 300); }
+    if (k === 1) { on('m3'); b.set(R.blue, R.red); setTimeout(() => b.move(R.held_sq[0], R.held_sq[1], 'mark-good'), 200); }
+    if (k === 2) { on('m1'); b.set(R.blue, R.red); setTimeout(() => b.move(R.played_sq[0], R.played_sq[1], 'mark-bad'), 150); }
+    if (k === 3) { on('m2'); if (R.red_reply_sq) b.move(R.red_reply_sq[0], R.red_reply_sq[1]); }
     if (k >= 4) on('m4');
   } };
 };
@@ -376,7 +376,7 @@ B.repro = (el) => {
 };
 
 /* ---------------- player ---------------- */
-const scenes = D.scenes.map(sc => SHORT && sc.short ? {...sc, dur: sc.short, lines: sc.cap_short} : {...sc, lines: sc.cap});
+const scenes = D.scenes.map(sc => SHORT && sc.short ? {...sc, dur: sc.short, lines: sc.cap_short, ldurs: sc.ldurs_short} : {...sc, lines: sc.cap, ldurs: sc.ldurs});
 const total = scenes.reduce((a, s) => a + s.dur, 0);
 let idx = 0, t = 0, paused = false, cur = null, lastBeat = -1, last = performance.now(), ended = false;
 window.__demo = {total, done: false};
@@ -386,12 +386,20 @@ function enter(i) {
   sceneEl.innerHTML = ''; cur = (B[scenes[idx].id] || (() => ({beat() {}})))(sceneEl);
   document.getElementById('meta').textContent = `${idx + 1} / ${scenes.length}`;
 }
+function beatIdx(s2, t) {
+  if (s2.ldurs && s2.ldurs.length === s2.lines.length) {
+    let acc = 0;
+    for (let i = 0; i < s2.ldurs.length; i++) { acc += s2.ldurs[i]; if (t < acc) return i; }
+    return s2.lines.length - 1;
+  }
+  return Math.min(s2.lines.length - 1, Math.floor(Math.min(t, s2.dur - 1e-3) / (s2.dur / s2.lines.length)));
+}
 function tick(now) {
   const dt = (now - last) / 1000; last = now;
   if (!paused && !ended) t += dt;
   const sc = scenes[idx];
   if (t >= sc.dur) { if (idx < scenes.length - 1) enter(idx + 1); else { t = sc.dur; ended = true; window.__demo.done = true; } }
-  const s2 = scenes[idx], k = Math.min(s2.lines.length - 1, Math.floor(Math.min(t, s2.dur - 1e-3) / (s2.dur / s2.lines.length)));
+  const s2 = scenes[idx], k = beatIdx(s2, t);
   if (k !== lastBeat) { for (let j = lastBeat + 1; j <= k; j++) cur.beat(j); lastBeat = k; capEl.textContent = s2.lines[k]; }
   const before = scenes.slice(0, idx).reduce((a, s) => a + s.dur, 0);
   document.getElementById('prog').style.width = (1920 * Math.min(1, (before + t) / total)) + 'px';

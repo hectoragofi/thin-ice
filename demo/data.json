@@ -2161,171 +2161,257 @@
  "scenes": [
   {
    "id": "question",
-   "dur": 6,
+   "dur": 16.1,
    "cap": [
-    "How far ahead can a frontier model plan, without a computer to do the thinking?",
-    "No shell, no code. Only its own reasoning."
+    "Hi, my name is Hector and we built Thin Ice. With code, an AI agent can just write a search.",
+    "We wanted to know what happens when it has to plan in its own head: no shell, no code, just reasoning."
    ],
-   "short": 5,
+   "short": 12.932,
    "cap_short": [
-    "How far ahead can a model plan?",
-    "No code. Only its own reasoning."
+    "Hi, my name is Hector and we built Thin Ice. With code, an AI agent can just write a search.",
+    "We wanted to know what happens when it has to plan in its own head: no shell, no code, just reasoning."
+   ],
+   "ldurs": [
+    7.75,
+    8.35
+   ],
+   "ldurs_short": [
+    6.225,
+    6.707
    ]
   },
   {
    "id": "game",
-   "dur": 12,
+   "dur": 27.05,
    "cap": [
-    "Thin Ice. A board game we invented. 7 by 6, four stones each.",
-    "A stone slides until it hits something. Three in a row wins.",
-    "We solved it completely, all 16.5 billion positions. Every move has an exact verdict."
+    "So we invented a small board game called Thin Ice: a 7x6 board with four stones each.",
+    "The stones slide like a chess queen until they hit an edge or another stone, and three in a row wins.",
+    "We solved all 16.5 billion positions by retrograde analysis: every move is provably right or wrong, no LLM judge."
    ],
-   "short": 10,
+   "short": 21.727,
    "cap_short": [
-    "Thin Ice: a board game we invented, 7 by 6.",
-    "A stone slides until blocked. Three in a row wins.",
-    "Solved completely: 16.5 billion positions."
+    "So we invented a small board game called Thin Ice: a 7x6 board with four stones each.",
+    "The stones slide like a chess queen until they hit an edge or another stone, and three in a row wins.",
+    "We solved all 16.5 billion positions by retrograde analysis: every move is provably right or wrong, no LLM judge."
+   ],
+   "ldurs": [
+    6.35,
+    6.8,
+    13.9
+   ],
+   "ldurs_short": [
+    5.1,
+    5.462,
+    11.165
    ]
   },
   {
    "id": "mistake",
-   "dur": 21,
+   "dur": 21.0,
    "cap": [
-    "A real game. Gemini 4 Hydrogen, puzzle P07, Blue to win in 4.",
-    "It played c1-g5.",
-    "The solver says: that loses. Red now wins in 2 moves.",
-    "Only c1-a1 held. 1 move out of 25.",
-    "The same wrong move came up in 27 runs, across 7 models."
+    "Here is a real run from Gemini 4 Hydrogen on a win-in-4 puzzle.",
+    "Out of the 25 legal moves, only c1-a1 keeps the win.",
+    "It played c1-g5...",
+    "...which walks straight into a forced loss in two.",
+    "That exact same blunder showed up 27 times across different models."
    ],
-   "short": 16,
+   "short": 16.867,
    "cap_short": [
-    "Gemini 4 Hydrogen, puzzle P07, win in 4.",
-    "It played c1-g5.",
-    "Solver: that loses. Red now wins in 2 moves.",
-    "Only c1-a1 held: 1 of 25.",
-    "Same move in 27 runs, 7 models."
+    "Here is a real run from Gemini 4 Hydrogen on a win-in-4 puzzle.",
+    "Out of the 25 legal moves, only c1-a1 keeps the win.",
+    "It played c1-g5...",
+    "...which walks straight into a forced loss in two.",
+    "That exact same blunder showed up 27 times across different models."
+   ],
+   "ldurs": [
+    5.4,
+    6.45,
+    2.15,
+    2.8,
+    4.2
+   ],
+   "ldurs_short": [
+    4.337,
+    5.181,
+    1.727,
+    2.249,
+    3.373
    ]
   },
   {
    "id": "gap",
-   "dur": 17,
+   "dur": 23.2,
    "cap": [
-    "Score is puzzles won out of 12. Perfect play: 1.000. Eighty lines of rules-only search: 0.917.",
-    "10 models, 101 runs. Best over many runs: Gemini 4 Carbon, 0.593 in 17 runs.",
-    "Claude Fable 5.2 scored 0.750 in its one run. A data point, not a rank.",
-    "Older and smaller models stop earlier. Nemotron 3 Ultra: 0.194."
+    "Across 101 runs and 10 different models, an 80-line Python search scores 91.7%.",
+    "While the best frontier model over multiple runs, Gemini 4 Carbon, averages 59.3%.",
+    "And Claude Fable 5.2, even though it was only one run, scored 75%."
    ],
-   "short": 14,
+   "short": 18.635,
    "cap_short": [
-    "Perfect play 1.000. Rules-only search, 80 lines: 0.917.",
-    "10 models, 101 runs. Best over many runs: Carbon, 0.593.",
-    "Fable 5.2: 0.750 in one run, not a rank. Nemotron 3 Ultra: 0.194."
+    "Across 101 runs and 10 different models, an 80-line Python search scores 91.7%.",
+    "While the best frontier model over multiple runs, Gemini 4 Carbon, averages 59.3%.",
+    "And Claude Fable 5.2, even though it was only one run, scored 75%."
+   ],
+   "ldurs": [
+    8.9,
+    8.2,
+    6.1
+   ],
+   "ldurs_short": [
+    7.149,
+    6.586,
+    4.9
    ]
   },
   {
    "id": "depth",
-   "dur": 13,
+   "dur": 13.58,
    "cap": [
-    "Where Gemini 4 falls through, over all 49 runs.",
-    "Win in 1: 97 of 98. Win in 3: 76 of 98. Win in 4: 43 of 98.",
-    "Win in 5: 7 of 98. Its horizon is about three moves."
+    "When you break down the score by depth, you see why: Gemini 4 solves almost everything up to 3 moves deep.",
+    "It drops below half at 4 moves, and wins just 14 out of 196 puzzles at 5 or 6 moves."
    ],
-   "short": 9,
+   "short": 10.908,
    "cap_short": [
-    "Gemini 4, 49 runs. Win in 3: 76 of 98.",
-    "Win in 5: 7 of 98. Horizon: about three moves."
+    "When you break down the score by depth, you see why: Gemini 4 solves almost everything up to 3 moves deep.",
+    "It drops below half at 4 moves, and wins just 14 out of 196 puzzles at 5 or 6 moves."
+   ],
+   "ldurs": [
+    6.1,
+    7.48
+   ],
+   "ldurs_short": [
+    4.9,
+    6.008
    ]
   },
   {
    "id": "horizon",
-   "dur": 13,
+   "dur": 5.45,
    "cap": [
-    "Then we added depth: six puzzles at win in 7, 8 and 9.",
-    "Claude Opus 5.5: 0 of 12. Gemini 4 Carbon: 0 of 18. The solver: 6 of 6.",
-    "Even Claude Fable 5.2's one run won every puzzle to win in 4, then 1 of 4 deeper."
+    "When we tested the harder set at 7 to 9 moves...",
+    "...Opus and Carbon won 0 out of 30."
    ],
-   "short": 12,
+   "short": 4.378,
    "cap_short": [
-    "Add depth: six puzzles at win in 7 to 9.",
-    "Opus 5.5: 0 of 12. Carbon: 0 of 18. Solver: 6 of 6.",
-    "Fable 5.2, one run: perfect to win in 4, then 1 of 4."
+    "When we tested the harder set at 7 to 9 moves...",
+    "...Opus and Carbon won 0 out of 30."
+   ],
+   "ldurs": [
+    3.1,
+    2.35
+   ],
+   "ldurs_short": [
+    2.49,
+    1.888
    ]
   },
   {
    "id": "effort",
-   "dur": 9,
+   "dur": 7.98,
    "cap": [
-    "More thinking moves the middle, not the edge.",
-    "At high effort, Carbon and Opus 5.5 both win 11 of 12 at 3 to 4 moves, and 0 and 1 of 12 at 5 to 6."
+    "Cranking reasoning effort to high helps at 3 and 4 moves, but does nothing at 5 and 6."
    ],
-   "short": 7,
+   "short": 6.41,
    "cap_short": [
-    "High effort: 11 of 12 at 3 to 4 moves, but 0 and 1 of 12 at 5 to 6."
+    "Cranking reasoning effort to high helps at 3 and 4 moves, but does nothing at 5 and 6."
+   ],
+   "ldurs": [
+    7.98
+   ],
+   "ldurs_short": [
+    6.41
    ]
   },
   {
    "id": "fair",
-   "dur": 10,
+   "dur": 4.95,
    "cap": [
-    "Is it the clock? Of 261 puzzles Gemini 4 lost, 258 were wrong moves. 3 ran out of time.",
-    "1205 of 1212 puzzles were reached. Rules, notes and practice are always there."
+    "And it is not the clock: almost every loss is a move the solver proves wrong."
    ],
-   "short": 8,
+   "short": 3.976,
    "cap_short": [
-    "Not the clock: 258 of 261 Gemini 4 losses were wrong moves.",
-    "1205 of 1212 puzzles were reached."
+    "And it is not the clock: almost every loss is a move the solver proves wrong."
+   ],
+   "ldurs": [
+    4.95
+   ],
+   "ldurs_short": [
+    3.976
    ]
   },
   {
    "id": "exploit",
-   "dur": 7,
+   "dur": 6.41,
    "cap": [
-    "The reward can't be gamed. 96 attacks, plus 13 on the clock.",
-    "None got through. The score sheet is signed by the game server."
+    "We also threw 109 red-team attacks at the server and verified the puzzles in Lean 4."
    ],
-   "short": 5,
+   "short": 5.149,
    "cap_short": [
-    "96 attacks plus 13 on the clock. None got through."
+    "We also threw 109 red-team attacks at the server and verified the puzzles in Lean 4."
+   ],
+   "ldurs": [
+    6.41
+   ],
+   "ldurs_short": [
+    5.149
    ]
   },
   {
    "id": "learn",
-   "dur": 15,
+   "dur": 15.06,
    "cap": [
-    "Can a model learn here? Practising inside the session does not move the score.",
-    "Training does. Qwen3-0.6B, one move per call: 0.003 untrained, 0.320 trained, 0.207 on reward alone.",
-    "Gemini 4 scores 0.40 to 0.52 in that same one-move setting."
+    "Finally, in-session practice does not help, but post-training does.",
+    "We fine-tuned a 0.6B Qwen model, which went from 0.3% to over 32% on held-out puzzles."
    ],
-   "short": 11,
+   "short": 12.096,
    "cap_short": [
-    "Practice inside a session does not move the score.",
-    "Training does: Qwen3-0.6B from 0.003 to 0.320.",
-    "Gemini 4: 0.40 to 0.52 in that one-move setting."
+    "Finally, in-session practice does not help, but post-training does.",
+    "We fine-tuned a 0.6B Qwen model, which went from 0.3% to over 32% on held-out puzzles."
+   ],
+   "ldurs": [
+    4.67,
+    10.39
+   ],
+   "ldurs_short": [
+    3.751,
+    8.345
    ]
   },
   {
    "id": "summary",
-   "dur": 11,
+   "dur": 3.2,
    "cap": [
-    "Every model has a planning horizon. Thin Ice measures where it is."
+    "Every model has a planning horizon, and Thin Ice measures where it is."
    ],
-   "short": 12,
+   "short": 2.57,
    "cap_short": [
-    "Every model has a planning horizon. Thin Ice measures where it is."
+    "Every model has a planning horizon, and Thin Ice measures where it is."
+   ],
+   "ldurs": [
+    3.2
+   ],
+   "ldurs_short": [
+    2.57
    ]
   },
   {
    "id": "repro",
-   "dur": 7,
+   "dur": 2.25,
    "cap": [
-    "Every model has a planning horizon. Thin Ice measures where it is, and you can move the horizon by adding depth."
+    "Every model has a planning horizon, and Thin Ice measures where it is."
    ],
-   "short": 6,
+   "short": 1.807,
    "cap_short": [
-    "Every model has a planning horizon. Thin Ice measures where it is."
+    "Every model has a planning horizon, and Thin Ice measures where it is."
+   ],
+   "ldurs": [
+    2.25
+   ],
+   "ldurs_short": [
+    1.807
    ]
   }
  ],
- "total": 141,
- "total_short": 115
+ "total": 146.23,
+ "total_short": 117.455
 }
