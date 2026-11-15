@@ -1,0 +1,6 @@
+name = "thinice"
+version = "0.1.0"
+defaultTargets = ["ThinIce"]
+
+[[lean_lib]]
+name = "ThinIce"
