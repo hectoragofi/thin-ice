@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Thin Ice</title>
-<!-- template for tools/replay_site.py: __DATA__ is replaced by the run data -->
+<!-- template for tools/replay_site.py: the run data placeholder is filled in -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
 <style>
 /* palette and type from the presentation deck (project/deck.css); one light theme.
@@ -193,6 +193,51 @@ a.xl { color:var(--ink); }
 .xd h3 { margin-top:48px; } .xd h3:first-child { margin-top:8px; }
 .xd .hz { font-size:16px; }
 
+/* Play */
+.pv, .rv { padding-top:88px; padding-bottom:48px; }
+.pvm { display:flex; gap:56px; align-items:flex-start; }
+.pvb { flex:none; width:min(54vw, 820px); height:calc(100vh - 150px); height:calc(100svh - 150px); min-height:380px; display:flex; justify-content:center; align-items:flex-start; }
+.pvc { flex:1; min-width:0; display:flex; flex-direction:column; gap:18px; min-height:calc(100svh - 150px); }
+.pvt { font-family:var(--serif); font-weight:400; font-size:44px; line-height:1.1; margin:0; }
+.pvs { font-size:19px; line-height:1.45; color:var(--soft); }
+.pyf { display:flex; gap:12px; }
+.pyf input { flex:1; min-width:0; font:600 20px var(--mono); padding:12px 14px; border:2px solid var(--ink); background:var(--card); color:var(--ink); border-radius:0; }
+.pyf input::placeholder { color:var(--faint); font-weight:400; }
+.pyf input:disabled { border-color:var(--hair); }
+.pyf .btn { font-size:18px; padding:12px 22px; border:0; cursor:pointer; }
+.btn[disabled] { background:var(--hair); color:var(--soft); cursor:default; }
+.pyv { min-height:58px; font-size:19px; line-height:1.45; padding:14px 18px; border-left:4px solid var(--hair); }
+.pyv:empty { border-left-color:transparent; }
+.pyv.good { border-left-color:var(--glacier); background:#E3ECF6; } .pyv.bad { border-left-color:var(--ember-text); background:#F6D9D3; }
+.pya { display:flex; flex-wrap:wrap; gap:10px 28px; }
+.pya .tb[hidden] { display:none; }
+.pyx { font-size:16px; color:var(--soft); line-height:1.45; }
+.pyx textarea { display:block; width:100%; margin-top:8px; font:13px var(--mono); }
+.sp2 { flex:1; }
+.pysc { font-size:17px; color:var(--soft); } .pysc b { color:var(--ink); font-size:20px; } .pysc span { font-size:15px; }
+.pyl { display:grid; grid-template-columns:repeat(12, minmax(0, 1fr)); gap:4px; }
+.pq { height:40px; border:2px solid var(--hair); background:var(--card); cursor:pointer; font:700 15px var(--mono); color:var(--ink); display:flex; align-items:center; justify-content:center; gap:2px; padding:0; }
+.pq small { font-size:12px; } .pq.solved { background:var(--ice); border-color:var(--ice); } .pq.failed { background:var(--ember-fill); border-color:var(--ember-fill); }
+.pq.on { outline:3px solid var(--ink); outline-offset:1px; }
+#pboard .stone { pointer-events:none; }
+#close .band { flex:1 1 0; height:auto; min-height:calc(200 * var(--d)); }
+#pboard .cell.pk { cursor:pointer; } #pboard .cell.pk:hover { border-color:var(--ink); }
+#pboard .cell.sel { border-color:var(--ink); border-width:3px; }
+#pboard .cell.dest { background:var(--frost); border-color:var(--glacier); border-style:dashed; }
+/* Run it */
+.rvt { font-family:var(--serif); font-weight:400; font-size:56px; line-height:1.05; margin:0 0 12px; }
+.rvs { font-size:19px; color:var(--soft); max-width:880px; } .rvs code, .ml code { font-family:var(--mono); font-weight:700; }
+.steps { display:flex; flex-direction:column; gap:28px; margin:40px 0 28px; max-width:1100px; }
+.stl { font-size:22px; line-height:1.3; margin-bottom:10px; display:flex; gap:16px; align-items:baseline; } .stl .rn { font-size:16px; padding:0; }
+.cmdl { display:flex; align-items:stretch; background:var(--ink); color:var(--paper); max-width:1100px; }
+.cmdl code { flex:1; min-width:0; font:700 20px/1.4 var(--mono); padding:16px 20px; overflow-wrap:anywhere; }
+.cpy { flex:none; background:none; border:0; border-left:1px solid #3a3d42; color:var(--paper); font:600 15px var(--sans); padding:0 20px; cursor:pointer; }
+.cpy:hover { background:#2b2e33; }
+.rvn { font-size:17px; color:var(--soft); max-width:1100px; }
+.more { margin-top:56px; padding-top:24px; border-top:2px solid var(--hair); display:flex; flex-direction:column; gap:8px; max-width:1100px; }
+.ml { font-size:17px; color:var(--soft); margin-top:12px; } .ml a { color:var(--ink); }
+.cmdl.sm2 code { font-size:16px; padding:12px 16px; }
+
 /* ---------------------------------------------------------------- explorer */
 .xhead { padding-top:48px; padding-bottom:16px; }
 #stage, .grp { scroll-margin-top:56px; }
@@ -307,6 +352,15 @@ footer .in { border-top:2px solid var(--ink); padding-top:16px; padding-bottom:5
   .hb { height:300px; flex:none; column-gap:6px; } .hb .v { font-size:15px; } .hb .x { font-size:13px; } .hb .grp2 { font-size:12px; }
   .grp > summary .gt { font-size:24px; } .grp > summary .gd { padding-left:0; }
   .xd { --d:0.68px; }
+  .views { gap:12px; } .views a { font-size:14px; } .brand { font-size:18px; } .topbar { gap:10px; }
+  .pv, .rv { padding-top:84px; }
+  .topbar .brand span { display:none; } .topbar .views a { padding:6px 10px; white-space:nowrap; }
+  .pvm { flex-direction:column; gap:20px; }
+  .pvb { width:100%; height:auto; min-height:0; }
+  .pvc { min-height:0; width:100%; }
+  .pvt { font-size:32px; } .pvs, .pyv { font-size:17px; }
+  .pyl { grid-template-columns:repeat(6, minmax(0, 1fr)); }
+  .rvt { font-size:36px; } .stl { font-size:18px; } .cmdl code { font-size:14px; padding:12px 14px; } .cmdl.sm2 code { font-size:13px; } .cpy { padding:0 12px; }
   .pxg { grid-template-columns:minmax(0, 1fr) !important; gap:28px; }
   .bbox { width:100% !important; height:auto !important; }
   .chartbox { width:100% !important; height:300px !important; flex:none !important; }
@@ -334,122 +388,372 @@ footer .in { border-top:2px solid var(--ink); padding-top:16px; padding-bottom:5
   .strip .c { height:30px; } .strip.compact .c { height:26px; } .ov .c { height:32px; }
   .ov .ol .n { font-size:20px; }
 }
+
+/* ================================================================ v2: editorial polish, generated art, a replay page you can read at a glance */
+:root { --r:16px; }
+body { -webkit-font-smoothing:antialiased; }
+.cell { border-radius:6px; }
+.verdict { border-radius:14px; }
+.btns { gap:calc(20 * var(--d)); }
+.btn { border-radius:999px; padding:calc(20 * var(--d)) calc(40 * var(--d)); font-weight:500; transition:background 160ms; }
+.btn.alt { border-width:1.5px; } .btn.alt:hover { background:var(--ink); color:var(--paper); }
+.topbar { background:rgba(241,236,226,0.86); -webkit-backdrop-filter:saturate(1.2) blur(12px); backdrop-filter:saturate(1.2) blur(12px); border-bottom:0; box-shadow:0 1px 0 var(--hair); }
+.brand { display:inline-flex; align-items:center; gap:10px; }
+.brand svg { width:24px; height:24px; flex:none; }
+.views { gap:6px; }
+.views a { padding:7px 16px; border-radius:999px; border-bottom:0; transition:background 160ms, color 160ms; }
+.views a:hover { background:var(--card); }
+.views a.on { background:var(--ink); color:var(--paper); }
+
+/* generated art */
+.art { position:relative; overflow:hidden; border-radius:var(--r); background:#E7ECEC; min-width:0; min-height:0; }
+.art svg { position:absolute; inset:0; display:block; }
+.art[data-img] { background-color:#D9D3C6; background-size:cover; background-position:center; }
+.cap { position:absolute; left:14px; bottom:14px; z-index:4; font-family:var(--mono); font-weight:700; font-size:max(11px, calc(20 * var(--d))); letter-spacing:1px; text-transform:uppercase; color:var(--ink); background:var(--paper); padding:5px 10px; border-radius:6px; }
+.art.at .cap { top:14px; bottom:auto; }
+.collage { flex:none; display:grid; grid-template-columns:1.3fr 1fr; grid-template-rows:1.35fr 1fr; grid-template-areas:"b i" "t t"; gap:calc(18 * var(--d)); width:calc(960 * var(--d)); height:calc(830 * var(--d)); }
+.collage .cbx { grid-area:b; position:relative; background:var(--card); border-radius:var(--r); padding:calc(26 * var(--d)) calc(26 * var(--d)) calc(64 * var(--d)); display:flex; min-height:0; }
+.collage .cbx .bbox { width:100%; height:100%; }
+.collage .ai { grid-area:i; } .collage .at { grid-area:t; }
+.side-art { flex:none; width:calc(560 * var(--d)); height:calc(600 * var(--d)); }
+.band { flex:none; height:calc(230 * var(--d)); }
+
+/* All games: a short hero */
+#explore { padding-top:64px; }
+.xhead { padding-top:40px; padding-bottom:8px; }
+.xhero { display:grid; grid-template-columns:minmax(0, 1.2fr) minmax(0, 1fr); gap:48px; align-items:stretch; }
+.xhero .xt { padding:16px 0 8px; }
+.xhero .art { min-height:200px; }
+.xhead h2 { font-size:58px; letter-spacing:-0.02em; margin:12px 0 14px; }
+.xhead p.s { font-size:19px; color:var(--soft); max-width:600px; }
+#g-replays { border-top:0; }
+#g-replays > summary { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); padding:0; }
+
+/* the replay stage */
+.stage { height:calc(100vh - 56px); height:calc(100svh - 56px); min-height:640px; grid-template-rows:auto auto minmax(0, 1fr); padding-top:24px; padding-bottom:24px; }
+.sel { display:none !important; }
+.rbar { display:flex; flex-wrap:wrap; align-items:center; gap:12px 24px; }
+.pick { display:inline-flex; align-items:center; gap:12px; }
+.pl { font-family:var(--mono); font-weight:700; font-size:13px; letter-spacing:1px; text-transform:uppercase; color:var(--soft); }
+.msel { display:block; margin:0; -webkit-appearance:none; appearance:none; font:400 21px var(--serif); padding:9px 46px 9px 18px; border:1.5px solid var(--ink); border-radius:999px; color:var(--ink); cursor:pointer;
+  background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2317191C' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat right 18px center / 12px 8px; }
+.att { display:inline-flex; align-items:center; gap:10px; font-weight:500; font-variant-numeric:tabular-nums; }
+.att #apos { min-width:9.5em; text-align:center; }
+.pill { font:500 15px var(--sans); border:1.5px solid var(--ink); background:transparent; color:var(--ink); border-radius:999px; padding:8px 16px; cursor:pointer; white-space:nowrap; transition:background 160ms, color 160ms, border-color 160ms; }
+.pill:hover:not([disabled]) { background:var(--ink); color:var(--paper); }
+.pill[disabled] { opacity:0.3; cursor:default; }
+.pill.sm { width:38px; height:38px; padding:0; display:inline-flex; align-items:center; justify-content:center; font-size:17px; }
+.pill.ghost { border-color:var(--hair); } .pill.ghost.on { border-color:var(--ink); }
+.acts { margin-left:auto; display:flex; gap:10px; }
+.sumrow { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px 32px; padding:20px 0; border-bottom:1px solid var(--hair); margin-bottom:24px; }
+.sum { font-family:var(--serif); font-size:32px; line-height:1.15; letter-spacing:-0.01em; max-width:640px; }
+.sum b { font-weight:500; }
+.sum .won { color:var(--glacier); white-space:nowrap; }
+.sum .avg { display:block; margin-top:6px; font-family:var(--sans); font-size:15px; color:var(--soft); letter-spacing:0; }
+.chips { display:flex; flex-wrap:wrap; gap:6px; }
+.chip { width:44px; height:54px; border-radius:10px; border:1.5px solid transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; background:var(--card); color:var(--ink); padding:0; font-variant-numeric:tabular-nums; transition:transform 120ms; }
+.chip.nt { margin-left:10px; }
+.chip .cn { font:700 12px var(--mono); color:var(--soft); }
+.chip .cg { font-size:19px; line-height:1; font-weight:700; }
+.chip.solved { background:var(--ice); }
+.chip.lost, .chip.slow { background:var(--ember-fill); } .chip.lost .cn, .chip.slow .cn { color:var(--ink); }
+.chip.time, .chip.skipped { background:#F6D9D3; color:var(--ember-text); }
+.chip.open { background:transparent; border:1.5px dashed var(--hair); color:var(--soft); }
+.chip:hover { transform:translateY(-2px); }
+.chip.on { border-color:var(--ink); box-shadow:0 0 0 2px var(--ink); }
+.area { grid-template-columns:auto minmax(0, 1fr); grid-template-rows:minmax(0, 1fr); grid-template-areas:"board side"; column-gap:56px; }
+.side { max-width:600px; }
+.side > .eyebrow { color:var(--soft); }
+.hl { font-family:var(--serif); font-weight:400; font-size:42px; line-height:1.06; letter-spacing:-0.015em; margin:8px 0 18px; }
+.hl .mono { font-size:0.8em; }
+.verdict.big { flex-direction:row; align-items:center; justify-content:flex-start; gap:20px; min-height:124px; padding:20px 24px; border-radius:var(--r); background:var(--card); border:1.5px solid var(--hair); }
+.verdict.big.good { background:var(--ice); border-color:var(--ice); }
+.verdict.big.bad { background:var(--ember-fill); border-color:var(--ember-fill); }
+.verdict.big.line { background:transparent; border-style:dashed; border-color:var(--ink); }
+.verdict.big .vx { min-width:0; }
+.vi { flex:none; width:58px; height:58px; border-radius:50%; display:flex; align-items:center; justify-content:center; font:700 28px var(--sans); color:var(--paper); background:var(--glacier); }
+.vi.red { background:var(--ember); } .vi.bad { background:var(--ink); } .vi.line { background:transparent; border:2px dashed var(--ink); }
+.verdict.big .v-title { font-size:34px; } .verdict.big .v-title .mono { font-size:28px; }
+.verdict.big .v-body { font-size:16.5px; margin-top:4px; }
+.side .ctl { margin:18px 0 12px; gap:10px; align-items:center; }
+.side .ctl .tb { text-decoration:none; border:1.5px solid var(--ink); border-radius:999px; padding:8px 18px; font-size:15px; transition:background 160ms, color 160ms; }
+.side .ctl .tb:hover:not([disabled]) { background:var(--ink); color:var(--paper); }
+.side .ctl .tb.primary { background:var(--ink); color:var(--paper); min-width:84px; }
+.side .ctl .tb.primary:hover { background:var(--glacier); border-color:var(--glacier); }
+.side .ctl .tb[disabled] { opacity:0.3; }
+.moves { border-top:1px solid var(--hair); } .moves li { border-bottom:1px solid var(--hair); }
+.moves button { border-radius:8px; border-left:0; padding:7px 10px; } .moves button.on { background:var(--card); box-shadow:inset 3px 0 0 var(--ink); }
+.help { background:var(--card); border:1.5px solid var(--hair); border-radius:var(--r); padding:10px 18px 14px; margin-bottom:16px; flex:none; }
+.help[hidden] { display:none; }
+.help .hhd { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+.help ol { display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; }
+.help li { display:flex; gap:10px; align-items:baseline; font-size:14px; line-height:1.4; }
+.help .k2 { flex:none; width:20px; display:inline-flex; justify-content:center; font-weight:700; }
+.help .x { background:none; border:0; font-size:22px; line-height:1; cursor:pointer; color:var(--soft); width:36px; height:36px; border-radius:50%; }
+.help .x:hover { background:var(--paper); color:var(--ink); }
+#runs h3 { font-size:34px; }
+
+@media (max-width: 1099px) {
+  .collage { width:100%; height:auto; grid-template-columns:minmax(0, 1fr); grid-template-rows:auto 200px 170px; grid-template-areas:"b" "i" "t"; }
+  .collage .cbx { padding:14px 14px 52px; }
+  .side-art { display:none; }
+  .band { height:160px; }
+  .xhero { grid-template-columns:minmax(0, 1fr); gap:20px; } .xhero .art { min-height:150px; }
+  .xhead h2 { font-size:38px; }
+  .stage { height:auto; min-height:0; }
+  .rbar { gap:12px; } .acts { margin-left:0; } .pick { width:100%; } .msel { flex:1; min-width:0; font-size:18px; }
+  .sum { font-size:24px; }
+  .chips { display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); width:100%; } .chip { width:auto; } .chip.nt { margin-left:0; }
+  .area { grid-template-columns:minmax(0, 1fr); grid-template-rows:none; grid-template-areas:"board" "side"; }
+  .hl { font-size:30px; }
+  .help ol { grid-template-columns:minmax(0, 1fr); }
+  .verdict.big { min-height:0; } .verdict.big .v-title { font-size:26px; } .vi { width:46px; height:46px; font-size:22px; }
+  .btns { margin-top:8px; } .btn { font-size:16px; padding:12px 22px; }
+}
+
+/* ================================================================ v3: the story as a research post (one scroll, numbered sections, figures with captions) */
+html.story { scroll-snap-type:none; }
+html.story .dnav { display:none; }
+.article { --d:0.54px; padding-top:56px; padding-bottom:40px; }
+.article .scr { min-height:0; display:block; scroll-snap-align:none; max-width:1240px; margin:0 auto; padding:88px 48px; border-top:1px solid var(--hair); }
+.article .scr#cover { border-top:0; padding-top:72px; padding-bottom:56px; }
+.article .collage .ai { background-position:center 30%; }
+.article .scr#close { border-top:0; }
+.article .cv { position:relative; width:auto; height:auto; padding:0 0 0 254px !important; display:flex; flex-direction:column; gap:24px; }
+.article .cv > * { min-width:0; }
+.article .cv > .rail { position:absolute; left:0; top:0; width:200px; }
+.article #cover .cv { padding-left:0 !important; gap:48px; }
+.rail { display:flex; flex-direction:column; gap:6px; font-family:var(--mono); font-weight:700; font-size:13px; line-height:1.3; letter-spacing:1px; text-transform:uppercase; color:var(--soft); padding-top:10px; }
+.rail b { color:var(--ember-text); font-weight:700; }
+.article .h2 { font-size:46px; line-height:1.08; letter-spacing:-0.018em; max-width:860px; margin:0; }
+.prose { display:flex; flex-direction:column; gap:16px; max-width:680px; }
+.prose p, .prose p.ld, .prose p.bd { font-family:var(--sans); font-size:19px; line-height:1.6; color:#2A2C30; }
+.article .sp { display:none; }
+.fig { margin:12px 0 0; background:var(--card); border-radius:20px; padding:40px; }
+.figcap { font-size:15px; line-height:1.5; color:var(--soft); font-style:italic; max-width:720px; margin:-8px 0 0; }
+.figcap a { font-style:normal; }
+.article .hb { height:380px; flex:none; }
+.article .lad { gap:10px; }
+.article .sm .rule p.t { font-size:19px; line-height:1.5; }
+.article .sm.big .rule p.t { font-size:21px; }
+.article #close .sm .rule p.t { font-family:var(--serif); font-size:26px; line-height:1.3; }
+.article .side-art { width:340px; height:380px; }
+.article .verdict .v-title { font-size:26px; } .article .verdict .v-body { font-size:16px; }
+.article .ctl .tb { font-size:16px; }
+/* header */
+.ahd { display:flex; flex-direction:column; gap:22px; max-width:980px; }
+.kicker { display:flex; gap:10px; font-family:var(--mono); font-weight:700; font-size:13px; letter-spacing:1px; text-transform:uppercase; color:var(--soft); }
+.kicker span:first-child { color:var(--ember-text); }
+.atitle { font-family:var(--serif); font-weight:400; font-size:78px; line-height:1.0; letter-spacing:-0.025em; margin:0; }
+.adek { font-size:21px; line-height:1.55; color:#3A3D42; max-width:760px; }
+.article .btns { gap:12px; } .article .btn { font-size:16px; padding:13px 24px; }
+.article .collage { width:100%; height:620px; gap:16px; }
+.article .collage .cbx { padding:28px 28px 64px; }
+.toc { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:0 24px; border-top:1px solid var(--ink); padding-top:8px; }
+.toc a { display:flex; gap:12px; align-items:baseline; padding:12px 0; border-bottom:1px solid var(--hair); color:var(--ink); text-decoration:none; font-size:15px; }
+.toc a b { font-family:var(--mono); font-size:12px; color:var(--ember-text); }
+.toc a:hover { color:var(--glacier); }
+.article .band { height:220px; border-radius:20px; }
+@media (max-width: 1099px) {
+  .article .scr { padding:56px 16px; }
+  .article .cv { padding-left:0 !important; gap:18px; }
+  .article .cv > .rail { position:static; width:auto; flex-direction:row; padding-top:0; }
+  .atitle { font-size:44px; } .adek { font-size:18px; } .article .h2 { font-size:32px; }
+  .article .collage { height:auto; }
+  .toc { grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); }
+  .fig { padding:18px; border-radius:14px; }
+  .article .side-art { display:none; }
+  .article .hb { height:280px; }
+  .article .band { height:140px; }
+}
 </style></head><body>
 
-<header class="topbar" id="topbar"><a class="brand" href="#story/cover">Thin Ice</a>
-<nav class="views" aria-label="sections"><a href="#story/cover" data-v="story">Story</a><a href="#all" data-v="all">All games</a></nav></header>
+<header class="topbar" id="topbar"><a class="brand" href="#story/cover"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#2F5D93"/><path d="M4.5 9 L9.5 11.2 L8.6 15.4 L13.6 16.6 L19.5 13.2 M13.6 16.6 L15.2 20.6" stroke="#F1ECE2" stroke-width="1.7" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg><span>Thin Ice</span></a>
+<nav class="views" aria-label="sections"><a href="#story/cover" data-v="story">Findings</a><a href="#play" data-v="play">Play</a><a href="#run" data-v="run">Run it</a><a href="#all" data-v="all">All games</a></nav></header>
 
-<main id="deck" class="view">
-<section class="scr" id="cover"><div class="cv"><div class="rw" style="flex:1;align-items:center;gap:calc(96 * var(--d))">
-  <div class="col1" style="gap:calc(48 * var(--d))">
-    <h1 class="h1 rise" style="--i:1">Thin Ice</h1>
-    <p class="ld ink rise" style="--i:2;max-width:calc(700 * var(--d))">How far ahead can an AI plan, when no program does the planning for it?</p>
+<main id="deck" class="view article">
+<section class="scr" id="cover"><div class="cv">
+  <div class="ahd">
+    <p class="kicker"><span>Evaluation</span><span aria-hidden="true">&middot;</span><span>November 2026</span></p>
+    <h1 class="atitle rise" style="--i:1">Thin Ice: how far ahead can a model plan?</h1>
+    <p class="adek rise" style="--i:2">We invented a board game, solved every position, and asked AI models to find forced wins one to six moves away, with no code and no search tools. The planning has to happen in their own reasoning, and every move they make gets an exact verdict.</p>
+    <div class="btns rise" style="--i:3"><a class="btn" href="#all">Watch every game</a><a class="btn alt" href="#play">Play the puzzles</a><a class="btn alt" href="#run">Run it on your model</a></div>
   </div>
-  <div class="bbox" id="bxcover" style="width:calc(760 * var(--d));height:calc(620 * var(--d))"><div class="board" id="bcover" aria-label="a real game: the move played and the move that would have won"></div></div>
-</div></div></section>
+  <div class="collage rise" style="--i:3">
+    <div class="cbx"><div class="bbox" id="bxcover"><div class="board" id="bcover" aria-label="a real game: the move played and the move that would have won"></div></div><span class="cap">Red: played &middot; Blue: would have won</span></div>
+    <div class="art ai" data-img="core"></div>
+    <div class="art at" data-art="trace"><span class="cap">Puzzles won, by moves to the win</span></div>
+  </div>
+  <nav class="toc" aria-label="Contents">
+    <a href="#story/close"><b>00</b>In short</a><a href="#story/game"><b>01</b>The game</a><a href="#story/test"><b>02</b>The test</a><a href="#story/mistake"><b>03</b>One real mistake</a><a href="#story/scores"><b>04</b>Scores</a>
+    <a href="#story/horizon"><b>05</b>The horizon</a><a href="#story/fail"><b>06</b>How they lose</a><a href="#story/attacks"><b>07</b>Is the score sound?</a><a href="#story/learned"><b>08</b>What we learned</a><a href="#story/next"><b>09</b>Try it</a>
+  </nav>
+</div></section>
+
+<section class="scr" id="close"><div class="cv">
+  <p class="rail"><b>00</b>In short</p>
+  <h2 class="h2">Thin Ice. Every mistake, proven.</h2>
+  <div class="sm" id="sml"></div>
+</div></section>
 
 <section class="scr" id="game"><div class="cv">
+  <p class="rail"><b>01</b>The game</p>
   <h2 class="h2">A board game we invented, then solved completely</h2>
-  <div class="rw" style="flex:1;align-items:center;gap:calc(96 * var(--d))">
+  <div class="prose"><p>Thin Ice is played on a 7 by 6 board. Blue and Red have four stones each. A stone slides in a straight line until something stops it, and three in a row wins.</p>
+  <p>The board is small enough to solve outright: all 16.5 billion positions have a known result. So for any move a model makes, we know exactly whether it keeps a forced win or throws it away.</p></div>
+  <figure class="fig"><div class="rw" style="align-items:center;gap:48px">
     <div class="bbox" id="bxmini" style="width:calc(720 * var(--d));height:calc(600 * var(--d))"><div class="board" id="mini" aria-label="rules animation"></div></div>
     <div class="col1" style="gap:calc(30 * var(--d))" id="rulefacts">
       <div class="rule"><p class="rn">01</p><p class="t">Blue and Red have 4 stones each on a 7 by 6 board.</p></div>
       <div class="rule"><p class="rn">02</p><p class="t">A stone slides in a straight line until something stops it.</p></div>
       <div class="rule"><p class="rn">03</p><p class="t">Three in a row wins.</p></div>
     </div>
-  </div>
-  <p class="bd ink">All 16.5 billion positions are solved, so every move gets an exact verdict.</p>
+  </div></figure>
+  <p class="figcap">The rules in motion. The rule being shown is highlighted.</p>
 </div></section>
 
 <section class="scr" id="test"><div class="cv">
+  <p class="rail"><b>02</b>The test</p>
   <h2 class="h2" id="tsh"></h2>
-  <div class="sp"></div>
-  <div class="sm big" id="tsl"></div>
-  <div class="sp"></div>
+  <div class="prose"><p>Blue is the model. Each puzzle starts from a position where Blue can force a win. Red is played by the solver, and always picks the defence that holds out longest.</p></div>
+  <figure class="fig"><div class="rw" style="align-items:center;gap:48px"><div class="sm big" id="tsl" style="flex:1"></div><div class="art side-art" data-img="tiles"></div></div></figure>
 </div></section>
 
 <section class="scr" id="mistake"><div class="cv">
+  <p class="rail"><b>03</b>One real mistake</p>
   <h2 class="h2" id="mkh"></h2>
-  <div class="rw" style="flex:1;align-items:flex-start;gap:calc(80 * var(--d))">
+  <div class="prose"><p id="mkl"></p></div>
+  <figure class="fig"><div class="rw" style="align-items:flex-start;gap:48px">
     <div class="bbox" id="bxmk" style="width:calc(800 * var(--d));height:calc(640 * var(--d))"><div class="board" id="bmk" aria-label="board of the real game"></div></div>
     <div class="col1" style="gap:calc(28 * var(--d))">
-      <p class="ld ink" id="mkl"></p>
       <div class="verdict" id="mv1" aria-live="polite"><p class="v-eb" id="mv1e" hidden></p><p class="v-title" id="mv1t"></p><p class="v-body" id="mv1b"></p></div>
       <div class="ctl"><button class="tb" id="mprev">&larr; Back</button><button class="tb" id="mnext">Next &rarr;</button><span class="pos" id="mpos"></span></div>
     </div>
-  </div>
-  <p class="cp" id="mkc"></p>
+  </div></figure>
+  <p class="figcap" id="mkc"></p>
 </div></section>
 
 <section class="scr" id="scores"><div class="cv">
+  <p class="rail"><b>04</b>Scores</p>
   <h2 class="h2" id="ldh"></h2>
-  <div class="sp"></div>
-  <div class="lad" id="lad" role="img" aria-label="Share of the 12 puzzles won, by player"></div>
-  <div class="sp"></div>
-  <p class="cp">Bar: the average over all runs. Line: worst to best run.</p>
+  <div class="prose"><p>The share of the 12 puzzles each player won, averaged over all its counted runs. Perfect play and a simple search program show what is possible; two baselines that barely try show the floor.</p></div>
+  <figure class="fig"><div class="lad" id="lad" role="img" aria-label="Share of the 12 puzzles won, by player"></div></figure>
+  <p class="figcap">Bar: the average over all runs. Line: worst to best run.</p>
 </div></section>
 
 <section class="scr" id="horizon"><div class="cv">
+  <p class="rail"><b>05</b>The horizon</p>
   <h2 class="h2" id="hzh"></h2>
-  <p class="bd ink" id="hzs"></p>
-  <div class="hb" id="hb" role="img"></div>
-  <p class="cp" id="hzc"></p>
+  <div class="prose"><p id="hzs"></p></div>
+  <figure class="fig"><div class="hb" id="hb" role="img"></div></figure>
+  <p class="figcap" id="hzc"></p>
 </div></section>
 
 <section class="scr" id="fail"><div class="cv">
+  <p class="rail"><b>06</b>How they lose</p>
   <h2 class="h2">They lose by wrong moves, not by the clock</h2>
-  <div class="sp"></div>
-  <div class="col1" style="flex:none;gap:calc(44 * var(--d))" id="frs"></div>
-  <div class="sp"></div>
-  <p class="cp"><a class="xl" href="#all/fail">Every model&rsquo;s losses, in detail</a></p>
+  <figure class="fig"><div class="col1" style="flex:none;gap:calc(44 * var(--d))" id="frs"></div></figure>
+  <p class="figcap"><a class="xl" href="#all/fail">Every model&rsquo;s losses, in detail</a></p>
 </div></section>
 
 <section class="scr" id="attacks"><div class="cv">
+  <p class="rail"><b>07</b>Is the score sound?</p>
   <h2 class="h2">96 attacks on the score. None got through.</h2>
-  <div class="sp"></div>
-  <div class="sm big">
+  <figure class="fig"><div class="rw" style="align-items:center;gap:48px"><div class="sm big" style="flex:1">
     <div class="rule"><p class="rn">01</p><p class="t">We tried 96 ways to cheat, from guessing to editing the score sheet. All were blocked.</p></div>
     <div class="rule"><p class="rn">02</p><p class="t">13 more went after the per-puzzle clock. All were blocked.</p></div>
     <div class="rule"><p class="rn">03</p><p class="t">The game server signs the score, and the checker runs where the AI cannot reach it.</p></div>
-  </div>
-  <div class="sp"></div>
+  </div><div class="art side-art" data-img="sheet"></div></div></figure>
+  <p class="figcap">The score sheet in the picture is an illustration, not a real run.</p>
 </div></section>
 
 <section class="scr" id="learned"><div class="cv">
+  <p class="rail"><b>08</b>What we learned</p>
   <h2 class="h2">What this benchmark taught us</h2>
-  <div class="sp"></div>
   <div class="sm" id="tgl"></div>
-  <div class="sp"></div>
-  <p class="cp" id="tgc"></p>
+  <p class="figcap" id="tgc"></p>
 </div></section>
 
-<section class="scr" id="close"><div class="cv">
-  <h2 class="h2">Thin Ice. Every mistake, proven.</h2>
-  <div class="sp"></div>
-  <div class="sm" id="sml"></div>
-  <div class="sp"></div>
-  <div class="btns"><a class="btn" href="#all">See every game</a></div>
+<section class="scr" id="next"><div class="cv">
+  <p class="rail"><b>09</b>Try it</p>
+  <h2 class="h2">See it for yourself</h2>
+  <div class="prose"><p>Watch any game move by move with the solver&rsquo;s verdict, play the same puzzles yourself, or run the test on your own model.</p></div>
+  <div class="art band" data-img="depth"></div>
+  <div class="btns"><a class="btn" href="#all">Watch every game</a><a class="btn alt" href="#play">Play the puzzles</a><a class="btn alt" href="#run">Run it on your model</a></div>
 </div></section>
 </main>
 
 <nav class="dnav" id="dnav" aria-label="screens"><button id="dprev" aria-label="Previous screen">&larr;</button><span id="dpos" aria-live="polite"></span><button id="dnext" aria-label="Next screen">&rarr;</button></nav>
 
-<div id="explore" class="view" hidden>
-<header class="xhead wrapw"><h2>All games</h2>
-<p class="s">Every counted run, every number behind the story. Open a group.</p></header>
-<div class="wrapw groups">
-<details class="grp" id="g-replays"><summary><span class="gt">Replays, model by model</span><span class="gd">Watch any run move by move, with the solver&rsquo;s verdict on each move.</span></summary>
-<section class="stage" id="stage">
-<div class="top">
-  <div><nav class="sel" id="sel" aria-label="model"></nav><select class="msel" id="msel" aria-label="model"></select></div>
+<div id="playv" class="view" hidden>
+<div class="pv wrapw">
+  <div class="pvm">
+    <div class="pvb" id="pyb"><div class="board" id="pboard" aria-label="Puzzle board. Click a blue stone, then the cell where it should slide to."></div></div>
+    <div class="pvc">
+      <h2 class="pvt" id="pyt"></h2>
+      <p class="pvs" id="pys"></p>
+      <form id="pyf" class="pyf" autocomplete="off"><input id="pyin" spellcheck="false" aria-label="Your move, for example c1-a1" placeholder="or type: c1-a1"><button class="btn" type="submit">Play</button></form>
+      <p class="pyv" id="pyv" aria-live="polite"></p>
+      <div class="pya"><button class="tb" id="pyr">Try again</button><button class="tb" id="pyn">Next puzzle &rarr;</button><button class="tb" id="pyask">Ask your AI</button></div>
+      <p class="pyx" id="pyx" hidden></p>
+      <div class="sp2"></div>
+      <p class="pysc" id="pysc"></p>
+      <nav class="pyl" id="pyl" aria-label="the 12 puzzles"></nav>
+    </div>
+  </div>
 </div>
-<div class="legend"><span><span class="dot b"></span>Blue: the AI</span><span><span class="dot r"></span>Red: perfect opponent</span><span><span class="sw good"></span>kept the win</span><span><span class="sw bad"></span>threw the win away</span><span class="acts"><button class="tb" id="fsbtn">Fullscreen</button></span></div>
+</div>
+
+<div id="runv" class="view" hidden>
+<div class="rv wrapw">
+  <h2 class="rvt">Run Thin Ice on your model</h2>
+  <p class="rvs">You need Harbor (<code>uv tool install harbor</code>) and Docker (or Modal), and for step 3 your provider&rsquo;s API key.</p>
+  <ol class="steps">
+    <li><p class="stl"><span class="rn">01</span>Get the code</p><div class="cmdl"><code>git clone https://github.com/hectoragofi/thin-ice &amp;&amp; cd thin-ice</code><button class="cpy" type="button">Copy</button></div></li>
+    <li><p class="stl"><span class="rn">02</span>Check the setup: perfect play, search and baselines, no key needed</p><div class="cmdl"><code>python scripts/evaluate.py</code><button class="cpy" type="button">Copy</button></div></li>
+    <li><p class="stl"><span class="rn">03</span>Run your model: 3 runs and one table at the end</p><div class="cmdl"><code>python scripts/evaluate.py --model google/gemini-4-carbon</code><button class="cpy" type="button">Copy</button></div></li>
+  </ol>
+  <p class="rvn" id="rvcost"></p>
+  <div class="more">
+    <p class="ml">One run straight through Harbor</p><div class="cmdl sm2"><code>harbor run -p task -a opencode -m &lt;provider&gt;/&lt;model&gt;</code><button class="cpy" type="button">Copy</button></div>
+    <p class="ml">A fresh draw of 12 puzzles from the pool</p><div class="cmdl sm2"><code>THINICE_SEED=7 harbor run -p task -a opencode -m &lt;provider&gt;/&lt;model&gt;</code><button class="cpy" type="button">Copy</button></div>
+    <p class="ml">More or less thinking effort</p><div class="cmdl sm2"><code>harbor run -p task -a opencode -m &lt;provider&gt;/&lt;model&gt; --effort high</code><button class="cpy" type="button">Copy</button></div>
+    <p class="ml">The deeper set: wins 7 to 9 moves away</p><div class="cmdl sm2"><code>python experiments/deep/build_deep.py &amp;&amp; harbor run -p experiments/deep/task -a opencode -m &lt;provider&gt;/&lt;model&gt;</code><button class="cpy" type="button">Copy</button></div>
+    <p class="ml">Add <code>--env modal</code> to run on Modal instead of Docker. Everything else is in the <a href="https://github.com/hectoragofi/thin-ice#run-it">README on GitHub</a>.</p>
+  </div>
+</div>
+</div>
+
+<div id="explore" class="view" hidden>
+<header class="xhead wrapw"><div class="xhero">
+  <div class="xt"><p class="eyebrow">Thin Ice &middot; every game</p><h2>Watch any game, move by move</h2>
+  <p class="s">Pick a model and a puzzle, then press Play. A solver checks every move, so each mistake is proven, not guessed.</p></div>
+  <div class="art" data-img="lake"></div></div></header>
+<div class="wrapw groups">
+<details class="grp" id="g-replays" open><summary><span class="gt">Replays</span><span class="gd">Watch any run move by move, with the solver&rsquo;s verdict on each move.</span></summary>
+<section class="stage" id="stage">
+<nav class="sel" id="sel" aria-label="model" hidden></nav>
+<div class="rbar">
+  <label class="pick"><span class="pl">Model</span><select class="msel" id="msel"></select></label>
+  <div class="att"><button class="pill sm" id="aprev" aria-label="Previous attempt">&larr;</button><span id="apos"></span><button class="pill sm" id="anext" aria-label="Next attempt">&rarr;</button></div>
+  <span class="acts"><button class="pill ghost" id="helpbtn" aria-controls="help">How to read this</button><button class="pill ghost" id="fsbtn">Fullscreen</button></span>
+</div>
+<div class="sumrow"><p class="sum" id="sum"></p><div class="chips" id="chips" role="list" aria-label="Puzzles in this attempt"></div></div>
 <div class="area" id="area">
-  <div class="lede"><p class="eyebrow" id="eb"></p><h2 id="hl"></h2></div>
   <div class="bcol"><div class="board" id="board" aria-label="board"></div></div>
   <div class="side">
-    <div class="verdict" id="note" aria-live="polite"><p class="v-eb" id="veb" hidden></p><p class="v-title" id="vt"></p><p class="v-body" id="vb"></p></div>
-    <div class="ctl"><button class="tb" id="prev">&larr; Back</button><button class="tb" id="play">Play</button><button class="tb" id="next">Next &rarr;</button><span class="pos" id="pos"></span></div>
+    <div class="help" id="help">
+      <div class="hhd"><p class="eyebrow">How to read this</p><button class="x" id="helpx" aria-label="Close the guide">&times;</button></div>
+      <ol>
+        <li><span class="k2"><span class="dot b"></span></span><span><b>Blue is the AI.</b> It has a forced win: three in a row, whatever Red does.</span></li>
+        <li><span class="k2"><span class="dot r"></span></span><span><b>Red plays perfectly</b>, holding out as long as it can.</span></li>
+        <li><span class="k2">&harr;</span><span><b>Stones slide</b> in a line until blocked. Three in a row wins.</span></li>
+        <li><span class="k2"><span class="sw bad"></span></span><span><b>Every move is checked:</b> <span class="sw good"></span> kept the win, <span class="sw bad"></span> threw it away. Dashed arrow: the winning move.</span></li>
+      </ol>
+    </div>
+    <p class="eyebrow" id="eb"></p><h2 class="hl" id="hl"></h2>
+    <div class="verdict big" id="note" aria-live="polite"><span class="vi" id="vi" aria-hidden="true"></span><div class="vx"><p class="v-eb" id="veb" hidden></p><p class="v-title" id="vt"></p><p class="v-body" id="vb"></p></div></div>
+    <div class="ctl"><button class="tb" id="prev">&larr; Back</button><button class="tb primary" id="play">Play</button><button class="tb" id="next">Next &rarr;</button><span class="pos" id="pos"></span></div>
     <ol class="moves" id="moves"></ol>
   </div>
 </div>
@@ -481,7 +785,7 @@ footer .in { border-top:2px solid var(--ink); padding-top:16px; padding-bottom:5
 <h3 id="pbh">One move per call</h3><p class="note" id="pbs"></p>
 <div class="rw" style="align-items:flex-start"><div class="chartbox" id="pbc" style="flex:1;height:340px"></div><div class="lg" id="pbl" style="width:260px;flex:none"></div></div>
 <p class="note" id="pbx" style="margin-top:14px"></p>
-<h3 id="lnh">Training a small model on the same signal</h3><p class="note" id="lne"></p>
+<h3 id="lnh">Training a small model on the same puzzles</h3><p class="note" id="lne"></p>
 <div class="chartbox" id="lnc" style="width:100%;max-width:900px;height:360px"></div>
 <p class="note" id="lnt" style="margin-top:14px"></p><p class="note" id="lnx"></p>
 </section>
@@ -519,8 +823,12 @@ theorem <b>P07.red_winning_moves</b> :
 <p>Keys: in the story, right arrow, space or page down go to the next screen, left arrow or page up go back. In the replays, left and right arrows step through the moves, up and down change the puzzle, space plays or pauses. F toggles fullscreen.</p></div></footer>
 </div>
 
+<script type="application/json" id="artdata">__ART__</script>
 <script>
 const DATA = __DATA__;
+/* collage art from tools/art_gen.py (demo/art/*.webp), embedded by replay_site.py; a page without it keeps plain panels */
+const ART = (() => { try { return JSON.parse(document.getElementById('artdata').textContent); } catch (e) { return {}; } })();
+document.querySelectorAll('[data-img]').forEach(a => { const u = ART[a.dataset.img]; if (u) a.style.backgroundImage = 'url(' + u + ')'; });
 const el = id => document.getElementById(id);
 const H = (id, h) => { const e = el(id); if (e) e.innerHTML = h; };
 const RUNS = []; DATA.groups.forEach(g => g.runs.forEach(r => RUNS.push({ g, r })));
@@ -619,6 +927,7 @@ function layout() {
   B = makeBoard(el('board'), Math.max(28, Math.floor(sz)), gap, lab);
   costChart(el('cost'));
   layoutScreens();
+  paintArt();
 }
 
 /* ------------------------------------------------ screen: the game (rules animation) */
@@ -738,7 +1047,7 @@ function sHorizonBars() {
   const el2 = el('hb'); el2.style.setProperty('--n', cols.length);
   const fams = DX.map(x => x.g.short).join(' and ');
   let h = '<div class="grp2" style="grid-column:1 / span ' + TIERS.length + '">The ' + P.length + ' puzzles</div>' + (dws.length ? '<div class="grp2 deep" style="grid-column:span ' + dws.length + '">Harder extra set: ' + fams + '</div>' : '');
-  h += cols.map(c => { const v = c.c[1] ? c.c[0] / c.c[1] : 0; return '<div class="col' + (c.deep ? ' deep' : '') + '"><p class="v">' + (c.deep && c.c[1] <= 20 ? c.c[0] + '/' + c.c[1] : pc(v)) + '</p><div class="bar" style="--h:' + v.toFixed(4) + '"></div></div>'; }).join('');
+  h += cols.map(c => { const v = c.c[1] ? c.c[0] / c.c[1] : 0; return '<div class="col' + (c.deep ? ' deep' : '') + '" title="' + c.w + ' moves away: ' + c.c[0] + ' of ' + c.c[1] + ' won"><p class="v">' + (c.deep && c.c[1] <= 20 ? c.c[0] + '/' + c.c[1] : pc(v)) + '</p><div class="bar" style="--h:' + v.toFixed(4) + '"></div></div>'; }).join('');
   h += cols.map(c => '<p class="x">' + c.w + '</p>').join('');
   H('hb', h);
   el2.setAttribute('aria-label', 'Share of puzzles won by moves to the win: ' + cols.map(c => c.w + ' moves ' + c.c[0] + ' of ' + c.c[1]).join(', '));
@@ -799,7 +1108,7 @@ function sHorizon() {
     (top && top.runs.length === 1 ? ' ' + top.short + ' has one run: a data point, not a rank.' : ''));
 }
 
-const LI = (() => { const L = DATA.learn || {}; const im = L.imitation; if (!im) return null; return { im, rw: L.reward, probe: L.probe || [], older: L.probe_older || [], other: L.probe_other || [], a: im.points[0], z: im.points[im.points.length - 1] }; })();
+const LI = (() => { const L = DATA.learn || {}; const im = L.imitation; if (!im) return null; return { im, i4: L.imitation4b, rw: L.reward, probe: L.probe || [], older: L.probe_older || [], other: L.probe_other || [], a: im.points[0], z: im.points[im.points.length - 1] }; })();
 const PROBE = LI ? LI.probe.filter(q => q.tiers && q.tiers.every(v => typeof v === 'number')) : [];
 const probeMean = t => PROBE.reduce((s, q) => s + q.tiers[t], 0) / PROBE.length;
 const OTHER_DASH = ['4 6', '14 6 3 6', ''];
@@ -899,7 +1208,7 @@ function sSummary() {
 const EFF = (DATA.effort || []).filter(e => e.runs.length && MODELS.some(g => g.slug === e.of));
 function shareBy(runsWon, lo, hi) { let a = 0, b = 0; runsWon.forEach(w => w.forEach((ok, j) => { const t = P[j].win_in; if (t >= lo && t <= hi) { b++; if (ok) a++; } })); return [a, b]; }
 const wonOf = runs => runs.map(r => r.cells.map(c => c.state === 'solved'));
-const pq = ab => pc(ab[0] / ab[1]);
+const pq = ab => '<span title="' + ab[0] + ' of ' + ab[1] + '">' + pc(ab[0] / ab[1]) + '</span>';
 function sTaught() {
   const items = [], all = wonOf(MRUNS.map(x => x.r));
   const ds = DX.reduce((s, x) => s + x.hi[0], 0), dn = DX.reduce((s, x) => s + x.hi[1], 0);
@@ -917,7 +1226,7 @@ function sTaught() {
   }
   items.push(pc(wrongShare()) + ' of losses are a confident wrong move, not a timeout.');
   if (PX.length && LI && LI.rw) { const z = LI.rw.points[LI.rw.points.length - 1];
-    items.push('Practice inside a session does not help. Training a small model on the same signal does: from ' + (LI.rw.points[0].y < 0.005 ? 'under 1%' : pc(LI.rw.points[0].y)) + ' to ' + pc(z.y) + '.'); }
+    items.push('Practice inside a session does not help. Training a small model on the score alone does: from ' + (LI.rw.points[0].y < 0.005 ? 'under 1%' : pc(LI.rw.points[0].y)) + ' to ' + pc(z.y) + '.'); }
   H('tgl', items.slice(0, 5).map((t, i) => '<div class="rule"><p class="rn">0' + (i + 1) + '</p><p class="t">' + t + '</p></div>').join(''));
   H('tgc', 'Costs: estimated at list prices.' + effortNote + ' <a class="xl" href="#all/side">Details</a>');
 }
@@ -971,7 +1280,8 @@ function sLearnChart() {
   const host = el('lnc'); if (!host || host.clientWidth < 100) return; if (!LI || !LI.rw || !host) return;
   const d = dpx(), W = host.clientWidth, Hh = host.clientHeight || 320, fs = Math.max(13, Math.round(26 * d));
   const im = LI.im.points, rw = LI.rw.points, ps = LI.probe.map(q => q.score);
-  const xmax = Math.max(...im.map(q => q.x), ...rw.map(q => q.x)), step = 200000, xtop = Math.ceil(xmax / step) * step, top = 0.6;
+  const i4 = LI.i4 ? LI.i4.points : [];
+  const xmax = Math.max(...im.map(q => q.x), ...rw.map(q => q.x), ...i4.map(q => q.x)), step = 200000, xtop = Math.ceil(xmax / step) * step, top = 0.6;
   const lw = narrow() ? fs * 11.5 : 300 * d;
   const m = { l: fs * 2.6, r: lw, t: fs * 0.8, b: fs * 2.2 };
   const X = v => m.l + v / xtop * (W - m.l - m.r), Y = v => m.t + (1 - v / top) * (Hh - m.t - m.b);
@@ -980,13 +1290,14 @@ function sLearnChart() {
   for (let v = 0; v <= top + 1e-9; v += 0.1) s += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="' + (v ? '#E4DED2' : '#6E6A62') + '" stroke-width="2"/><text class="ax" x="' + (m.l - fs * 0.5) + '" y="' + (Y(v) + fs * 0.35) + '" text-anchor="end" font-size="' + fs + '">' + v.toFixed(1) + '</text>';
   for (let v = 0; v <= xtop; v += step) s += '<text class="ax" x="' + X(v) + '" y="' + (Hh - m.b + fs * 1.4) + '" text-anchor="middle" font-size="' + fs + '">' + kfmt(v) + '</text>';
   const pl = (pts, c, w, dash) => '<polyline points="' + pts.map(q => X(q.x) + ',' + Y(q.y)).join(' ') + '" fill="none" stroke="' + c + '" stroke-width="' + w + '" stroke-linejoin="round" stroke-linecap="round"' + (dash ? ' stroke-dasharray="' + dash + '"' : '') + '/>';
-  s += pl(im, '#8A8780', 3.5, '12 9') + pl(rw, '#17191C', 5, '');
+  s += pl(im, '#8A8780', 3.5, '12 9') + (i4.length ? pl(i4, '#2F5D93', 3.5, '4 6') : '') + pl(rw, '#17191C', 5, '');
   rw.forEach(q => { s += '<circle cx="' + X(q.x) + '" cy="' + Y(q.y) + '" r="' + Math.max(4, 9 * d) + '" fill="#17191C"><title>' + kfmt(q.x) + ' moves: ' + f3(q.y) + '</title></circle>'; });
   const zi = im[im.length - 1], zr = rw[rw.length - 1];
   /* end labels in the right margin, nudged apart */
   const labs = [];
   if (ps.length) labs.push({ y: Y((Math.max(...ps) + Math.min(...ps)) / 2), t: 'Gemini 4: ' + f2(Math.min(...ps)) + ' to ' + f2(Math.max(...ps)), c: '#2F5D93', w: 400 });
-  labs.push({ y: Y(zi.y), t: 'imitation ' + f3(zi.y), c: '#55585C', w: 400 }, { y: Y(zr.y), t: 'reward only ' + f3(zr.y), c: '#17191C', w: 600 });
+  if (i4.length) labs.push({ y: Y(i4[i4.length - 1].y), t: 'Qwen3-4B, ' + kfmt(i4[i4.length - 1].x) + ' examples ' + f3(i4[i4.length - 1].y), c: '#2F5D93', w: 400 });
+  labs.push({ y: Y(zi.y), t: 'Qwen3-0.6B, imitation ' + f3(zi.y), c: '#55585C', w: 400 }, { y: Y(zr.y), t: 'Qwen3-0.6B, score only ' + f3(zr.y), c: '#17191C', w: 600 });
   labs.sort((a, b) => a.y - b.y); for (let i = 1; i < labs.length; i++) if (labs[i].y - labs[i - 1].y < fs * 1.3) labs[i].y = labs[i - 1].y + fs * 1.3;
   labs.forEach(l => { s += '<text x="' + (W - m.r + fs * 0.8) + '" y="' + (l.y + fs * 0.35) + '" font-size="' + fs + '" fill="' + l.c + '" font-weight="' + l.w + '">' + l.t + '</text>'; });
   const ux = X(xtop * 0.42), uy = Y(LI.a.y) - fs * 0.7;
@@ -1037,31 +1348,34 @@ function layoutScreens() {
     MK.o = fitBoard(el('bxmk'), el('bmk'), 110); mShow(false);
     const cb = fitBoard(el('bxcover'), el('bcover'), 90); stones(cb, MK.bad, null); arrows(cb, MK.bad);
   }
-  hzCols(); sProbeChart(); sLearnChart();
+  hzCols(); sProbeChart(); sLearnChart(); pLayout();
 }
 
 /* ------------------------------------------------ explorer: the current view */
 function cur() { const x = RUNS[k]; return { c: x.r.cells[p], x }; }
 const lastF = () => cur().c.frames.length - 1;
 function headline(x, c, q) {
-  const a = x.g.actor, head = 'Blue can force a win in ' + plural(q.win_in, 'move') + '. ';
-  if (c.state === 'solved') return head + a + ' found it.';
-  if (c.state === 'open') return 'This attempt ended before reaching puzzle ' + q.num + '.';
-  if (c.state === 'time') return head + a + ' ran out of time.';
-  if (c.state === 'skipped') return head + a + ' gave up.';
-  if (c.state === 'slow') return head + a + ' was too slow.';
+  const a = x.g.actor;
+  if (c.state === 'solved') return a + ' found the win.';
+  if (c.state === 'open') return 'Never reached this puzzle.';
+  if (c.state === 'time') return a + ' ran out of time.';
+  if (c.state === 'skipped') return a + ' gave up.';
+  if (c.state === 'slow') return a + ' was too slow.';
   const b = c.bad !== null ? c.frames[c.bad] : null;
-  return head + a + (b && b.name ? ' played ' + mv(b.name) + '.' : ' did not finish.');
+  return b && b.name ? a + ' threw the win away with ' + mv(b.name) + '.' : a + ' did not finish.';
 }
 function verdict(fr, anim) {
   const v = el('note');
-  v.className = 'verdict ' + (fr.kind === 'demo' || fr.kind === 'start' || fr.kind === 'reply' ? '' : fr.kind) + (anim && SLIDE ? ' pending' : '');
-  const sym = fr.kind === 'good' ? '✓ ' : fr.kind === 'bad' ? '✗ ' : '';
+  v.className = 'verdict big ' + (fr.kind === 'demo' || fr.kind === 'start' || fr.kind === 'reply' ? '' : fr.kind) + (anim && SLIDE ? ' pending' : '');
+  const sym = '';
   el('veb').hidden = fr.kind !== 'line'; el('veb').textContent = "Solver's line, not played";
   if (fr.name && fr.kind !== 'demo') {
     el('vt').innerHTML = sym + fr.side + ' ' + mv(fr.name) + (fr.verb ? ' ' + fr.verb : '');
   } else el('vt').textContent = sym + (fr.title || (fr.kind === 'start' ? 'Puzzle start' : ''));
   el('vb').textContent = fr.text;
+  const vi = el('vi'), red = fr.kind === 'reply' || (fr.kind === 'line' && fr.side === 'Red');
+  vi.className = 'vi ' + (red ? 'red' : fr.kind === 'bad' ? 'bad' : fr.kind === 'line' ? 'line' : 'blue');
+  vi.textContent = fr.kind === 'good' ? '✓' : fr.kind === 'bad' ? '✗' : fr.kind === 'start' ? PZ(RUNS[k].g)[p].win_in : '';
 }
 function xHash() { const x = RUNS[k]; return '#' + x.g.slug + '/' + x.r.n + '/' + PZ(x.g)[p].id + '/' + f; }
 function draw(anim) {
@@ -1072,8 +1386,9 @@ function draw(anim) {
   el('msel').value = tid;
   document.querySelectorAll('#strip .c.on').forEach(b => b.classList.remove('on'));
   const on = document.querySelector('#strip .c[data-k="' + k + '"][data-p="' + p + '"]'); if (on) on.classList.add('on');
-  el('eb').textContent = (isDeep(x.g) ? 'Deep set · ' : '') + (isModel(x.g) || (isDeep(x.g) && x.g.runs.length > 1) ? x.g.label + ' · attempt ' + x.r.n + ' of ' + x.g.runs.length : x.g.label) + ' · puzzle ' + q.num + ' of ' + PZ(x.g).length;
+  el('eb').textContent = (isDeep(x.g) ? 'Deep set · ' : '') + 'Puzzle ' + q.num + ' of ' + PZ(x.g).length + ' · forced win in ' + plural(q.win_in, 'move');
   el('hl').innerHTML = headline(x, c, q);
+  summary(x);
   const t = ++token, prev = anim && SLIDE && f > 0 && fr.move ? c.frames[f - 1] : null;
   stones(B, fr, prev);
   if (prev) setTimeout(() => { if (t === token) { arrows(B, fr); el('note').classList.remove('pending'); } }, SLIDE + 60);
@@ -1102,6 +1417,95 @@ function draw(anim) {
 function open(i, j) { const c = RUNS[i].r.cells[j]; k = i; p = j; f = c.state === 'lost' && c.bad !== null ? c.bad : 0; draw(false); }
 function toStage(instant) { el('stage').scrollIntoView({ behavior: REDUCED || instant ? 'auto' : 'smooth' }); setTimeout(() => setHash(xHash()), instant ? 0 : 50); }
 
+/* ------------------------------------------------ explorer: one-line summary, puzzle chips, attempt arrows */
+const rowsOf = g => TABS.find(t => t.id === tabOf(g)).groups.flatMap(gg => gg.runs);
+function summary(x) {
+  const g = x.g, r = x.r, n = r.cells.length, w = r.cells.filter(c => c.state === 'solved').length, rows = rowsOf(g), i = rows.indexOf(r);
+  el('apos').textContent = isModel(g) ? 'Attempt ' + r.n + ' of ' + g.runs.length : g.short + (g.runs.length > 1 ? ', attempt ' + r.n : '');
+  el('aprev').disabled = i <= 0; el('anext').disabled = i >= rows.length - 1;
+  el('sum').innerHTML = '<b>' + g.label + '</b> won <span class="won">' + w + ' of ' + n + '</span> puzzles.' + (isModel(g) ? ' <span class="avg">This attempt' + (g.runs.length > 1 ? ' · average over all ' + g.runs.length + ' attempts: ' + Math.round(100 * g.mean) + '%' : '') + '</span>' : '');
+  const ch = el('chips'); ch.innerHTML = ''; ch.style.setProperty('--n', n);
+  let tier = null;
+  r.cells.forEach((c, j) => {
+    const q = PZ(g)[j], b = document.createElement('button');
+    b.className = 'chip ' + c.state + (j === p ? ' on' : '') + (tier !== null && q.win_in !== tier ? ' nt' : ''); tier = q.win_in;
+    b.setAttribute('role', 'listitem');
+    b.innerHTML = '<span class="cn">' + q.num + '</span><span class="cg">' + GLYPH[c.state] + '</span>';
+    b.title = 'Puzzle ' + q.num + ', win in ' + q.win_in + ': ' + WORD[c.state]; b.setAttribute('aria-label', b.title);
+    if (j === p) b.setAttribute('aria-current', 'true');
+    b.onclick = () => { stopPlay(); open(k, j); };
+    ch.appendChild(b);
+  });
+}
+function stepRun(d) {
+  const x = RUNS[k], rows = rowsOf(x.g), i = rows.indexOf(x.r) + d;
+  if (i < 0 || i >= rows.length) return;
+  stopPlay(); const nk = idx(rows[i]); open(nk, Math.min(p, RUNS[nk].r.cells.length - 1));
+}
+
+/* ------------------------------------------------ generated art: halftone ice with cracks, and a chart-paper trace of the real solve rates */
+function rng(a) { a = a >>> 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function vnoise(R, G) {
+  const g = []; for (let i = 0; i < (G + 1) * (G + 1); i++) g.push(R());
+  return (x, y) => {
+    x = Math.max(0, Math.min(0.9999, x)) * G; y = Math.max(0, Math.min(0.9999, y)) * G;
+    const i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j, sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+    const a = g[j * (G + 1) + i], b = g[j * (G + 1) + i + 1], c = g[(j + 1) * (G + 1) + i], d = g[(j + 1) * (G + 1) + i + 1];
+    return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
+  };
+}
+function iceSVG(seed, W, H, calm) {
+  const R = rng(seed * 9973 + 17), n1 = vnoise(R, 4), n2 = vnoise(R, 11), st = Math.max(7, Math.min(Math.max(W, H) / 48, Math.min(W, H) / 20)), M = Math.max(W, H);
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" aria-hidden="true"><rect width="' + W + '" height="' + H + '" fill="#E7ECEC"/><g fill="#2F5D93">';
+  for (let y = 0, row = 0; y < H + st; y += st * 0.866, row++) for (let x = (row % 2) * st / 2; x < W + st; x += st) {
+    const v = 0.68 * n1(x / W, y / H) + 0.32 * n2(x / W, y / H), r = st * 0.54 * Math.pow(Math.min(1, Math.max(0, (v - 0.25) / 0.62)), 1.35);
+    if (r > 0.35) s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r.toFixed(2) + '"/>';
+  }
+  s += '</g>';
+  const paths = [];
+  const crack = (x, y, a, n, depth) => {
+    const pts = [[x, y]];
+    for (let i = 0; i < n; i++) {
+      a += (R() - 0.5) * 0.95; const l = M / 20 * (0.45 + R());
+      x += Math.cos(a) * l; y += Math.sin(a) * l; pts.push([x, y]);
+      if (depth < 2 && R() < 0.24) crack(x, y, a + (R() < 0.5 ? 1 : -1) * (0.6 + R() * 0.7), Math.ceil(n * 0.45), depth + 1);
+    }
+    paths.push({ pts, depth });
+  };
+  let mark = null;
+  for (let c = 0; c < (calm ? 1 : 3); c++) { const x = W * (0.2 + R() * 0.6), y = H * (0.2 + R() * 0.6); crack(x, y, R() * Math.PI * 2, 11, 0); crack(x, y, R() * Math.PI * 2, 7, 1); if (!mark) mark = [x, y]; }
+  const pd = q => 'M' + q.pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' L');
+  s += '<g fill="none" stroke-linejoin="round" stroke-linecap="round">' + paths.map(q => '<path d="' + pd(q) + '" stroke="#E7ECEC" stroke-width="' + (q.depth ? 5 : 10) + '"/>').join('') +
+    paths.map(q => '<path d="' + pd(q) + '" stroke="#17191C" stroke-width="' + (q.depth ? 1.1 : 2) + '"/>').join('') + '</g>';
+  if (!calm && mark) s += '<circle cx="' + mark[0].toFixed(1) + '" cy="' + mark[1].toFixed(1) + '" r="' + (st * 0.95).toFixed(1) + '" fill="#E0352B"/>';
+  return s + '</svg>';
+}
+function traceSVG(W, H) {
+  const { t, deep, dws } = poolTiers(), pts = [...TIERS.map(w => [w, t[w][0] / t[w][1]]), ...dws.map(w => [w, deep[w][0] / deep[w][1]])];
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" aria-hidden="true"><rect width="' + W + '" height="' + H + '" fill="#FAF7F0"/>';
+  const g = Math.max(14, Math.round(Math.min(W, H) / 14));
+  for (let x = 0, i = 0; x <= W; x += g, i++) s += '<line x1="' + x + '" y1="0" x2="' + x + '" y2="' + H + '" stroke="' + (i % 5 ? '#ECE5D6' : '#DCD3C1') + '"/>';
+  for (let y = 0, i = 0; y <= H; y += g, i++) s += '<line x1="0" y1="' + y + '" x2="' + W + '" y2="' + y + '" stroke="' + (i % 5 ? '#ECE5D6' : '#DCD3C1') + '"/>';
+  if (pts.length < 2) return s + '</svg>';
+  const L = W * 0.07, Rt = W * 0.95, T = H * 0.2, B = H * 0.76, n = pts.length, X = i => L + (Rt - L) * i / (n - 1), Y = v => B - (B - T) * v;
+  const drop = pts.findIndex(q => q[1] < 0.5);
+  s += '<line x1="' + L + '" y1="' + Y(0.5) + '" x2="' + Rt + '" y2="' + Y(0.5) + '" stroke="#55585C" stroke-dasharray="4 5"/>';
+  s += '<path d="' + pts.map((q, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(q[1]).toFixed(1)).join(' ') + '" fill="none" stroke="#17191C" stroke-width="2.5" stroke-linejoin="round"/>';
+  pts.forEach((q, i) => {
+    s += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(q[1]).toFixed(1) + '" r="' + (i === drop ? 9 : 4.5) + '" fill="' + (i === drop ? '#E0352B' : '#17191C') + '"/>';
+    s += '<text x="' + X(i).toFixed(1) + '" y="' + (B + 26) + '" text-anchor="middle" font-family="Courier Prime, Courier New, monospace" font-weight="700" font-size="13" fill="#55585C">' + q[0] + '</text>';
+  });
+  return s + '</svg>';
+}
+function paintArt() {
+  document.querySelectorAll('[data-art]').forEach(a => {
+    const W = Math.round(a.clientWidth), H = Math.round(a.clientHeight); if (!W || !H) return;
+    const key = W + 'x' + H; if (a.dataset.sz === key) return; a.dataset.sz = key;
+    const old = a.querySelector('svg'); if (old) old.remove();
+    a.insertAdjacentHTML('afterbegin', a.dataset.art === 'trace' ? traceSVG(W, H) : iceSVG(+a.dataset.seed || 1, W, H, a.dataset.v === 'calm'));
+  });
+}
+
 /* ------------------------------------------------ explorer: play */
 function stopPlay() { playing = false; clearTimeout(timer); el('play').textContent = 'Play'; }
 function startPlay() {
@@ -1126,7 +1530,7 @@ function selector() {
     const b = document.createElement('button'); b.className = 'tab'; b.dataset.t = tb.id; b.textContent = tb.label;
     b.title = tb.id === 'deep' ? 'Side experiment: 6 harder puzzles, win in 7 to 9 moves' : tb.id === 'refs' ? 'Perfect play, rules-only search and two baselines' : tb.groups[0].label + ': ' + plural(tb.groups[0].runs.length, 'attempt') + ', mean ' + f3(tb.groups[0].mean);
     b.onclick = () => pickTab(tb.id); s.appendChild(b);
-    const o = document.createElement('option'); o.value = tb.id; o.textContent = tb.id === 'deep' ? 'Deep set (side experiment)' : tb.id === 'refs' ? 'Perfect play and baselines' : tb.groups[0].label + ' (' + f3(tb.groups[0].mean) + ')'; og.appendChild(o);
+    const o = document.createElement('option'); o.value = tb.id; o.textContent = tb.id === 'deep' ? 'Deep set (side experiment)' : tb.id === 'refs' ? 'Perfect play and baselines' : tb.groups[0].label + '  ·  ' + Math.round(100 * tb.groups[0].mean) + '% won'; og.appendChild(o);
   });
   ms.onchange = e => pickTab(e.target.value);
 }
@@ -1224,6 +1628,146 @@ function costChart(host) {
   host.innerHTML = '<svg width="' + W + '" height="' + H + '" role="img" aria-label="Mean cost per attempt against share of puzzles won">' + s + '</svg>';
 }
 
+/*PLAY-LOGIC*/
+/* The game for the Play view: move generation by the rules, grading by the solver's table (thinice/session.py).
+   tools/replay_site.py runs this block under node at build time and checks it against the table and the reference run. */
+function playLogic(W, H, files) {
+  const LOSS0 = 128, DIRS = [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]];
+  const name = s => files[s % W] + (Math.floor(s / W) + 1);
+  const mname = (f, t) => name(f) + '-' + name(t);
+  function parse(text) {
+    const m = /^\s*([a-z])([1-9])\s*-\s*([a-z])([1-9])\s*$/i.exec(text || '');
+    if (!m) return null;
+    const sq = (c, r) => { const x = files.indexOf(c.toLowerCase()), y = +r - 1; return x < 0 || y < 0 || y >= H ? -1 : y * W + x; };
+    const f = sq(m[1], m[2]), t = sq(m[3], m[4]);
+    return f < 0 || t < 0 ? null : [f, t];
+  }
+  /* a stone slides until the next cell is taken or off the board, at least one cell */
+  function legal(mine, other) {
+    const occ = new Set([...mine, ...other]), out = [];
+    [...mine].sort((a, b) => a - b).forEach(s => {
+      const x0 = s % W, y0 = Math.floor(s / W);
+      DIRS.forEach(([dx, dy]) => { let x = x0, y = y0, last = -1;
+        while (true) { const nx = x + dx, ny = y + dy; if (nx < 0 || nx >= W || ny < 0 || ny >= H || occ.has(ny * W + nx)) break; x = nx; y = ny; last = y * W + x; }
+        if (last >= 0) out.push([s, last]); });
+    });
+    return out.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  }
+  const key = (blue, red) => '[' + [...blue].sort((a, b) => a - b).join(',') + ']|[' + [...red].sort((a, b) => a - b).join(',') + ']';
+  const start = pz => ({ pz, blue: [...pz.blue], red: [...pz.red], used: 0, status: 'open', reason: '', history: [] });
+  const entries = st => st.pz.nodes[key(st.blue, st.red)] || [];
+  /* moves that keep a forced win that still fits in the moves left (the probe's "right" moves) */
+  const inTime = st => entries(st).filter(e => e[2] >= LOSS0 && st.used + 1 + (e[2] - LOSS0) / 2 <= st.pz.cap);
+  /* play one Blue move; returns null if it is not a legal move here */
+  function move(st, f, t) {
+    if (st.status !== 'open') return null;
+    const e = entries(st).find(x => x[0] === f && x[1] === t);
+    if (!e) return null;
+    const kept = inTime(st).includes(e), cv = e[2], out = { played: mname(f, t), from: f, to: t, cv, reply: null, kept };
+    st.used++; st.blue = st.blue.map(s => s === f ? t : s);
+    if (cv === LOSS0) { st.status = 'solved'; out.kind = 'win'; }
+    else if (cv > LOSS0) {
+      st.red = st.red.map(s => s === e[3] ? e[4] : s); out.reply = mname(e[3], e[4]); out.rmove = [e[3], e[4]];
+      out.kind = kept ? 'keep' : 'slow';
+      if (st.used >= st.pz.cap) { st.status = 'failed'; st.reason = 'out of moves'; out.kind = 'outofmoves'; }
+    } else { st.status = 'failed'; out.kind = cv === 0 ? 'draw' : 'loss'; out.redIn = (cv + 1) / 2 | 0; st.reason = out.kind; }
+    st.history.push([out.played, out.reply]);
+    return out;
+  }
+  /* the one-move prompt of tools/probe.py: its system text, then the position as Attempt.text() shows it */
+  function prompt(st, system) {
+    const rows = [];
+    for (let y = H - 1; y >= 0; y--) { const c = []; for (let x = 0; x < W; x++) { const s = y * W + x; c.push(st.blue.includes(s) ? 'B' : st.red.includes(s) ? 'R' : '.'); } rows.push((y + 1) + ' ' + c.join(' ')); }
+    rows.push('  ' + files.split('').join(' '));
+    const sq = a => [...a].sort((p, q) => p - q).map(name).join(' ');
+    return system + '\n\n' + 'Puzzle ' + st.pz.id + ': Blue has a forced win in ' + st.pz.need + ' move(s). Moves used: ' + st.used + ' of ' + st.pz.cap + ' allowed.\n' +
+      rows.join('\n') + '\nBlue stones: ' + sq(st.blue) + '   Red stones: ' + sq(st.red) + '\nBlue (you) to move. Legal moves: ' + entries(st).map(e => mname(e[0], e[1])).join(' ');
+  }
+  return { LOSS0, name, mname, parse, legal, key, start, entries, inTime, move, prompt };
+}
+/*END-PLAY-LOGIC*/
+
+/* ------------------------------------------------ Play: the 12 puzzles of the default run, against the perfect defender */
+const PLAY = DATA.play, PLG = playLogic(DATA.w, DATA.h, DATA.files);
+let PB = null, pst = null, pi = 0, psel = null, pfr = null;
+const pfirst = {};  /* first finished try per puzzle: what the score counts */
+function pRange() {
+  const xs = MRUNS.map(x => x.r.solved).sort((a, b) => a - b), q = f => xs[Math.floor(f * (xs.length - 1))];
+  return [q(0.25), q(0.75)];
+}
+function pStart(i, keepHash) {
+  pi = (i + PLAY.puzzles.length) % PLAY.puzzles.length; pst = PLG.start(PLAY.puzzles[pi]); psel = null; pfr = null;
+  el('pyin').value = ''; el('pyx').hidden = true;
+  pVerdict('', '');
+  pDraw();
+  if (!keepHash && view === 'play') setHash('#play/' + PLAY.puzzles[pi].id);
+}
+function pVerdict(cls, html) { const v = el('pyv'); v.className = 'pyv ' + cls; v.innerHTML = html; }
+function pLayout() { if (view !== 'play' || !pst) return; PB = fitBoard(el('pyb'), el('pboard'), 104); PB.cells.forEach((c, s) => { c.onclick = () => pClick(s); }); pDraw(); }
+function pDraw() {
+  const pz = PLAY.puzzles[pi], n = PLAY.puzzles.length;
+  H('pyt', 'Puzzle ' + (pi + 1) + ' of ' + n);
+  H('pys', 'You are Blue. You can force a win in ' + plural(pz.need, 'move') + '; Red defends perfectly. Moves used: ' + pst.used + ' of ' + pz.cap + '.' + (pst.used ? '' : ' Click a blue stone, then where it should slide.'));
+  if (PB) {
+    const fr = { blue: pst.blue, red: pst.red, ...(pfr || {}) };
+    stones(PB, fr, null); arrows(PB, fr);
+    const dests = psel === null ? [] : PLG.legal(pst.blue, pst.red).filter(m => m[0] === psel).map(m => m[1]);
+    PB.cells.forEach((c, s) => { c.classList.toggle('sel', s === psel); c.classList.toggle('dest', dests.includes(s)); c.classList.toggle('pk', pst.status === 'open' && (pst.blue.includes(s) || dests.includes(s))); });
+  }
+  const open = pst.status === 'open';
+  el('pyin').disabled = !open; el('pyf').querySelector('button').disabled = !open; el('pyask').disabled = !open;
+  el('pyr').hidden = pst.used === 0;
+  const done = Object.values(pfirst).filter(v => v === 'solved').length, tried = Object.keys(pfirst).length, [lo, hi] = pRange(), ref = REF('reference');
+  H('pysc', '<b>You: ' + done + ' of ' + n + '</b>' + (tried < n ? ' <span>(' + tried + ' played)</span>' : '') + ' &middot; most model runs: ' + lo + ' to ' + hi + (ref ? ' &middot; perfect play: ' + ref.runs[0].solved : ''));
+  H('pyl', PLAY.puzzles.map((q, i) => { const s = pfirst[q.id], g = s === 'solved' ? '✓' : s === 'failed' ? '✗' : '';
+    return '<button class="pq' + (i === pi ? ' on' : '') + (s ? ' ' + s : '') + '" data-i="' + i + '" aria-label="Puzzle ' + (i + 1) + (s ? ', ' + (s === 'solved' ? 'won' : 'lost') : ', not played yet') + '">' + (i + 1) + (g ? '<small>' + g + '</small>' : '') + '</button>'; }).join(''));
+  el('pyl').querySelectorAll('.pq').forEach(b => { b.onclick = () => pStart(+b.dataset.i); });
+}
+function pClick(s) {
+  if (pst.status !== 'open') return;
+  if (pst.blue.includes(s)) { psel = psel === s ? null : s; pDraw(); return; }
+  if (psel !== null && PLG.legal(pst.blue, pst.red).some(m => m[0] === psel && m[1] === s)) pMove(psel, s);
+}
+function pMove(f, t) {
+  const before = PLG.inTime(pst), pz = PLAY.puzzles[pi], o = PLG.move(pst, f, t);
+  if (!o) { pVerdict('bad', mv(PLG.mname(f, t)) + ' is not a legal move here.'); return; }
+  psel = null; el('pyin').value = '';
+  const alt = before[0] ? [before[0][0], before[0][1]] : null, p = mv(o.played), tail = ' Try again, or go on to the next puzzle.';
+  if (o.kind === 'win') { pfr = { move: [f, t], kind: 'good', side: 'Blue' }; pVerdict('good', '✓ ' + p + ': three in a row. Solved.'); }
+  else if (o.kind === 'keep') { pfr = { move: o.rmove, kind: 'reply', side: 'Red' }; pVerdict('good', '✓ ' + p + ' keeps the forced win. Red answers ' + mv(o.reply) + '.'); }
+  else if (o.kind === 'slow') { pfr = { move: o.rmove, kind: 'reply', side: 'Red' }; pVerdict('', p + ' still wins, but too slowly for the moves left. Red answers ' + mv(o.reply) + '.'); }
+  else if (o.kind === 'outofmoves') { pfr = { move: o.rmove, kind: 'reply', side: 'Red' }; pVerdict('bad', '✗ Out of moves: still winning, but too slow. Lost.' + tail); }
+  else { pfr = { move: [f, t], kind: 'bad', side: 'Blue', alt }; pVerdict('bad', '✗ ' + p + (o.kind === 'draw' ? ' gives up the forced win: it is now a draw.' : ' loses: Red now wins in ' + o.redIn + '.') + (alt ? ' The dashed arrow kept the win.' : '') + tail); }
+  if (pst.status !== 'open' && !pfirst[pz.id]) pfirst[pz.id] = pst.status;
+  pDraw();
+}
+el('pyf').onsubmit = e => {
+  e.preventDefault(); if (pst.status !== 'open') return;
+  const m = PLG.parse(el('pyin').value);
+  if (!m) { pVerdict('bad', 'Type a move as from-to, for example ' + mv('c1-a1') + '.'); return; }
+  pMove(m[0], m[1]);
+};
+el('pyr').onclick = () => pStart(pi);
+el('pyn').onclick = () => pStart(pi + 1);
+el('pyask').onclick = () => {
+  const text = PLG.prompt(pst, PLAY.system), note = el('pyx');
+  const done = ok => { note.hidden = false; note.innerHTML = (ok ? 'Copied.' : 'Select and copy the prompt below.') + ' Paste it into any chatbot, then type its move above. This is the one-move setting, one position per question, not the full agent run.' + (ok ? '' : '<textarea readonly rows="6">' + text.replace(/</g, '&lt;') + '</textarea>'); };
+  try { navigator.clipboard.writeText(text).then(() => done(true), () => done(false)); } catch (e) { done(false); }
+};
+
+/* ------------------------------------------------ Run it */
+document.querySelectorAll('.cpy').forEach(b => { b.onclick = () => { const t = b.previousElementSibling.textContent;
+  const ok = () => { b.textContent = 'Copied'; setTimeout(() => { b.textContent = 'Copy'; }, 1600); };
+  try { navigator.clipboard.writeText(t).then(ok, () => {}); } catch (e) {} }; });
+(() => {
+  const g = s => MODELS.find(m => m.slug === s), d = v => '$' + f2(v), parts = [];
+  const hk = g('haiku55'), op = g('opus55'), gc = G4.filter(m => m.cost).map(m => m.cost);
+  if (hk && hk.cost) parts.push('Claude Haiku 5.5 about ' + d(hk.cost));
+  if (gc.length) parts.push('Gemini 4 ' + d(Math.min(...gc)) + ' to ' + d(Math.max(...gc)));
+  if (op && op.cost) parts.push('Claude Opus 5.5 about ' + d(op.cost));
+  H('rvcost', 'Cost of one run as measured here: ' + parts.join(', ') + ' (the test runner&rsquo;s estimates at list prices).');
+})();
+
 /* ------------------------------------------------ views: Story or All games, one at a time; the hash follows */
 const SCR = [...document.querySelectorAll('.scr')].filter(s => !s.hidden);
 const DECK = el('deck'), EXP = el('explore');
@@ -1234,10 +1778,10 @@ let view = 'story', navTo = null, navAt = 0, lastHash = location.hash, started =
 function setHash(h) { if (h !== lastHash) { lastHash = h; history.replaceState(null, '', h); } }
 function showView(v) {
   const was = view; view = v;
-  DECK.hidden = v !== 'story'; EXP.hidden = v !== 'all'; el('dnav').hidden = v !== 'story';
+  DECK.hidden = v !== 'story'; EXP.hidden = v !== 'all'; el('playv').hidden = v !== 'play'; el('runv').hidden = v !== 'run'; el('dnav').hidden = v !== 'story';
   document.documentElement.classList.toggle('story', v === 'story');
   document.querySelectorAll('.views a').forEach(a => { a.classList.toggle('on', a.dataset.v === v); if (a.dataset.v === v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-  if (was !== v) { layout(); draw(false); }
+  if (was !== v) { if (v !== 'story' && v !== 'all') scrollTo(0, 0); layout(); draw(false); }
 }
 const inExplorer = () => view === 'all';
 const replaysOpen = () => inExplorer() && el('g-replays').open;
@@ -1265,6 +1809,8 @@ function route() {
   const story = id => { showView('story'); const i = SCR.findIndex(s => s.id === id); requestAnimationFrame(() => { (SCR[i >= 0 ? i : 0]).scrollIntoView(); onScroll(); }); };
   if (!h || a === 'story') return story(b);
   if (SCR.some(s => s.id === h) || OLD[h]) return story(OLD[h] || h);
+  if (a === 'play') { showView('play'); const i = PLAY.puzzles.findIndex(q => q.id === b); if (i >= 0 && i !== pi) pStart(i, true); setHash('#play/' + PLAY.puzzles[pi].id); return; }
+  if (a === 'run') { showView('run'); return; }
   if (a === 'all' || OLDALL[h]) {
     showView('all'); const g = b || OLDALL[h];
     if (g && el('g-' + g)) { const d = openGroup('g-' + g); requestAnimationFrame(() => d.scrollIntoView()); } else scrollTo(0, 0);
@@ -1295,6 +1841,7 @@ document.addEventListener('keydown', e => {
   if (e.altKey || e.ctrlKey || e.metaKey || /^(SELECT|INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
   const key = e.key;
   if (key === 'f' || key === 'F') { e.preventDefault(); fullscreen(); return; }
+  if (view === 'play' || view === 'run') return;
   if (inExplorer()) {
     if (!replaysOpen()) return;
     if (key === ' ') { e.preventDefault(); el('play').click(); }
@@ -1315,9 +1862,15 @@ let rz = 0; window.addEventListener('resize', () => { cancelAnimationFrame(rz); 
 
 el('src').textContent = 'Source: ' + DATA.source + '. Runs counted per model: ' + MODELS.map(g => g.short + ' ' + g.runs.length).join(', ') +
   '. A run is not counted when an API error ended the session with puzzles still open, or when there is no score sheet; those are listed under each model\'s runs. Red\'s line after a losing move comes from a rules-only search and is shown where that search finished within its budget.';
-screens(); sLadder(); selector(); states(); overview(el('ov'));
+el('aprev').onclick = () => stepRun(-1);
+el('anext').onclick = () => stepRun(1);
+function setHelp(on) { el('help').hidden = !on; el('helpbtn').setAttribute('aria-expanded', on); el('helpbtn').classList.toggle('on', on); try { localStorage.setItem('ti-help', on ? '1' : '0'); } catch (e) {} }
+el('helpbtn').onclick = () => setHelp(el('help').hidden);
+el('helpx').onclick = () => setHelp(false);
+(() => { let v = null; try { v = localStorage.getItem('ti-help'); } catch (e) {} el('help').hidden = v === '0'; el('helpbtn').setAttribute('aria-expanded', v !== '0'); el('helpbtn').classList.toggle('on', v !== '0'); })();
+screens(); sLadder(); selector(); states(); overview(el('ov')); pStart(0, true);
 if (!fromHash()) firstView();
-showView(/^#(all|[a-z0-9-]+\/\d+\/)/.test(location.hash) ? 'all' : 'story');
+showView(/^#(all|[a-z0-9-]+\/\d+\/)/.test(location.hash) ? 'all' : /^#play/.test(location.hash) ? 'play' : /^#run/.test(location.hash) ? 'run' : 'story');
 layout(); draw(false); miniLoop();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { layout(); draw(false); start(); });
 function start() { if (started) return; started = true; route(); }
