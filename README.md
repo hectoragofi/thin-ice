@@ -10,6 +10,8 @@ Thin Ice is a small board game we invented for this challenge and then **solved 
 
 Built for AfterQuery's "Break the Agent" challenge at Junction 2026. It is a standard [Harbor](https://github.com/laude-institute/harbor) task, run with the stock OpenCode agent.
 
+**See it:** [findings, every run replayed, and the puzzles to play yourself](https://hectoragofi.github.io/thin-ice-replays/) · [1:57 video](demo/thin-ice-demo.mp4) · [deck](demo/thin-ice-deck.pdf)
+
 ```
 6 . . . . . . .
 5 . . B . B . .        Blue to move and win in 4.
