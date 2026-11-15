@@ -70,17 +70,17 @@ Everything the agent needs is in front of it: the complete rules, a board view, 
 
 ## Results
 
-Every row is a Harbor run on Modal (`-e modal`) at commit 24d6707, reproducible with the command in the next section. Frontier agents: OpenCode with Gemini 4, 3 runs each, 90 minutes.
+Every row is a Harbor run on Modal (`-e modal`) at commit 24d6707, reproducible with the command in the next section. Agents: OpenCode with Gemini, 90 minutes per run, 6 runs per model in two sets of 3 (`jobs/final/clock-24d6707-<model>-x3` and `-x3b`). Three runs of the second set (one each for Carbon, 3.8 Flash and 3.1 Pro) were lost when the local Harbor process was stopped, so those models have 5.
 
 | run | reward |
 |---|---|
 | Reference: perfect play (moves from the solver) | **1.000** |
 | Reference: rules-only search, 20 s per puzzle (80 lines of Python that know only the rules) | **0.917** |
-| Gemini 4 Argon, 3 runs | **0.556** (0.667, 0.417, 0.583) |
-| Gemini 4 Carbon, 3 runs | **0.472** (0.500, 0.500, 0.417) |
-| Gemini 4 Hydrogen, 3 runs | **0.556** (0.583, 0.583, 0.500) |
-| Gemini 3.8 Flash (older generation), 3 runs | **0.417** (0.417, 0.417, 0.417) |
-| Gemini 3.1 Pro (older generation), 3 runs | **0.389** (0.417, 0.417, 0.333) |
+| Gemini 4 Carbon, 5 runs | **0.550** (0.500, 0.500, 0.417, 0.667, 0.667) |
+| Gemini 4 Argon, 6 runs | **0.542** (0.667, 0.417, 0.583, 0.500, 0.500, 0.583) |
+| Gemini 4 Hydrogen, 6 runs | **0.528** (0.583, 0.583, 0.500, 0.500, 0.500, 0.500) |
+| Gemini 3.8 Flash (older generation), 5 runs | **0.433** (0.417, 0.417, 0.417, 0.500, 0.417) |
+| Gemini 3.1 Pro (older generation), 5 runs | **0.383** (0.417, 0.417, 0.333, 0.417, 0.333) |
 | Baseline: stop early (wins the 2 easiest, then quits) | 0.167 |
 | Baseline: do nothing | 0.000 |
 
@@ -88,27 +88,28 @@ Scripted policies, 3 seeds each, in-process (`python tools/selfcheck.py`, no Doc
 
 ### Where the agents go wrong
 
-| model | reward: mean (runs) | deepest win per run (win in N) | lost puzzles, by solver verdict (all runs) | how sessions ended |
+| model | runs | deepest win per run (win in N) | lost puzzles, by solver verdict (all runs) | how sessions ended |
 |---|---|---|---|---|
-| Gemini 4 Argon | 0.556 (0.667, 0.417, 0.583) | 6, 3, 6 | walked into a forced loss 14, too slow 1, overlooked Red's immediate win 1 | agent stopped by itself 3 |
-| Gemini 4 Carbon | 0.472 (0.500, 0.500, 0.417) | 4, 3, 3 | walked into a forced loss 18, puzzle clock ran out 1 | agent stopped by itself 3 |
-| Gemini 4 Hydrogen | 0.556 (0.583, 0.583, 0.500) | 5, 5, 4 | walked into a forced loss 14, overlooked Red's immediate win 2 | agent stopped by itself 3 |
-| Gemini 3.8 Flash | 0.417 (0.417, 0.417, 0.417) | 4, 3, 3 | walked into a forced loss 13, overlooked Red's immediate win 8 | 90-minute limit reached 2, agent stopped by itself 1 |
-| Gemini 3.1 Pro | 0.389 (0.417, 0.417, 0.333) | 3, 3, 2 | walked into a forced loss 12, overlooked Red's immediate win 8, given up 2 | agent stopped by itself 3 |
+| Gemini 4 Carbon | 5 | 4, 3, 3, 5, 4 | walked into a forced loss 26, puzzle clock ran out 1 | agent stopped by itself 5 |
+| Gemini 4 Argon | 6 | 6, 3, 6, 4, 4, 4 | walked into a forced loss 30, too slow 2, overlooked Red's immediate win 1 | agent stopped by itself 6 |
+| Gemini 4 Hydrogen | 6 | 5, 5, 4, 5, 3, 6 | walked into a forced loss 29, overlooked Red's immediate win 5 | agent stopped by itself 6 |
+| Gemini 3.8 Flash | 5 | 4, 3, 3, 4, 3 | walked into a forced loss 22, overlooked Red's immediate win 11, too slow 1 | agent stopped by itself 3, 90-minute limit reached 2 |
+| Gemini 3.1 Pro | 5 | 3, 3, 2, 2, 3 | walked into a forced loss 21, overlooked Red's immediate win 14, given up 2 | agent stopped by itself 5 |
 
-Wins by depth over all 9 Gemini 4 runs:
+Wins by depth (puzzles solved / puzzles played; 2 puzzles per tier per run):
 
 | win in | 1 | 2 | 3 | 4 | 5 | 6 |
 |---|---|---|---|---|---|---|
-| solved | 18/18 | 18/18 | 13/18 | 4/18 | 2/18 | 2/18 |
+| Gemini 4, all 17 runs | 34/34 | 33/34 | 26/34 | 10/34 | 4/34 | 3/34 |
+| Gemini 3.8 Flash, 5 runs | 10/10 | 10/10 | 4/10 | 2/10 | 0/10 | 0/10 |
+| Gemini 3.1 Pro, 5 runs | 10/10 | 10/10 | 3/10 | 0/10 | 0/10 | 0/10 |
 
-The Gemini 4 family plans about three moves ahead. Every puzzle was reached in every run, every session ended by the agent's own choice, and 50 of the 51 lost puzzles were lost by a move the solver proves wrong (the other ran out its puzzle clock). The losses are planning errors, not harness errors.
+The Gemini 4 family plans about three moves ahead. Every puzzle was reached in every run, every Gemini 4 session ended by the agent's own choice, and 93 of the 94 puzzles Gemini 4 lost were lost by a move the solver proves wrong (the other ran out its puzzle clock). The losses are planning errors, not harness errors.
 
-Equal means can come by different routes. Beyond the five puzzles every run wins (P01 to P05), Argon's extra wins are P06 twice, P08 once and P12 twice; Hydrogen's are P06, P08 twice, P09 and P10.
+**Older models.** Both older Gemini models score below all three Gemini 4 models in the full task (0.433 and 0.383 against 0.528 to 0.550), and they lose differently: in 5 runs each they missed Red's immediate win 11 and 14 times, against 6 times in all 17 Gemini 4 runs, and neither won a puzzle deeper than win in 4. In the one-move probe below the order is less clean (3.1 Pro scores 0.417, level with Argon's 0.400), so we read this as the older models trailing in the full task, not as a strict ranking.
 
-**Older models.** Both older Gemini models score below all three Gemini 4 models in the full task (0.417 and 0.389 against 0.472 to 0.556), and they lose differently: each missed Red's immediate win 8 times in 3 runs, against 3 times in all 9 Gemini 4 runs. In the one-move probe below the order is less clean (3.1 Pro scores 0.417, level with Argon's 0.400), so we read this as the older models trailing in the full task, not as a strict ranking.
+**What 12 puzzles can and cannot say.** One puzzle is worth 0.083, and one model's runs span 0.417 to 0.667. The three Gemini 4 means sit within 0.022 of each other, so this task separates the agents from the references and the baselines, separates the Gemini 4 family from the older models, and shows where on the depth scale each model breaks, but it cannot rank the three Gemini 4 models. The one-move probe below draws 60 different puzzles per model and gives a second, independent comparison.
 
-**What 12 puzzles can and cannot say.** One puzzle is worth 0.083, and one model's three runs span 0.417 to 0.667. So this task separates the agents from the references and the baselines, and shows where on the depth scale each model breaks, but it cannot rank models that sit within a few puzzles of each other. The one-move probe below draws 60 different puzzles per model and gives the finer comparison.
 
 `python tools/mistakes.py <job folders>` builds this table; `python tools/analyze.py <job folder>` writes, for every lost puzzle, the position, the move played, the solver's verdict on it and the move that would have kept the win.
 
