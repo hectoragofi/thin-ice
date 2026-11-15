@@ -212,7 +212,11 @@ Building the proofs is optional and not part of the one-command evaluation; it n
 
 ## Post-training: does a small model get better?
 
-Yes, from nothing to the Gemini 4 models' range. `training/` fine-tunes Qwen3 (LoRA, on Modal) on the feedback the environment's practice mode gives: a position and the move that wins it, generated at scale by the solver. This is imitation of the solver's winning moves, the same information practice mode returns after a wrong move; it is not trial-and-error on the reward. It is evaluated with the same rollout as the probe above, on a held-out pool removed from the training data together with all its rotations and reflections, with the same prompt before and after.
+Yes, from nothing to a bit below the Gemini 4 models. This is not the 12-puzzle Harbor score above: the small models are scored with the one-move-per-call rollout of the probe, on a held-out pool, and compared with the Gemini probe numbers.
+
+**The agents do not use the feedback they are given; a small model trained on it does.** Practice puzzles with ground-truth feedback were available in every run. In the 83 Gemini runs kept above, 45 never practised (mean 0.504), 30 practised 1 to 3 puzzles (0.506) and 8 practised 4 to 9 (0.448). Argon never practised; Carbon opened 1 or 2 practice puzzles in every run. Practice did not raise scores, though model and practice are mixed here, so this is a description, not a controlled test. The 0.6B model below, trained on the same feedback, goes from 0.003 to 0.32.
+
+ `training/` fine-tunes Qwen3 (LoRA, on Modal) on the feedback the environment's practice mode gives: a position and the move that wins it, generated at scale by the solver. This is imitation of the solver's winning moves, the same information practice mode returns after a wrong move; it is not trial-and-error on the reward. It is evaluated with the same rollout as the probe above, on a held-out pool removed from the training data together with all its rotations and reflections, with the same prompt before and after.
 
 | model | before | after 600k examples | legal moves | after, by tier (win in 1 / 2 / 3 / 4 / 5 / 6) |
 |---|---|---|---|---|
