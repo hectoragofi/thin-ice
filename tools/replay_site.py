@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools"))
 from analyze import diagnose  # noqa: E402
+from mistakes import ending  # noqa: E402
 from replay import frames  # noqa: E402
 from thinice.board import FILES, H, W, completes_line, mask_of, move_name, moves, parse_move, squares  # noqa: E402
 from thinice.search import Searcher, Timeout  # noqa: E402
@@ -216,7 +217,7 @@ def cell(row: dict) -> dict:
             "diag": g["kind"] if g else None, "frames": fs}
 
 
-# ---------------------------------------------------------------- rules demo for the opening and the tour
+# ---------------------------------------------------------------- rules demo for the game screen
 def demo() -> dict:
     from thinice.board import parse_sq
     blue = mask_of(parse_sq(s) for s in ("a4", "b1", "c1", "g1"))
@@ -258,19 +259,37 @@ def learning() -> dict:
             bw = h.get("by_win_in") or {}
             tiers = [bw.get(str(t), 0.0) for t in range(1, 7)]
             y = h["six_tier"] if h.get("six_tier") is not None else sum(tiers) / 6
-            pts.append({"x": h.get(xk) or 0, "y": round(y, 4), "tiers": tiers, "legal": round(h.get("legal_rate") or 0, 4)})
+            pt = {"x": h.get(xk) or 0, "y": round(y, 4), "tiers": tiers, "legal": round(h.get("legal_rate") or 0, 4)}
+            if h.get("policy_hit_rate") is not None:  # reward-only rounds: rewarded share of the model's own and of random moves
+                pt["hit"], pt["rand"] = round(h["policy_hit_rate"], 4), round(h.get("random_hit_rate") or 0, 4)
+            pts.append(pt)
         if len(pts) >= 2:
             out[key] = {"source": rel, "model": d.get("model"), "points": pts}
     # the like-for-like frontier number: the same one-move-per-call probe (results/probe/)
-    probe = []
-    for slug, label in (("argon", "Gemini 4 Argon"), ("carbon", "Gemini 4 Carbon"), ("hydrogen", "Gemini 4 Hydrogen")):
-        f = ROOT / "results" / "probe" / f"gemini-4-{slug}.summary.json"
+    probe, older = [], []
+    for slug, label, name, into in (("argon", "Gemini 4 Argon", "gemini-4-argon", probe), ("carbon", "Gemini 4 Carbon", "gemini-4-carbon", probe),
+                                    ("hydrogen", "Gemini 4 Hydrogen", "gemini-4-hydrogen", probe),
+                                    ("pro31", "Gemini 3.1 Pro", "gemini-3.1-pro-preview", older), ("flash38", "Gemini 3.8 Flash", "gemini-3.8-flash", older)):
+        f = ROOT / "results" / "probe" / f"{name}.summary.json"
         try:
             s = json.loads(f.read_text(encoding="utf-8"))
-            probe.append({"label": label, "score": s["score_these_tiers"], "per_tier": s.get("per_tier")})
+            by = s.get("puzzles_solved_by_win_in") or {}
+            into.append({"label": label, "score": s["score_these_tiers"], "per_tier": s.get("per_tier"), "tiers": [by.get(str(t)) for t in range(1, 7)]})
         except (OSError, ValueError, KeyError):
             print(f"learning: {f.relative_to(ROOT)} missing, left out")
-    out["probe"] = probe
+    # other models probed later (in progress while this was written): shown only once all six tiers are in, at the Gemini sample size
+    other = []
+    for f in sorted([*(ROOT / "results" / "probe").glob("claude-*.summary.json"), *(ROOT / "results" / "probe").glob("nemotron*.summary.json")]):
+        try:
+            s = json.loads(f.read_text(encoding="utf-8"))
+            by = s.get("puzzles_solved_by_win_in") or {}
+            if any(str(t) not in by for t in range(1, 7)) or (probe and s.get("per_tier") != probe[0]["per_tier"]):
+                print(f"learning: {f.relative_to(ROOT)} incomplete (tiers {sorted(by)}, {s.get('per_tier')} per tier), left out")
+                continue
+            other.append({"label": s.get("model") or f.stem, "score": s["score_these_tiers"], "per_tier": s.get("per_tier"), "tiers": [by[str(t)] for t in range(1, 7)]})
+        except (OSError, ValueError, KeyError):
+            print(f"learning: {f.relative_to(ROOT)} unreadable, left out")
+    out["probe"], out["probe_older"], out["probe_other"] = probe, older, other
     return out
 
 
@@ -345,6 +364,14 @@ DEEP_MODELS = [
     ("deep-do-nothing", "Baseline: do nothing", "Do nothing", "Deep set", "deep", "The baseline", ["deep-24d6707-do-nothing"], "do-nothing"),
 ]
 
+# Side experiment "effort": the main task with the model's reasoning effort set high (or low). Shown only as a
+# by-depth comparison against the same model's normal runs; none of it enters any main-test number.
+EFFORT_MODELS = [
+    ("effort-opus55-high", "Claude Opus 5.5, high effort", "Opus 5.5 high", "Effort", "effort", "The AI", ["effort-24d6707-opus55-high-x*"], "opus55"),
+    ("effort-carbon-high", "Gemini 4 Carbon, high effort", "Carbon high", "Effort", "effort", "The AI", ["effort-24d6707-carbon-high-x*"], "carbon"),
+    ("effort-carbon-low", "Gemini 4 Carbon, low effort", "Carbon low", "Effort", "effort", "The AI", ["effort-24d6707-carbon-low-x*"], "carbon"),
+]
+
 
 def collect(models=None):
     groups, excluded_all, puzzles = [], [], None
@@ -363,7 +390,7 @@ def collect(models=None):
                     puzzles = ids
                 assert ids == puzzles, f"{t}: different puzzle set"
                 runs.append({"n": len(runs) + 1, "job": d.name, "trial": t.name, "reward": det["reward"], "solved": det["solved"], "practice": det.get("practice_started"),
-                             "total": det["total"], "cost": cost_of(t), "cells": [cell(r) for r in rows]})
+                             "total": det["total"], "cost": cost_of(t), "ended": ending(t), "cells": [cell(r) for r in rows]})
         excluded_all += [dict(e, model=label) for e in excluded]
         if not runs and not excluded:
             print(f"no jobs found for {label}, left out")
@@ -392,7 +419,11 @@ def main() -> None:
     practice, practice_notes = practice_experiment(groups)
     deep, deep_excluded, _ = collect(DEEP_MODELS)
     deep_shown = [g for g in deep if g["runs"]]
-    data = {"w": W, "h": H, "files": FILES, "puzzles": puzzles, "groups": groups + deep_shown, "demo": demo(), "learn": learning(), "practice": practice,
+    effort, effort_excluded, _ = collect(EFFORT_MODELS)
+    effort = [{k: g[k] for k in ("slug", "label", "of", "jobs", "solved", "total", "mean", "cost", "cost_n")}
+              | {"runs": [{"reward": r["reward"], "won": [c["state"] == "solved" for c in r["cells"]]} for r in g["runs"]]}
+              for g in effort if g["runs"]]
+    data = {"w": W, "h": H, "files": FILES, "puzzles": puzzles, "groups": groups + deep_shown, "demo": demo(), "learn": learning(), "practice": practice, "effort": effort,
             "source": "jobs/final (job names clock-24d6707-* and nim-24d6707-*)"}
     js = json.dumps(data, separators=(",", ":"), sort_keys=True).replace("</", "<\\/")
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -419,6 +450,11 @@ def main() -> None:
         print(f"  {g['label']}: {plural(len(g['runs']), 'run')}, {g['solved']}/{g['total']}; rewards " + ", ".join(f"{r['reward']:.3f}" for r in g["runs"])
               + "; by puzzle " + " ".join(c["state"] for r in g["runs"] for c in r["cells"]))
     for e in deep_excluded:
+        print(f"  not shown: {e['model']}: {e['job']}/{e['trial']}: {e['reason']}")
+    print("effort (side experiment, not in any other number):")
+    for g in effort:
+        print(f"  {g['label']}: {plural(len(g['runs']), 'run')}, {g['solved']}/{g['total']}; rewards " + ", ".join(f"{r['reward']:.3f}" for r in g["runs"]))
+    for e in effort_excluded:
         print(f"  not shown: {e['model']}: {e['job']}/{e['trial']}: {e['reason']}")
 
 
