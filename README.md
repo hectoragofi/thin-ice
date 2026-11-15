@@ -187,6 +187,8 @@ With notes, cut-off sessions fell from 6 of 9 to 1 of 7 (Hydrogen, once, on a wi
 Needs Harbor (`uv tool install harbor`, or `uv tool install "harbor[modal]"` for Modal) and Docker, or Modal with `-e modal`. Verified both ways: on plain local Docker (Harbor 0.26.0, Docker 28.4.0) perfect play scores 1.000, do nothing 0.000, stop early 0.167, rules-only search 0.917 and a Claude Haiku 5.5 run 0.500, the same as on Modal; the first run on a clean machine takes 1 to 3 minutes including image builds.
 
 ```bash
+git clone https://github.com/hectoragofi/thin-ice && cd thin-ice
+
 # everything: references, baselines and 3 agent runs, one table at the end
 export GEMINI_API_KEY=...            # or OPENAI_API_KEY / ANTHROPIC_API_KEY
 python scripts/evaluate.py --model google/gemini-4-carbon [--env modal]
