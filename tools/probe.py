@@ -62,28 +62,125 @@ class Fatal(RuntimeError):
     """Stops the run. Everything answered so far is in the cache, so the same command resumes."""
 
 
-def api_key() -> str:
-    value = os.environ.get("GEMINI_API_KEY")
+def api_key(var: str = "GEMINI_API_KEY") -> str:
+    value = os.environ.get(var)
     env = ROOT / ".env"
     if not value and env.exists():
         for line in env.read_text(encoding="utf-8").splitlines():
             name, _, rest = line.partition("=")
-            if name.strip() == "GEMINI_API_KEY":
+            if name.strip() == var:
                 value = rest.strip().strip("\"'")
     if not value:
-        raise Fatal("GEMINI_API_KEY is not set and not in .env")
+        raise Fatal(f"{var} is not set and not in .env")
     return value
 
 
-def http(url: str, body: dict | None = None, timeout: int = 600):  # per read: a silent stream is retried after 10 min
+def http(url: str, body: dict | None = None, timeout: int = 600, headers: dict | None = None):  # per read: a silent stream is retried after 10 min
     data = json.dumps(body).encode() if body is not None else None
-    req = urllib.request.Request(url, data=data, headers={"x-goog-api-key": api_key(), "Content-Type": "application/json"})
+    headers = headers or {"x-goog-api-key": api_key()}
+    req = urllib.request.Request(url, data=data, headers={**headers, "Content-Type": "application/json"})
     return urllib.request.urlopen(req, timeout=timeout)
 
 
-def output_limit(model: str) -> int:
+# Other providers. Same prompt, same one-move-per-fresh-call protocol, same row fields:
+# "thoughts" is the thinking-token count the API reports, "out" the answer tokens without it.
+ANTHROPIC = "https://api.anthropic.com/v1/"
+NVIDIA = "https://integrate.api.nvidia.com/v1/"
+
+
+def provider_of(model: str) -> str:
+    return "anthropic" if model.startswith("claude-") else "nvidia" if "/" in model else "gemini"
+
+
+def anthropic_headers() -> dict:
+    return {"x-api-key": api_key("ANTHROPIC_API_KEY"), "anthropic-version": "2023-06-01"}
+
+
+def nvidia_headers() -> dict:
+    return {"Authorization": f"Bearer {api_key('NVIDIA_API_KEY')}", "Accept": "text/event-stream"}
+
+
+def output_limit(model: str, provider: str = "gemini") -> int:
+    if provider == "anthropic":
+        with http(ANTHROPIC + "models/" + model, timeout=60, headers=anthropic_headers()) as resp:
+            return int(json.load(resp)["max_tokens"])
+    if provider == "nvidia":
+        return HARNESS_OUTPUT_CAP  # the OpenAI-style API does not publish an output limit; the harness cap applies
     with http(API + model, timeout=60) as resp:
         return int(json.load(resp)["outputTokenLimit"])
+
+
+def sse(resp):
+    for raw in resp:
+        line = raw.decode("utf-8", "replace").strip()
+        if line.startswith("data:") and line[5:].strip() != "[DONE]":
+            yield json.loads(line[5:])
+
+
+def ask_other(provider: str, model: str, user: str, max_output: int) -> dict:
+    """ask() for Anthropic's Messages API and NVIDIA's OpenAI-compatible API. Thinking is left at the API default."""
+    if provider == "anthropic":
+        # No temperature/top_p/top_k and no thinking block: the model's default (adaptive) thinking applies.
+        url, headers = ANTHROPIC + "messages", anthropic_headers()
+        body = {"model": model, "max_tokens": max_output, "system": SYSTEM, "stream": True,
+                "messages": [{"role": "user", "content": user}]}
+    else:
+        url, headers = NVIDIA + "chat/completions", nvidia_headers()
+        body = {"model": model, "max_tokens": max_output, "stream": True, "stream_options": {"include_usage": True},
+                "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}]}
+    err = ""
+    for wait in (0, 15, 45, 120, 300):
+        time.sleep(wait)
+        started, text, finish, usage = time.time(), "", None, {}
+        try:
+            with http(url, body, headers=headers) as resp:
+                for chunk in sse(resp):
+                    if provider == "anthropic":
+                        kind = chunk.get("type")
+                        if kind == "message_start":
+                            usage = dict(chunk["message"].get("usage") or {})
+                        elif kind == "content_block_delta" and chunk["delta"].get("type") == "text_delta":
+                            text += chunk["delta"]["text"]  # thinking deltas are skipped: not part of the answer
+                        elif kind == "message_delta":
+                            finish = chunk["delta"].get("stop_reason") or finish
+                            usage.update(chunk.get("usage") or {})
+                        elif kind == "error":
+                            raise OSError(f"stream error: {chunk.get('error')}")
+                    else:
+                        usage = chunk.get("usage") or usage
+                        for ch in chunk.get("choices", []):
+                            text += (ch.get("delta") or {}).get("content") or ""  # reasoning_content is skipped
+                            finish = ch.get("finish_reason") or finish
+            if finish is None:
+                err = "the stream ended without a finish reason"
+                continue
+            if provider == "anthropic":
+                prompt = sum(usage.get(f) or 0 for f in ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"))
+                total = usage.get("output_tokens", 0)
+                thoughts = (usage.get("output_tokens_details") or {}).get("thinking_tokens")
+            else:
+                prompt = usage.get("prompt_tokens", 0)
+                total = usage.get("completion_tokens", 0)
+                thoughts = (usage.get("completion_tokens_details") or {}).get("reasoning_tokens")
+            row = {
+                "text": text.strip()[-300:],
+                "head": text.strip()[:300],  # for --parse first: models that explain after the move
+                "finish": "MAX_TOKENS" if finish in ("max_tokens", "length") else finish,
+                "prompt": prompt,
+                "thoughts": thoughts or 0,
+                "out": total - (thoughts or 0),
+                "secs": round(time.time() - started, 1),
+            }
+            if thoughts is None:
+                row["thinking_split"] = False  # the API gave only a total; "out" holds thinking plus answer
+            return row
+        except urllib.error.HTTPError as exc:
+            err = f"HTTP {exc.code}: {exc.read().decode('utf-8', 'replace')[:300]}"
+            if exc.code not in (429, 500, 502, 503, 504, 529):
+                raise Fatal(f"{model}: {err}") from None
+        except (OSError, http.client.HTTPException, json.JSONDecodeError) as exc:
+            err = repr(exc)
+    raise Fatal(f"{model}: gave up after retries: {err}")
 
 
 def ask(model: str, user: str, max_output: int, level: str | None) -> dict:
@@ -137,19 +234,20 @@ class Probe:
     def __init__(self, args):
         self.args = args
         self.fake = args.model in FAKE
+        self.provider = args.provider or provider_of(args.model)
         self.rng = random.Random(0)
         self.lock = threading.Lock()
         self.rows: list = []  # every call of this run, cached or new
         self.new = 0
         OUT.mkdir(parents=True, exist_ok=True)
-        self.name = args.model + (f"-{args.tag}" if args.tag else "")
+        self.name = args.model.replace("/", "_") + (f"-{args.tag}" if args.tag else "")  # nvidia/x is a file name
         self.path = OUT / f"{self.name}.jsonl"
         self.cache = {}
         if self.path.exists():
             for line in self.path.read_text(encoding="utf-8").splitlines():
                 row = json.loads(line)
                 self.cache[row["k"]] = row
-        self.max_output = 0 if self.fake else (args.max_output or min(output_limit(args.model), HARNESS_OUTPUT_CAP))
+        self.max_output = 0 if self.fake else (args.max_output or min(output_limit(args.model, self.provider), HARNESS_OUTPUT_CAP))
 
     def answer(self, att, entries: list) -> dict:
         if self.fake:
@@ -162,6 +260,8 @@ class Probe:
             if self.new >= self.args.max_calls:
                 raise Fatal(f"call budget of {self.args.max_calls} reached; rerun with a higher --max-calls to resume")
             self.new += 1
+        if self.provider != "gemini":
+            return ask_other(self.provider, self.args.model, att.text(), self.max_output)
         return ask(self.args.model, att.text(), self.max_output, self.args.thinking_level)
 
     def decide(self, att) -> str:
@@ -176,10 +276,15 @@ class Probe:
             in_time = [e for e in entries if e[2] >= LOSS0 and used + 1 + (e[2] - LOSS0) // 2 <= cap]
             fastest = min(e[2] for e in entries if e[2] >= LOSS0)
             ans = self.answer(att, entries)
-            found = MOVE.findall(ans["text"])
+            if self.args.parse == "first":
+                found = MOVE.findall(ans.get("head", ans["text"]))[:1]
+            else:
+                found = MOVE.findall(ans["text"])
             move = "-".join(found[-1]) if found else ""
             e = next((e for e in entries if move_name(e) == move), None)
             verdict = "no_answer" if not move else "illegal" if e is None else "right" if e in in_time else "wrong"
+            if ans["finish"] == "refusal":  # the provider's safety filter declined: not a move at all
+                move, e, verdict = "", None, "refused"
             row = {
                 "k": k,
                 "win_in": att.puzzle.need,
@@ -210,12 +315,14 @@ class Probe:
     def summary(self, res: dict) -> dict:
         a = self.args
         all_tiers = len(json.loads((PACKS / "manifest.json").read_text())["tiers"])
+        # A fifth bin, only when the provider refused at least once, so earlier summaries stay as they were.
+        verdicts = VERDICTS + ("refused",) if any(r["verdict"] == "refused" for r in self.rows) else VERDICTS
 
         def split(rows: list) -> dict:
             c = Counter(r["verdict"] for r in rows)
             return {
                 "calls": len(rows),
-                **{v: c[v] for v in VERDICTS},
+                **{v: c[v] for v in verdicts},
                 "chance": round(statistics.mean(r["right_moves"] / r["legal"] for r in rows), 3),
                 "thinking_tokens_median": int(statistics.median(r["thoughts"] for r in rows)),
                 "hit_output_limit": sum(r["finish"] == "MAX_TOKENS" for r in rows),
@@ -239,6 +346,11 @@ class Probe:
             "calls_cached": len(self.rows) - self.new,
             "tokens": {t: sum(r[t] for r in self.rows) for t in ("prompt", "thoughts", "out")},
         }
+        if self.provider != "gemini" and not self.fake:  # Gemini summaries keep their original shape
+            out["provider"] = self.provider
+        if a.parse != "last":
+            out["parse"] = "first move in the answer (default: last)"
+            out["thinking_tokens_reported_separately"] = not any(r.get("thinking_split") is False for r in self.rows)
         (OUT / f"{self.name}.summary.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
 
         print(f"\n{self.name}: stateless play, {a.per_tier} puzzles per tier, one fresh call per move")
@@ -249,6 +361,9 @@ class Probe:
                 f"{n:>6} | {f['right']:>17} {f['wrong']:>5} {f['illegal']:>7} {f['no_answer']:>9} | "
                 f"{f['chance']:>6.3f} | {rate:>14.2f} | {f['thinking_tokens_median']:>8}"
             )
+        if "refused" in verdicts:
+            print(f"refused by the provider's safety filter: {sum(r['verdict'] == 'refused' for r in self.rows)} calls, "
+                  f"{sum(f.get('refused', 0) for f in first.values())} of them first moves")
         print(f"score over these tiers: {out['score_these_tiers']:.3f}")
         print(f"score over all {all_tiers} task tiers, deeper tiers counted as 0: {out['score_all_task_tiers']:.3f}")
         t = out["tokens"]
@@ -273,6 +388,10 @@ def main() -> None:
     ap.add_argument("--max-calls", type=int, default=400, help="stop before making more new API calls than this")
     ap.add_argument("--max-output", type=int, default=0, help="output token cap; default is the model's limit, at most the task harness cap")
     ap.add_argument("--thinking-level", default=None, help="sent as thinkingLevel; leave out to use the API default")
+    ap.add_argument("--provider", choices=("gemini", "anthropic", "nvidia"), default=None,
+                    help="API to call; default from the model id: claude-* is anthropic, org/model is nvidia, else gemini")
+    ap.add_argument("--parse", choices=("last", "first"), default="last",
+                    help="which from-to move in the answer counts; first suits models that explain after the move (use with --tag)")
     ap.add_argument("--tag", default="", help="separate cache and results, for an independent repeat")
     args = ap.parse_args()
     try:

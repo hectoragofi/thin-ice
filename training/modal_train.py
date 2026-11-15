@@ -30,9 +30,10 @@ data = modal.Volume.from_name("thinice-data", create_if_missing=True)  # labels 
 
 
 GPU = os.environ.get("THINICE_GPU", "A100-80GB")  # read on your machine when you call `modal run`
+TIMEOUT_MIN = int(os.environ.get("THINICE_TIMEOUT_MIN", 24 * 60))  # likewise
 
 
-@app.function(gpu=GPU, timeout=24 * 60 * 60, volumes={"/runs": runs, "/root/.cache/huggingface": weights, "/data": data})
+@app.function(gpu=GPU, timeout=TIMEOUT_MIN * 60, volumes={"/runs": runs, "/root/.cache/huggingface": weights, "/data": data})
 def train(model: str, name: str, examples: int, bs: int, accum: int, lr: float, rank: int, eval_at: str) -> str:
     import json
     import subprocess
@@ -44,7 +45,13 @@ def train(model: str, name: str, examples: int, bs: int, accum: int, lr: float, 
         "--examples", str(examples), "--bs", str(bs), "--accum", str(accum),
         "--lr", str(lr), "--rank", str(rank), "--eval-at", eval_at,
     ]  # fmt: skip
-    subprocess.run(cmd, check=True, cwd="/repo")
+    proc = subprocess.Popen(cmd, cwd="/repo", stdout=subprocess.PIPE, text=True, bufsize=1)
+    for line in proc.stdout:
+        print(line, end="", flush=True)
+        if line.startswith("[eval]"):  # curve.json was just rewritten: persist it in case of a timeout
+            runs.commit()
+    if proc.wait():
+        raise subprocess.CalledProcessError(proc.returncode, cmd)
     runs.commit()
     return Path(f"/runs/{name}/curve.json").read_text()
 

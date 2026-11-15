@@ -41,6 +41,7 @@ MODELS = [
     ("haiku55", "Claude Haiku 5.5", "Haiku 5.5", "Claude", "model", "The AI", ["clock-24d6707-haiku55-x1", "clock-24d6707-haiku55-x2b"]),
     ("sonnet5", "Claude Sonnet 5", "Sonnet 5", "Claude", "model", "The AI", ["clock-24d6707-sonnet5-x1", "clock-24d6707-sonnet5-x2b"]),
     ("opus55", "Claude Opus 5.5", "Opus 5.5", "Claude", "model", "The AI", ["clock-24d6707-opus55-x*"]),
+    ("fable52", "Claude Fable 5.2", "Fable 5.2", "Claude", "model", "The AI", ["clock-24d6707-fable52-x*"]),
     ("nemotron3-ultra", "Nemotron 3 Ultra", "Nemotron 3 Ultra", "NVIDIA", "model", "The AI", ["nim-24d6707-nemotron3-ultra-x*"]),
     ("reference", "Perfect play (solver)", "Perfect play", "Reference", "ref", "The solver", ["clock-24d6707-reference"]),
     ("reference-search", "Rules-only search, 20 s per puzzle", "Rules-only search", "Reference", "ref", "The search", ["clock-24d6707-reference-search"]),
@@ -282,28 +283,81 @@ def cost_of(t: Path):
         return None
 
 
-def collect():
+def sheet(t: Path):
+    """(details, None) for a counted attempt, or (None, reason) for one that is left out."""
+    try:
+        det = json.loads((t / "verifier" / "details.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        det = None
+    if not det or not isinstance(det.get("puzzles"), list) or "solved" not in det or "total" not in det:
+        return None, ("no score sheet yet (still running or not started)" if not (t / "result.json").exists() and not (t / "exception.txt").exists()
+                      else "no usable score sheet (verifier/details.json)")
+    n_open = sum(1 for r in det["puzzles"] if r["status"] == "open")
+    if (t / "exception.txt").exists() and n_open:
+        return None, f"an API error ended the session with {plural(n_open, 'puzzle')} still open"
+    return det, None
+
+
+# Side experiment: the same task with one added instruction line telling the agent to play N practice puzzles first
+# (experiments/practice/build_practice.py). Kept apart from every other number on the page.
+PRACTICE_ARMS = [("p12", "Told to practise 12", 12), ("p30", "Told to practise 30", 30)]
+
+
+def practice_experiment(groups: list) -> tuple:
+    out, notes = [], []
+    for g in groups:
+        if g["kind"] != "model":
+            continue
+        arms = []
+        for key, label, told in PRACTICE_ARMS:
+            dirs = sorted(d for d in JOBS.glob(f"practice-24d6707-{g['slug']}-{key}-x*") if d.is_dir())
+            runs, left = [], []
+            for d in dirs:
+                for t in sorted(d.glob("task__*"), key=lambda p: p.name.lower()):
+                    det, why = sheet(t)
+                    if why:
+                        left.append(f"{d.name}/{t.name}: {why}")
+                    else:
+                        runs.append({"reward": det["reward"], "solved": det["solved"], "total": det["total"], "played": det.get("practice_started") or 0})
+            if dirs and not runs and not left:
+                left.append(f"{', '.join(d.name for d in dirs)}: no attempts yet (still running)")
+            notes += [f"{g['label']} {label.lower()}: {x}" for x in left]
+            if runs:
+                arms.append({"key": key, "label": label, "told": told, "runs": runs})
+        if not arms or not g["runs"]:
+            continue
+        base = [{"reward": r["reward"], "solved": r["solved"], "total": r["total"], "played": r["practice"] or 0} for r in g["runs"]]
+        arms.insert(0, {"key": "base", "label": "No practice instruction", "told": 0, "runs": base})
+        for a in arms:
+            s, n = sum(r["solved"] for r in a["runs"]), sum(r["total"] for r in a["runs"])
+            a["mean"] = round(s / n, 4)
+        out.append({"slug": g["slug"], "label": g["label"], "jobs": g["jobs"], "arms": arms})
+    return out, notes
+
+
+# Side experiment "deep set": same rules, tools and verifier, 6 puzzles with a forced win in 7, 8 and 9 moves
+# (experiments/deep/build_deep.py). Its puzzles come from the same scored pack, so frames() grades them as is.
+# The extra field names the main-test group each row is shown next to; none of this enters any main-test number.
+DEEP_MODELS = [
+    ("deep-opus55", "Claude Opus 5.5", "Opus 5.5", "Deep set", "deep", "The AI", ["deep-24d6707-opus55-x*"], "opus55"),
+    ("deep-carbon", "Gemini 4 Carbon", "Carbon", "Deep set", "deep", "The AI", ["deep-24d6707-carbon-x*"], "carbon"),
+    ("deep-reference", "Perfect play (solver)", "Perfect play", "Deep set", "deep", "The solver", ["deep-24d6707-reference"], "reference"),
+    ("deep-do-nothing", "Baseline: do nothing", "Do nothing", "Deep set", "deep", "The baseline", ["deep-24d6707-do-nothing"], "do-nothing"),
+]
+
+
+def collect(models=None):
     groups, excluded_all, puzzles = [], [], None
-    for slug, label, short, maker, kind, actor, patterns in MODELS:
+    for slug, label, short, maker, kind, actor, patterns, *of in (models or MODELS):
         dirs = sorted({d for pat in patterns for d in JOBS.glob(pat) if d.is_dir()}, key=lambda d: d.name.lower())
         runs, excluded = [], []
         for d in dirs:
             for t in sorted(d.glob("task__*"), key=lambda p: p.name.lower()):
-                f = t / "verifier" / "details.json"
-                try:
-                    det = json.loads(f.read_text(encoding="utf-8"))
-                except (OSError, ValueError):
-                    det = None
-                if not det or not isinstance(det.get("puzzles"), list) or "solved" not in det or "total" not in det:
-                    why = "no score sheet yet (still running or not started)" if not (t / "result.json").exists() and not (t / "exception.txt").exists() \
-                        else "no usable score sheet (verifier/details.json)"
+                det, why = sheet(t)
+                if why:
                     excluded.append({"job": d.name, "trial": t.name, "reason": why})
                     continue
                 rows = sorted(det["puzzles"], key=lambda r: r["id"])
-                n_open = sum(1 for r in rows if r["status"] == "open")
-                if (t / "exception.txt").exists() and n_open:
-                    excluded.append({"job": d.name, "trial": t.name, "reason": f"an API error ended the session with {plural(n_open, 'puzzle')} still open"})
-                    continue
                 ids = [(r["id"], r["win_in"]) for r in rows]
                 if puzzles is None:
                     puzzles = ids
@@ -320,7 +374,13 @@ def collect():
                        "jobs": [d.name for d in dirs], "solved": solved, "total": total,
                        "mean": round(solved / total, 4) if total else None, "runs": runs, "excluded": excluded,
                        "cost": round(sum(costs) / len(costs), 4) if costs else None, "cost_n": len(costs)})
-    return groups, excluded_all, [{"id": i, "num": int(i[1:]), "win_in": w} for i, w in puzzles]
+        if of:
+            groups[-1]["of"] = of[0]
+    pz = [{"id": i, "num": int(i[1:]), "win_in": w} for i, w in (puzzles or [])]
+    if models is not None:
+        for g in groups:
+            g["puzzles"] = pz
+    return groups, excluded_all, pz
 
 
 PAGE = (Path(__file__).resolve().parent / "replay_site.html").read_text(encoding="utf-8")
@@ -329,7 +389,10 @@ PAGE = (Path(__file__).resolve().parent / "replay_site.html").read_text(encoding
 def main() -> None:
     out = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "demo" / "replays.html"
     groups, excluded, puzzles = collect()
-    data = {"w": W, "h": H, "files": FILES, "puzzles": puzzles, "groups": groups, "demo": demo(), "learn": learning(),
+    practice, practice_notes = practice_experiment(groups)
+    deep, deep_excluded, _ = collect(DEEP_MODELS)
+    deep_shown = [g for g in deep if g["runs"]]
+    data = {"w": W, "h": H, "files": FILES, "puzzles": puzzles, "groups": groups + deep_shown, "demo": demo(), "learn": learning(), "practice": practice,
             "source": "jobs/final (job names clock-24d6707-* and nim-24d6707-*)"}
     js = json.dumps(data, separators=(",", ":"), sort_keys=True).replace("</", "<\\/")
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -344,6 +407,19 @@ def main() -> None:
     print("excluded attempts:" if excluded else "excluded attempts: none")
     for e in excluded:
         print(f"  {e['model']}: {e['job']}/{e['trial']}: {e['reason']}")
+    print("practice experiment (side experiment, not in any other number):")
+    for p in practice:
+        for a in p["arms"]:
+            print(f"  {p['label']} / {a['label']}: {plural(len(a['runs']), 'run')}, mean {a['mean']:.3f}; played "
+                  + ", ".join(str(r["played"]) for r in a["runs"]) + "; rewards " + ", ".join(f"{r['reward']:.3f}" for r in a["runs"]))
+    for x in practice_notes:
+        print(f"  not shown: {x}")
+    print("deep set (side experiment, not in any other number):")
+    for g in deep_shown:
+        print(f"  {g['label']}: {plural(len(g['runs']), 'run')}, {g['solved']}/{g['total']}; rewards " + ", ".join(f"{r['reward']:.3f}" for r in g["runs"])
+              + "; by puzzle " + " ".join(c["state"] for r in g["runs"] for c in r["cells"]))
+    for e in deep_excluded:
+        print(f"  not shown: {e['model']}: {e['job']}/{e['trial']}: {e['reason']}")
 
 
 if __name__ == "__main__":

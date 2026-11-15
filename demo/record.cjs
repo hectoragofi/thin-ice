@@ -1,7 +1,7 @@
 // Records the demo page and prints the deck, with a headless Chromium from Playwright.
 //
 //   NODE_PATH="$(npm root -g)" node demo/record.cjs shots    # one PNG per scene in demo/shots/ (to check)
-//   NODE_PATH="$(npm root -g)" node demo/record.cjs deck     # demo/thin-ice-deck.pdf (8 slides, 16:9)
+//   NODE_PATH="$(npm root -g)" node demo/record.cjs deck     # demo/thin-ice-deck.pdf (9 slides, 16:9)
 //   NODE_PATH="$(npm root -g)" node demo/record.cjs video    # demo/raw.webm + demo/start.txt (seconds to trim)
 //
 // Needs `npm i -g playwright` (or a local install) and its Chromium. ffmpeg turns raw.webm into the mp4.
@@ -11,8 +11,8 @@ const fs = require('fs');
 
 const DEMO = __dirname;
 const url = q => 'file:///' + path.join(DEMO, 'index.html').replace(/\\/g, '/') + q;
-const DECK = ['title', 'mistake', 'gap', 'depth', 'fair', 'exploit', 'learn', 'repro'];
-const ALL = ['title', 'question', 'game', 'mistake', 'gap', 'depth', 'fair', 'exploit', 'learn', 'repro'];
+const DECK = ['title', 'mistake', 'gap', 'depth', 'horizon', 'fair', 'exploit', 'learn', 'repro'];
+const ALL = ['title', 'question', 'game', 'mistake', 'gap', 'depth', 'horizon', 'fair', 'exploit', 'learn', 'repro'];
 const VIEW = { width: 1920, height: 1080 };
 
 async function stills(ids, dir) {
@@ -57,7 +57,7 @@ async function stills(ids, dir) {
     const page = await ctx.newPage();
     await page.goto(url('?rec'));
     const start = await page.evaluate(() => performance.timeOrigin + performance.now());
-    await page.waitForFunction(() => window.__demo && window.__demo.done, null, { timeout: 200000, polling: 250 });
+    await page.waitForFunction(() => window.__demo && window.__demo.done, null, { timeout: 240000, polling: 250 });
     await page.waitForTimeout(1500); // hold the closing card
     const video = page.video();
     await ctx.close();
