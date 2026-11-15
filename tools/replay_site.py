@@ -288,10 +288,26 @@ def learning() -> dict:
             if any(str(t) not in by for t in range(1, 7)) or (probe and s.get("per_tier") != probe[0]["per_tier"]):
                 print(f"learning: {f.relative_to(ROOT)} incomplete (tiers {sorted(by)}, {s.get('per_tier')} per tier), left out")
                 continue
-            other.append({"label": s.get("model") or f.stem, "score": s["score_these_tiers"], "per_tier": s.get("per_tier"), "tiers": [by[str(t)] for t in range(1, 7)]})
+            first = s.get("parse") == "first" or s.get("tag") == "parse-first"
+            other.append({"label": s.get("model") or f.stem, "score": s["score_these_tiers"], "per_tier": s.get("per_tier"), "tiers": [by[str(t)] for t in range(1, 7)], "_first": first, "_f": f.name})
         except (OSError, ValueError, KeyError):
             print(f"learning: {f.relative_to(ROOT)} unreadable, left out")
-    out["probe"], out["probe_older"], out["probe_other"] = probe, older, other
+    # one series per model: a summary parsed by the first move in the answer ("parse": "first") replaces the untagged one,
+    # which read the last move in the model's explanation and is kept in the repo only as a record
+    one = {}
+    for q in other:
+        k = q["label"]
+        if k not in one or (q["_first"] and not one[k]["_first"]):
+            if k in one:
+                print(f"learning: probe {one[k]['_f']} replaced by {q['_f']}")
+            one[k] = q
+        else:
+            print(f"learning: probe {q['_f']} left out, {one[k]['_f']} kept")
+    other = [{k: v for k, v in q.items() if not k.startswith("_")} for q in sorted(one.values(), key=lambda q: q["label"])]
+    # probes that never finished (a .partial.json only): named in the text, never drawn
+    done = {q["label"] for q in other}
+    partial = sorted({f.name.split(".")[0] for f in (ROOT / "results" / "probe").glob("*.partial.json")} - done)
+    out["probe"], out["probe_older"], out["probe_other"], out["probe_partial"] = probe, older, other, partial
     return out
 
 
