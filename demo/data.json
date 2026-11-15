@@ -1668,6 +1668,184 @@
    "diff_puzzles": -0.12
   }
  ],
+ "effort": [
+  {
+   "slug": "effort-opus55-high",
+   "of": "opus55",
+   "model": "Claude Opus 5.5",
+   "level": "high",
+   "runs": 3,
+   "excluded": 0,
+   "mean": 0.6389,
+   "bands": {
+    "mid": {
+     "solved": 11,
+     "of": 12
+    },
+    "edge": {
+     "solved": 1,
+     "of": 12
+    }
+   },
+   "lost_clock": 0
+  },
+  {
+   "slug": "effort-carbon-high",
+   "of": "carbon",
+   "model": "Gemini 4 Carbon",
+   "level": "high",
+   "runs": 3,
+   "excluded": 0,
+   "mean": 0.6389,
+   "bands": {
+    "mid": {
+     "solved": 11,
+     "of": 12
+    },
+    "edge": {
+     "solved": 0,
+     "of": 12
+    }
+   },
+   "lost_clock": 0
+  },
+  {
+   "slug": "effort-carbon-low",
+   "of": "carbon",
+   "model": "Gemini 4 Carbon",
+   "level": "low",
+   "runs": 3,
+   "excluded": 0,
+   "mean": 0.5,
+   "bands": {
+    "mid": {
+     "solved": 6,
+     "of": 12
+    },
+    "edge": {
+     "solved": 0,
+     "of": 12
+    }
+   },
+   "lost_clock": 2
+  }
+ ],
+ "effort_rows": [
+  {
+   "model": "Gemini 4 Carbon",
+   "level": "low",
+   "runs": 3,
+   "mean": 0.5,
+   "bands": {
+    "mid": {
+     "solved": 6,
+     "of": 12
+    },
+    "edge": {
+     "solved": 0,
+     "of": 12
+    }
+   }
+  },
+  {
+   "model": "Gemini 4 Carbon",
+   "level": "default",
+   "runs": 17,
+   "mean": 0.5931,
+   "bands": {
+    "mid": {
+     "solved": 48,
+     "of": 68
+    },
+    "edge": {
+     "solved": 5,
+     "of": 68
+    }
+   }
+  },
+  {
+   "model": "Gemini 4 Carbon",
+   "level": "high",
+   "runs": 3,
+   "mean": 0.6389,
+   "bands": {
+    "mid": {
+     "solved": 11,
+     "of": 12
+    },
+    "edge": {
+     "solved": 0,
+     "of": 12
+    }
+   }
+  },
+  {
+   "model": "Claude Opus 5.5",
+   "level": "default",
+   "runs": 8,
+   "mean": 0.5312,
+   "bands": {
+    "mid": {
+     "solved": 16,
+     "of": 32
+    },
+    "edge": {
+     "solved": 8,
+     "of": 32
+    }
+   }
+  },
+  {
+   "model": "Claude Opus 5.5",
+   "level": "high",
+   "runs": 3,
+   "mean": 0.6389,
+   "bands": {
+    "mid": {
+     "solved": 11,
+     "of": 12
+    },
+    "edge": {
+     "solved": 1,
+     "of": 12
+    }
+   }
+  }
+ ],
+ "losses_all": {
+  "wrong move": 579,
+  "too slow": 7,
+  "clock": 10,
+  "given up": 13,
+  "not reached": 7
+ },
+ "summary": {
+  "head": "Every model has a planning horizon. Thin Ice measures where it is.",
+  "lines": [
+   "An invented game, solved exactly. No code, only the model's own planning.",
+   "10 models: 6 of 10 score 0.4 to 0.6. The solver 1.000, 80 lines of search 0.917.",
+   "The horizon is about three moves. At 7 to 9 moves, two families win 0 of 30.",
+   "579 of 616 losses are moves the solver proves wrong. 96 attacks plus 13 on the clock failed.",
+   "Practice in a session does not help. Training takes a 0.6B model from 0.003 to 0.320."
+  ]
+ },
+ "sizes": [
+  {
+   "label": "Qwen3-0.6B",
+   "examples": 200000,
+   "score": 0.2233
+  },
+  {
+   "label": "Qwen3-1.7B",
+   "examples": 200000,
+   "score": 0.26
+  },
+  {
+   "label": "Qwen3-4B",
+   "examples": 200000,
+   "score": 0.28
+  }
+ ],
  "practice_max_puzzles": 1.0,
  "probe": {
   "argon": {
@@ -2038,6 +2216,14 @@
    ]
   },
   {
+   "id": "effort",
+   "dur": 9,
+   "cap": [
+    "More thinking moves the middle, not the edge.",
+    "At high effort, Carbon and Opus 5.5 both win 11 of 12 at 3 to 4 moves, and 0 and 1 of 12 at 5 to 6."
+   ]
+  },
+  {
    "id": "fair",
    "dur": 10,
    "cap": [
@@ -2063,6 +2249,13 @@
    ]
   },
   {
+   "id": "summary",
+   "dur": 11,
+   "cap": [
+    "Every model has a planning horizon. Thin Ice measures where it is."
+   ]
+  },
+  {
    "id": "repro",
    "dur": 7,
    "cap": [
@@ -2070,5 +2263,5 @@
    ]
   }
  ],
- "total": 121
+ "total": 141
 }

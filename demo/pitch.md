@@ -2,7 +2,7 @@
 
 Open `demo/index.html` in a browser, full screen (F11). It starts playing by itself.
 **Space** pauses, **right arrow** jumps to the next scene, **left arrow** restarts the scene (twice: previous scene).
-Scenes in order: 1 question, 2 game, 3 real mistake, 4 score ladder, 5 depth chart, 6 horizon, 7 fair, 8 attacks, 9 small model, 10 closing card.
+Scenes in order: 1 question, 2 game, 3 real mistake, 4 score ladder, 5 depth chart, 6 horizon, 7 effort, 8 fair, 9 attacks, 10 small model, 11 summary, 12 closing card.
 For a table pitch, press **space** right away to pause, then drive it with the arrows.
 
 Numbers marked "on screen" come from `demo/data.json`; run `python demo/build_data.py` before the pitch so they are the latest.
@@ -31,15 +31,15 @@ Reviewers score Innovation, Impact and Implementation. Lead with why it matters,
 - Scene 4: "Score is puzzles won out of 12. Perfect play 1.000. Eighty lines of search that only know the rules: 0.917. Ten models, 101 runs. Best over many runs: Gemini 4 Carbon, 0.593 over 17. Claude Fable 5.2 got 0.750 in one run: a data point, not a rank. Nemotron 3 Ultra at the bottom, 0.194."
 - Scene 5: "Here is where it breaks. Over all 49 Gemini 4 runs: win in 1 and 2, 97 of 98. Win in 3, 76. Win in 4, 43. Win in 5 and 6, 7 each. The horizon is about three moves."
 
-**2:50 to 3:30. Moving the horizon. Scene 6.**
+**2:50 to 3:30. Moving the horizon. Scenes 6 and 7.**
 - "Then we added depth: a variant with win in 7, 8 and 9. Claude Opus 5.5: 0 of 12. Gemini 4 Carbon: 0 of 18. The solver: 6 of 6."
 - "Look at Fable's row: perfect up to win in 4, then 1 of 4. Each model has a depth where it stops, and the environment shows exactly where."
 
-**3:30 to 4:10. Why you can trust it. Scenes 7 and 8.**
+**3:30 to 4:10. Why you can trust it. Scenes 8 and 9.**
 - "Is it the clock? No. Of 261 puzzles Gemini 4 lost, 258 were moves the solver proves wrong. 3 ran out of time. The rules, notes and unlimited practice are always there."
 - "We attacked our own reward: 96 attacks plus 13 on the clock. None got through. The score sheet is signed by the game server."
 
-**4:10 to 5:00. Can a model learn here? Scenes 9 and 10.**
+**4:10 to 5:00. Can a model learn here? Scene 10, then scene 11 (summary, let it play) and 12.**
 - "Practising inside a session does not help: we told Haiku, Argon and Carbon to practise first, and every change was within one puzzle."
 - "Training does. A tiny model, Qwen3 0.6B, one move per call on held-out puzzles: 0.003 untrained, 0.320 trained on the winning moves, 0.207 from the reward bit alone. Gemini 4 scores 0.40 to 0.52 in that same one-move setting."
 - "Every model has a planning horizon. Thin Ice measures where it is, and you can move the horizon by adding depth. One command reproduces it. Questions?"
@@ -54,7 +54,7 @@ Reviewers score Innovation, Impact and Implementation. Lead with why it matters,
 - *Can a model learn here?* "Training, yes: Qwen3 0.6B goes from 0.003 to 0.320 in the one-move setting. In-session practice, no: every change within one puzzle."
 - *Why so few Claude runs?* "Gemini has 14 to 18 runs per model. Opus has 8, Haiku and Sonnet 5 have 3, Fable 1, so those are indicative. Sonnet 5.5 refused the task at the provider; Mistral Large 4 was too slow for the move clock, so neither is scored."
 - *Is the game too artificial?* "That is the point: new, so nothing is memorised; solved, so nothing is guessed. The skill, holding a forced line in your head, is general."
-- *Can the model cheat?* Scene 8.
+- *Can the model cheat?* Scene 9.
 
 ## Three-minute stage pitch (top five)
 
@@ -66,8 +66,8 @@ Reviewers score Innovation, Impact and Implementation. Lead with why it matters,
 
 **1:20 to 2:00. Scenes 4 and 5.** "Rules-only search: 0.917. Ten models: 0.194 to 0.750, the best over many runs 0.593. Over 49 Gemini 4 runs, win in 2 is nearly always won, win in 5 almost never. The horizon is about three moves."
 
-**2:00 to 2:30. Scene 6.** "Add depth, win in 7 to 9: Opus 5.5 0 of 12, Gemini 4 Carbon 0 of 18, the solver 6 of 6. The horizon moves, and the environment shows exactly where."
+**2:00 to 2:30. Scenes 6 and 7.** "Add depth, win in 7 to 9: Opus 5.5 0 of 12, Gemini 4 Carbon 0 of 18, the solver 6 of 6. The horizon moves, and the environment shows exactly where."
 
-**2:30 to 2:50. Scenes 7 and 9.** "258 of 261 losses are wrong moves, not the clock. Practising inside a session does not help; training does: a 0.6B model goes from 0.003 to 0.320 in the one-move setting."
+**2:30 to 2:45. Scenes 8 and 10.** "258 of 261 losses are wrong moves, not the clock. Practising inside a session does not help; training does: a 0.6B model goes from 0.003 to 0.320 in the one-move setting."
 
-**2:50 to 3:00. Scene 10.** "Every model has a planning horizon. Thin Ice measures where it is, and you can move it by adding depth. One command reproduces it."
+**2:45 to 3:00. Scene 11 (summary), then 12.** "Every model has a planning horizon. Thin Ice measures where it is, and you can move it by adding depth. One command reproduces it."

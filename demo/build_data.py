@@ -147,6 +147,7 @@ def red_refutation(blue: int, red: int):
 graded = []  # every losing move in every kept agent run
 reach = {"runs": 0, "puzzles": 0, "reached": 0, "out_of_time": 0, "skipped": 0, "lost": 0}
 g4 = {"runs": 0, "lost": 0, "wrong_move": 0, "clock": 0, "skipped": 0, "other": 0}
+all_losses: dict = {}  # "wrong move" = the solver proves Red now wins (or a draw); "too slow" = still winning, out of moves
 for slug, a in agents.items():
     for r in a["_runs"]:
         d = r["details"]
@@ -158,6 +159,11 @@ for slug, a in agents.items():
             if row["status"] != "open" or row["history"]:
                 reach["reached"] += 1
             g = diagnose(row)
+            if row["status"] != "solved":  # every puzzle not won, all kept runs, split by cause
+                cause = (("too slow" if g["kind"] == "too slow" else "wrong move") if g else
+                         "clock" if row.get("reason") == "out of time" else "given up" if row.get("reason") == "skipped" else
+                         "not reached" if row["status"] == "open" else "other")
+                all_losses[cause] = all_losses.get(cause, 0) + 1
             if row["status"] == "failed":
                 reach["lost"] += 1
                 reach["out_of_time"] += row.get("reason") == "out of time"
@@ -233,6 +239,46 @@ for slug in ("reference", "fable52", "opus55", "carbon"):
     horizon.append({"slug": slug, "label": src["label"], "main_runs": src["landed"], "main": src["solved_by_tier"],
                     "deep_runs": deep.get(slug, {}).get("runs"), "deep": deep.get(slug, {}).get("by_tier")})
 
+# ---------------------------------------------------------------- effort side experiment (never in a main number)
+EFFORT_MODELS = getattr(RS, "EFFORT_MODELS", [
+    ("effort-opus55-high", "Claude Opus 5.5, high effort", "Opus 5.5 high", "Effort", "effort", "The AI", ["effort-24d6707-opus55-high-x*"], "opus55"),
+    ("effort-carbon-high", "Gemini 4 Carbon, high effort", "Carbon high", "Effort", "effort", "The AI", ["effort-24d6707-carbon-high-x*"], "carbon"),
+    ("effort-carbon-low", "Gemini 4 Carbon, low effort", "Carbon low", "Effort", "effort", "The AI", ["effort-24d6707-carbon-low-x*"], "carbon"),
+])
+
+
+def bands(tiers) -> dict | None:
+    """Solved / played at win in 3-4 (the middle) and 5-6 (the edge)."""
+    if not tiers:
+        return None
+    return {k: {"solved": sum(tiers[str(t)]["solved"] for t in ts), "of": sum(tiers[str(t)]["of"] for t in ts)}
+            for k, ts in (("mid", (3, 4)), ("edge", (5, 6)))}
+
+
+effort = []
+for slug, label, short, maker, kind, _actor, patterns, of in EFFORT_MODELS:
+    runs, excl = collect(patterns)
+    if not runs or of not in agents:
+        continue
+    level = "high" if "high" in slug else "low" if "low" in slug else "?"
+    tiers = by_tier(runs, TIERS)
+    effort.append({"slug": slug, "of": of, "model": agents[of]["label"], "level": level, "runs": len(runs), "excluded": len(excl),
+                   "mean": round(sum(r["details"]["solved"] for r in runs) / sum(r["details"]["total"] for r in runs), 4),
+                   "bands": bands(tiers), "lost_clock": sum(1 for r in runs for row in r["details"]["puzzles"] if row.get("reason") == "out of time")})
+effort_rows = []  # per model: low (if run), default (main task), high
+for of in ("carbon", "opus55"):
+    arms = {e["level"]: e for e in effort if e["of"] == of}
+    if not arms:
+        continue
+    a = agents[of]
+    for lv in ("low", "default", "high"):
+        if lv == "default":
+            effort_rows.append({"model": a["label"], "level": "default", "runs": a["landed"], "mean": a["value"], "bands": bands(a["solved_by_tier"])})
+        elif lv in arms:
+            e = arms[lv]
+            effort_rows.append({"model": e["model"], "level": lv, "runs": e["runs"], "mean": e["mean"], "bands": e["bands"]})
+eff_high = [e for e in effort if e["level"] == "high"]
+
 # ---------------------------------------------------------------- forced-practice side experiment
 practice = []
 for slug in ("haiku55", "argon", "carbon"):
@@ -281,6 +327,16 @@ def curve_points(d: dict) -> list:
 imit = json.loads((ROOT / "results" / "curve-qwen3-0.6b-7x6.json").read_text())
 imit_pts = curve_points(imit)
 small = {"label": "Qwen3-0.6B", "untrained": imit_pts[0], "trained": imit_pts[-1]}
+SIZES_AT = 200000  # the largest example count every size reached (the 4B run stopped there)
+sizes = []
+for sz in ("0.6b", "1.7b", "4b"):
+    try:
+        cp = curve_points(json.loads((ROOT / "results" / f"curve-qwen3-{sz}-7x6.json").read_text()))
+        at = next((p for p in cp if p["x"] == SIZES_AT), None)
+        if at:
+            sizes.append({"label": f"Qwen3-{sz.upper()}", "examples": SIZES_AT, "score": at["score"]})
+    except (OSError, ValueError):
+        pass
 
 rl_raw, rl_src = None, None
 local = ROOT / RL_FILE
@@ -387,9 +443,37 @@ LEARN_CAP = [
     f"Gemini 4 scores {min(probe_means):.2f} to {max(probe_means):.2f} in that same one-move setting." if probe_means else "Gemini 4 in that same setting: pending.",
 ]
 
+def eh(of):
+    e = next((x for x in eff_high if x["of"] == of), None)
+    return e and e["bands"]
+
+
+_ec, _eo = eh("carbon"), eh("opus55")
+if _ec and _eo:
+    same_mid = _ec["mid"] == _eo["mid"]
+    EFFORT_CAP = ["More thinking moves the middle, not the edge.",
+                  (f"At high effort, {agents['carbon']['short']} and {agents['opus55']['short']} both win "
+                   + (f"{_ec['mid']['solved']} of {_ec['mid']['of']}" if same_mid else f"{_ec['mid']['solved']} of {_ec['mid']['of']} and {_eo['mid']['solved']} of {_eo['mid']['of']}")
+                   + f" at 3 to 4 moves, and {_ec['edge']['solved']} and {_eo['edge']['solved']} of {_ec['edge']['of']} at 5 to 6.")]
+else:
+    EFFORT_CAP = ["More thinking: pending."]
+
+in_band = [a for a in measured if 0.4 <= a["value"] <= 0.6]
+deep_models = [deep[k] for k in ("opus55", "carbon") if k in deep]
+deep_s, deep_n = sum(d["solved"] for d in deep_models), sum(d["total"] for d in deep_models)
+lost_total = sum(all_losses.values())
+SUMMARY_HEAD = "Every model has a planning horizon. Thin Ice measures where it is."
+SUMMARY = [
+    "An invented game, solved exactly. No code, only the model's own planning.",
+    f"{n_models} models: {len(in_band)} of {n_models} score 0.4 to 0.6. The solver {f3(ref_v)}, 80 lines of search {f3(search_v)}.",
+    f"The horizon is about three moves. At 7 to 9 moves, two families win {deep_s} of {deep_n}.",
+    f"{all_losses.get('wrong move', 0)} of {lost_total} losses are moves the solver proves wrong. {n(facts['attacks_main'])} attacks plus {n(facts['attacks_clock'])} on the clock failed.",
+    f"Practice in a session does not help. Training takes a 0.6B model from {f3(imit_pts[0]['score'])} to {f3(imit_pts[-1]['score'])}.",
+]
+
 SPINE = "Every model has a planning horizon. Thin Ice measures where it is, and you can move the horizon by adding depth."
 
-# One cut, target about 2:00 (the hard cap in make_video.sh is 2:10). Each scene: id, seconds, caption lines.
+# One cut, target about 2:20 (the hard cap in make_video.sh is 2:25). Each scene: id, seconds, caption lines.
 # Caption lines are spoken in order and spread evenly over the scene. The last scene is the closing card.
 SCENES = [
     {"id": "question", "dur": 6,
@@ -422,6 +506,7 @@ SCENES = [
              f"The solver: {n(dz['reference'].get('solved'))} of {n(dz['reference'].get('total'))}.",
              (f"Even {fable['label']}'s one run won every puzzle to win in 4, then {fable_deeper[0]} of {fable_deeper[1]} deeper."
               if fable_upto4 else "The best runs stop well short of the solver.")]},
+    {"id": "effort", "dur": 9, "cap": EFFORT_CAP},
     {"id": "fair", "dur": 10,
      "cap": [f"Is it the clock? Of {n(g4['lost'])} puzzles Gemini 4 lost, {n(g4['wrong_move'])} were wrong moves. {n(g4['clock'])} ran out of time.",
              f"{reach['reached']} of {reach['puzzles']} puzzles were reached. Rules, notes and practice are always there."]},
@@ -429,6 +514,7 @@ SCENES = [
      "cap": [f"The reward can't be gamed. {n(facts['attacks_main'])} attacks, plus {n(facts['attacks_clock'])} on the clock.",
              "None got through. The score sheet is signed by the game server."]},
     {"id": "learn", "dur": 15, "cap": LEARN_CAP},
+    {"id": "summary", "dur": 11, "cap": [SUMMARY_HEAD]},
     {"id": "repro", "dur": 7,
      "cap": [SPINE]},
 ]
@@ -436,7 +522,7 @@ for sc in SCENES:
     sc["cap"] = [c for c in sc["cap"] if c]
     assert all("—" not in c for c in sc["cap"]), sc["id"]
 TOTAL = sum(sc["dur"] for sc in SCENES)
-assert TOTAL <= 128, TOTAL  # plus 1.5 s on the closing card, the video must stay under 2:10
+assert TOTAL <= 143, TOTAL  # plus 1.5 s on the closing card, the video must stay under 2:25
 
 data = {
     "board": {"w": W, "h": H, "files": FILES},
@@ -455,6 +541,11 @@ data = {
     "deep": deep,
     "horizon": horizon,
     "practice": practice,
+    "effort": effort,
+    "effort_rows": effort_rows,
+    "losses_all": all_losses,
+    "summary": {"head": SUMMARY_HEAD, "lines": SUMMARY},
+    "sizes": sizes,
     "practice_max_puzzles": practice_max,
     "probe": probe,
     "small": small,
@@ -483,6 +574,8 @@ def script_md() -> str:
         "horizon": "Grid by depth, win in 1 to 9: perfect play, Fable 5.2's one run, Opus 5.5, Carbon; the deep set fills win in 7 to 9.",
         "fair": "Three facts: per-puzzle clock, Gemini 4 losses by cause, tools available.",
         "exploit": "Attack counts with every row refused.",
+        "effort": "Effort table: Carbon low, default, high and Opus 5.5 default, high; wins at 3 to 4 moves and at 5 to 6 moves.",
+        "summary": "Summary card: the headline, then five short lines appearing in turn.",
         "learn": "Small model: reward-only and imitation curves, Gemini 4 one-move band; note on in-session practice.",
         "repro": "Closing card: the spine sentence, the command, the repo.",
     }
@@ -529,5 +622,9 @@ print("Fable by depth:", fable_t and " ".join(frac(fable_t, t).replace(" of ", "
 print("practice:", [(p["model"], p["told"], p["runs"], p["mean"], p["diff_puzzles"]) for p in practice], "max", practice_max)
 print("replay:", replay and f"{replay['model']} {replay['id']} {replay['played']} -> {replay['verdict']}; held {replay['held']}; "
       f"same move {replay['same_move_runs']} runs, models {replay['same_move_models']}")
+print("effort:", [(e["slug"], e["runs"], e["mean"], e["bands"], "clock", e["lost_clock"]) for e in effort])
+print("losses, all kept runs:", all_losses, "total", lost_total)
+print("sizes at 200k:", sizes)
+print("summary:", *SUMMARY, sep="\n  ")
 print("excluded:", len(excluded_all), "; not measured:", [x["label"] for x in not_measured])
 print("README source:", README_SRC, "; mismatches:", bad + (not d_ok))
