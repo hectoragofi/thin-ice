@@ -254,8 +254,11 @@ Yes, from nothing to a bit below the Gemini 4 models. This is not the 12-puzzle 
 |---|---|---|---|---|
 | Qwen3-0.6B | 0.003 | **0.320** | 50% → 100% | 1.00 / 0.64 / 0.20 / 0.06 / 0.00 / 0.02 |
 | Qwen3-1.7B | 0.003 | **0.317** | 93% → 100% | 0.98 / 0.58 / 0.28 / 0.06 / 0.00 / 0.00 |
+| Qwen3-4B (200k examples only) | 0.020 | **0.280** at 200k | 91% → 100% | 0.96 / 0.50 / 0.18 / 0.04 / 0.00 / 0.00 |
 
 Scores are the mean over win in 1 to 6, the task's scale. The 0.6B curve is still rising at the end (0.293 at 400k examples). A 0.6B model trained on the environment's own feedback reaches 0.32 against the Gemini 4 models' 0.40 - 0.52 in the same one-move-per-call setting. Qwen was scored on 50 puzzles per tier, the Gemini probes on 10 per tier from the same pool. Curves: `results/curve-qwen3-*-7x6.json`; probes: `results/probe/`.
+
+**Does a bigger model learn more from the same feedback?** Barely. At equal examples the three sizes score: at 100k, 0.193 (0.6B), 0.220 (1.7B), 0.230 (4B); at 200k, 0.223, 0.260, 0.280. The 4B run used the same prompt, held-out pool, batch, learning rate and LoRA settings as the 1.7B run, but stopped at 200k examples for time (about 94 minutes on one H100). Two caveats both favour the 4B: its 200k training positions were drawn from a larger labels file (3.0M positions against 0.6M; same held-out exclusion, each position seen once), and its learning-rate schedule had fully decayed at 200k while the others were mid-schedule. So seven times the parameters buys at most a few hundredths at equal examples, and win in 4 and deeper stays near zero for every size.
 
 **From the reward alone.** `training/reinforce.py` trains Qwen3-0.6B (LoRA, same prompt, same held-out pool and rollout) without ever showing it the right move. The model plays one move per position and receives one bit: 1 if the move brings Blue's forced win one move closer (its value equals that of the fastest winning move), else 0; an illegal or unreadable answer gets 0. Round 0 is exploration only: 400,000 moves drawn at random from the legal moves printed in the position. Rounds 1 to 4 are 40,000 moves each, a shrinking share random (0.5, 0.4, 0.3, 0.2) and the rest sampled from the model. Each round trains on its rewarded moves plus replay.
 
