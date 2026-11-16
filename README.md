@@ -47,6 +47,8 @@ Same task for every model, 90 minutes per run, 101 runs in total.
 
 (The number of runs is inconsistent due to different access to frontier models.)
 
+![Score by model: most land at 0.4 to 0.6, rules-only search wins 11 of 12](docs/img/ladder.png)
+
 The scores hide the real pattern, which is depth. Puzzles won, by how many moves away the win is:
 
 | win in | 1 | 2 | 3 | 4 | 5 | 6 |
@@ -55,6 +57,10 @@ The scores hide the real pattern, which is depth. Puzzles won, by how many moves
 | Claude Opus 5.5, 8 runs | 11/16 | 16/16 | 7/16 | 9/16 | 2/16 | 6/16 |
 | Claude Fable 5.2, 1 run | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 1/2 |
 | Claude Haiku 5.5, 3 runs | 6/6 | 6/6 | 3/6 | 3/6 | 0/6 | 0/6 |
+
+![Share of puzzles solved by depth: the horizon is about three moves](docs/img/depth.png)
+
+![Where the horizon sits, including the deeper win-in-7-to-9 set](docs/img/horizon.png)
 
 Things we checked before believing this:
 
@@ -66,6 +72,8 @@ Things we checked before believing this:
 Twelve puzzles cannot rank models that are close. One puzzle is worth 0.083 and a single model's runs spread from 0.417 to 0.833. Carbon is probably ahead of Argon and Hydrogen. Fable's 0.750 is one run. Sonnet 5.5 has no score because its provider's safety filter refused the task.
 
 Everything else, including how runs were excluded, how each model lost and a second measurement with one move per API call, is in [docs/results.md](docs/results.md).
+
+![Second measure, one move per fresh API call: same cliff past win in 3](docs/img/probe.png)
 
 ## Run it
 
@@ -110,6 +118,8 @@ One gap we know about: someone with a shell inside the agent's container could r
 Practice inside a session does not help. We told Haiku 5.5, Argon and Carbon to play 12 practice puzzles before the scored ones, and their scores moved by about one puzzle at most.
 
 Training does. A Qwen3 model with 0.6 billion parameters, trained on the moves the solver says win, goes from 0.003 to 0.320 on puzzles it never saw. Trained only on a yes or no after each of its own moves, never shown an answer, it gets to 0.207. Those numbers are from a simpler test with one move per call, where Gemini 4 scores 0.40 to 0.52, so they are not really comparable with the table above. A 4B model at the same amount of training is only slightly ahead of the 0.6B. Details in [docs/training.md](docs/training.md).
+
+![Qwen3-0.6B learning from reward alone and from imitation](docs/img/learn.png)
 
 ## Why the agent gets no code
 
