@@ -132,3 +132,4 @@ The longer story, including the harness problems we hit, is in [docs/design.md](
 - Planning horizon is measurable and stable: models solve 1–3, collapse at 5–6, and it is not the clock.
 - More effort fills the middle, not the edge, and more money does not buy reliability.
 - In-session practice does not help, but training on the same feedback moves a 0.6B model from 0.003 to 0.320.
+
